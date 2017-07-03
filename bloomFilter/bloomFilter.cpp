@@ -1,5 +1,8 @@
 #include<iostream>
 #include<iomanip>
+#include<fstream>
+#include<algorithm>
+#include<iterator>
 #include "md5.hpp"
 using namespace std;
 
@@ -60,10 +63,22 @@ bool BloomFilter::readCharacter(unsigned char c) {
 }
 
 int main() {
-  string words[] = { "Hello", "world"};
+  //string words[] = { "Hello", "world"};
+  char word[80];
+
+  ifstream inFile("/usr/share/dict/words");
+  size_t numLines = std::distance(istream_iterator<string>(inFile), istream_iterator<string>());
+
+  string words[numLines+1];
+
+  int index =0;
+
+  while(index < numLines) {
+    getline(inFile,words[index++]);
+  }
 
   BloomFilter bf;
   bf.addToDictionary(words, 2);
 
-  cout << bf.isWordPresent("world") <<endl;
+  cout << bf.isWordPresent("A") <<endl;
 }
