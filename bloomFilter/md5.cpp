@@ -2,6 +2,7 @@
 #include<iostream>
 #include<cstring>
 #include "md5.hpp"
+#define DEBUG 0
 using namespace std;
 
 //Initialization
@@ -90,14 +91,17 @@ void MD5::computeHash(string message, unsigned int hash[4]) {
     memcpy(input+(56-paddingLen), padding, paddingLen);
 
     for(i=0,t=0;t<bytesToFill;i=i+4,t++) {
-      msg[t]=input[i+3];
-      cout<<hex<<(unsigned int)input[i+3]<<"," << input[i+3]<<"\t";
+      msg[t]=(unsigned int)input[i+3];
+      if(DEBUG)
+	cout<<hex<<(unsigned int)input[i+3]<<"," << input[i+3]<<"\t";
       for(int j=i+2;j>=i;j--) {
 	msg[t] = msg[t]<<8;
-	msg[t] =  msg[t] | input[j];
-	cout<<hex <<(unsigned int)input[j] <<"," << input[j]<<"\t";
+	msg[t] =  msg[t] | (unsigned int)input[j];
+	if(DEBUG)
+	  cout<<hex <<(unsigned int)input[j] <<"," << input[j]<<"\t";
       }
-      cout <<endl;
+      if (DEBUG)
+	cout <<endl;
     }
 
     if(isFinal) {
@@ -107,12 +111,16 @@ void MD5::computeHash(string message, unsigned int hash[4]) {
       msgLenInBits = msgLenInBits >>32;
       msg[t]= msgLenInBits & 0xFFFFFFFF;
     }
-    cout <<"Outputting input message " <<endl;
+    if(DEBUG)
+      cout <<"Outputting input message " <<endl;
     for(int k=0;k<16;k++) {
       M[k] = msg[k];
-      cout << hex << M[k] << ",";
+      if(DEBUG)
+	cout << hex << M[k] << ",";
     }
-    cout <<endl;
+    if(DEBUG)
+      cout <<endl;
+    
     //Main loop:
     for(int i=0; i<64;i++) {
       if( (0 <= i) && (i <= 15)) {
