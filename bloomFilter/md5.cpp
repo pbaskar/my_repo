@@ -1,6 +1,7 @@
 // MD5 hashing
 #include<iostream>
 #include<cstring>
+#include "md5.hpp"
 using namespace std;
 
 //Initialization
@@ -27,30 +28,36 @@ const unsigned int K[64] = { 0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
 		0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1, 
 		0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391 };
 
-unsigned int leftRotate(unsigned int s, int c) {
+unsigned int MD5::leftRotate(unsigned int s, int c) {
   return ((s<<c) | (s>>(32-c)));
 }
 
-void computeHash(string message, unsigned int hash[4]) {
+void MD5::computeHash(string message, unsigned int hash[4]) {
   //Initialize variables:
   unsigned int a0 = 0x67452301;   //A
   unsigned int b0 = 0xefcdab89;   //B
   unsigned int c0 = 0x98badcfe;   //C
   unsigned int d0 = 0x10325476;   //D
 
-  long msgLen = message.size();
-
-  if (msgLen == 0) return;
-
-  static unsigned char padding[64] = {
+  static const unsigned char padding[64] = {
     0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   };
 
   static const int blockSize = 64;
+
+  long originalMsgLen = message.size();
+
+  if (originalMsgLen == 0) return;
+
+  if(originalMsgLen%blockSize >= 56) {
+    message.append((char *)padding, 56+(blockSize-originalMsgLen%blockSize));
+  }
+
+  long msgLen = message.size();
     
-  for(int k=0;k<=msgLen/64;k++) {
+  for(int k=0;k<=msgLen/blockSize;k++) {
 
     //Initialize hash value for this chunk:
     unsigned int A = a0;
@@ -94,7 +101,7 @@ void computeHash(string message, unsigned int hash[4]) {
     }
 
     if(isFinal) {
-      long msgLenInBits = msgLen*8;
+      long msgLenInBits = originalMsgLen*8;
       msg[t]= msgLenInBits & 0xFFFFFFFF;
       t++;
       msgLenInBits = msgLenInBits >>32;
@@ -141,20 +148,4 @@ void computeHash(string message, unsigned int hash[4]) {
   hash[1] = b0;
   hash[2] = c0;
   hash[3] = d0;
-}
-
-int main() {
-
-  unsigned int hash[4];
-  //string message = "I am Priya Baskaran.I live in Sherborn.My husband is Dhanu.I have a beautiful daughter named Kavya.";
-  string message="The quick brown fox jumps over the lazy dog";
-  computeHash(message, hash);
-
-  for(int i=0;i<4;i++) {
-    for (int j=0;j<4;j++) {
-      cout <<hex<< (hash[i] & 0xFF);
-      hash[i]=hash[i]>>8;
-    }
-  }
-  cout <<endl;  
 }
