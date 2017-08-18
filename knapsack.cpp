@@ -1,3 +1,4 @@
+//Knapsack problem
 #include<iostream>
 #include<functional>
 
@@ -12,11 +13,11 @@ int knapsack(int weights[], int len, int capacity, int values[]) {
     for(int j=0; j<=capacity; j++) {
 
       if(j<weights[i-1])
-	maxWeight[i][j] = maxWeight[i-1][j];
+    	  maxWeight[i][j] = maxWeight[i-1][j];
       else {
-	int w1= maxWeight[i-1][j];
-	int w2 = maxWeight[i-1][j-weights[i-1]]+values[i-1];
-	maxWeight[i][j] = std::greater<int>()(w1,w2) ? w1:w2;
+    	  int w1= maxWeight[i-1][j];
+    	  int w2 = maxWeight[i-1][j-weights[i-1]]+values[i-1];
+    	  maxWeight[i][j] = std::greater<int>()(w1,w2) ? w1:w2;
       }
     }
   }
