@@ -1,0 +1,63 @@
+/*
+ * ExpressionParser.cpp
+ *
+ *  Created on: Sep 21, 2023
+ *      Author: prbas_000
+ */
+#include<iostream>
+#include "ExpressionParser.h"
+
+using namespace std;
+
+static const char operators[] = { '+', '-', '*', '/' };
+ExpressionParser::ExpressionParser() {
+	// TODO Auto-generated constructor stub
+
+}
+
+ExpressionParser::~ExpressionParser() {
+	// TODO Auto-generated destructor stub
+}
+
+Expr* ExpressionParser::parseExpressionStr(char* expressionStr) {
+	p_exprTokenizer.setExpressionStr(expressionStr);
+
+	Expr* expr = parseExpression();
+	return expr;
+}
+
+Expr* ExpressionParser::makeNewLeaf(char* token, ExprType type) {
+	Expr* expr = nullptr;
+	switch(type) {
+		case CONSTANT: {
+				int number = atoi(token);
+				delete token;
+				expr = new Constant(number);
+			}
+			break;
+		case VARIABLE: {
+				expr = new Variable(token);
+			}
+			break;
+		default: return nullptr; //failure
+	}
+	return expr;
+}
+
+Expr* ExpressionParser::parseExpression() {
+	ExprType type = CONSTANT;
+
+	char* token = p_exprTokenizer.nextWord(type);
+	Expr* leftOp = makeNewLeaf(token, type);
+
+
+	char* op = p_exprTokenizer.nextWord(type);
+	if(!op) return leftOp;
+
+	Expr* rightOp = parseExpression();
+
+	Expr* oper = new Operator(leftOp,op[0],rightOp);
+	delete op;
+	return oper;
+}
+
