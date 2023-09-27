@@ -26,6 +26,7 @@ public:
 	virtual void print(ostream& os) =0;
 
     friend ostream& operator<<(ostream& os, Expr& expr) {
+        //os <<expr.getExprType() <<" " ;
     	expr.print(os);
     	return os;
     }
@@ -43,7 +44,7 @@ public:
 	void setRightOp(Expr* right) { p_right = right; }
 	void setOp(char op) { p_op = op; }
 	virtual void print(ostream& os) {
-		os.put(p_op);
+		os<< *p_left <<p_op << " " <<*p_right;
 	}
 private:
 	Expr* p_left;
@@ -58,7 +59,7 @@ public:
 	virtual ExprType getExprType() { return VARIABLE; }
 	void setName(char* name) { p_name = name; }
 	virtual void print(ostream& os) {
-		os.write(p_name, strlen(p_name));
+		os <<p_name << " ";
 	}
 private:
 	char* p_name;
@@ -71,7 +72,7 @@ public:
 	virtual ExprType getExprType() { return CONSTANT; }
 	void setNumber(int num) { p_number = num; }
 	virtual void print(ostream& os) {
-		//os <<p_number <<" ";
+		os <<p_number <<" ";
 	}
 private:
 	int p_number;
@@ -82,8 +83,8 @@ public:
 	ExpressionTokenizer();
 	virtual ~ExpressionTokenizer();
 
-	char nextChar();
-	char* nextWord(ExprType type);
+	char nextChar(bool peek=false);
+	char* nextWord(ExprType& type,bool peek=false);
 	void setExpressionStr(char* expressionStr);
 
 private:

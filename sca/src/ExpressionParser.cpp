@@ -21,7 +21,6 @@ ExpressionParser::~ExpressionParser() {
 
 Expr* ExpressionParser::parseExpressionStr(char* expressionStr) {
 	p_exprTokenizer.setExpressionStr(expressionStr);
-
 	Expr* expr = parseExpression();
 	return expr;
 }
@@ -44,14 +43,34 @@ Expr* ExpressionParser::makeNewLeaf(char* token, ExprType type) {
 	return expr;
 }
 
-Expr* ExpressionParser::parseExpression() {
+Expr* ExpressionParser::parseFactor() {
 	ExprType type = CONSTANT;
-
 	char* token = p_exprTokenizer.nextWord(type);
+	//cout <<"Factor: first token " <<token << type <<endl;
 	Expr* leftOp = makeNewLeaf(token, type);
 
+	char o = p_exprTokenizer.nextChar(true);
+	//cout <<"Factor: op " <<o <<endl;
+
+	if(o == '\0' || o == '+') return leftOp;
 
 	char* op = p_exprTokenizer.nextWord(type);
+	Expr* rightOp = parseFactor();
+
+	Expr* oper = new Operator(leftOp,op[0],rightOp);
+	delete op;
+	return oper;
+}
+
+Expr* ExpressionParser::parseExpression() {
+	ExprType type = CONSTANT;
+	Expr* leftOp = parseFactor();
+
+	if(!leftOp) return leftOp;
+
+	char* op = p_exprTokenizer.nextWord(type);
+	//if(op) cout <<"op " <<op <<endl;
+
 	if(!op) return leftOp;
 
 	Expr* rightOp = parseExpression();

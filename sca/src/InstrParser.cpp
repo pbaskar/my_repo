@@ -8,7 +8,7 @@
 #include<cstring>
 #include "InstrParser.h"
 
-InstrParser::InstrParser() {
+InstrParser::InstrParser(): p_pos(0) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -56,21 +56,24 @@ Status InstrParser::parseStmt(Stmt* stmt) {
     Status status = SUCCESS;
     if(strcmp(next, "int")==0) {
     	status = parseDecl(stmt);
+		delete next;
     }
     else if(strcmp(next, "if")==0) {
     	status = parseIf(stmt);
+        delete next;
     }
     else if(strcmp(next, "else")==0) {
     	status = parseElse(stmt);
+        delete next;
     }
     else if(strcmp(next, "while")==0) {
     	status = parseWhile(stmt);
+        delete next;
     }
     else {
     	stmt->name = next;
     	status = parseAssign(stmt);
     }
-	delete next;
 	return status;
 }
 
@@ -85,11 +88,12 @@ Status InstrParser::parseDecl(Stmt* stmt) {
 		next = p_tokenizer.nextWord();
 		if(next == nullptr) return FAILURE;
 		Expr* value = p_exprParser.parseExpressionStr(next);
+		delete next;
 		if(value == nullptr) return FAILURE;
 		stmt->value = value;
 	}
 	else return FAILURE;
-	cout <<"Declarative stmt: " <<*stmt <<endl;
+	cout <<"Declarative stmt: size = " <<p_stmtList.size() << " " <<*stmt <<endl;
 	return status;
 }
 
@@ -106,7 +110,7 @@ Status InstrParser::parseAssign(Stmt* stmt) {
 		stmt->value = value;
 	}
 	else return FAILURE;
-	cout <<"Assignment stmt: " <<*stmt <<endl;
+	cout <<"Assignment stmt: size = " << p_stmtList.size()  <<" " <<*stmt <<endl;
 	return status;
 }
 
@@ -123,7 +127,7 @@ Status InstrParser::parseIf(Stmt* stmt) {
 		stmt->condition = value;
 		p_tokenizer.nextLine();
 	    parseBlock(stmt->subStatements);
-	    cout <<"If stmt: " <<stmt->condition << " " <<stmt->subStatements.size()<<endl;
+	    cout <<"If stmt: size = " <<p_stmtList.size() <<stmt->condition << " substatements " <<stmt->subStatements.size()<<endl;
 	}
 	else return FAILURE;
 	return status;
@@ -155,5 +159,9 @@ Status InstrParser::parseWhile(Stmt* stmt) {
 	}
 	else return FAILURE;
 	return status;
+}
+
+const vector<Stmt*>& InstrParser::getStatementList() {
+	return p_stmtList;
 }
 

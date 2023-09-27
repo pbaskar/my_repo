@@ -9,17 +9,25 @@
 #include <iostream>
 #include <fstream>
 #include "InstrParser.h"
+#include "ControlFlowGraph.h"
 using namespace std;
 
 int main() {
 	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
 
-    char fileName[] = "C:\\workspace\\parser\\invalid_instructions.txt";
+    char fileName[] = "C:\\workspace\\sca\\invalid_instructions.txt";
 	InstrParser instrParser;
 	Status s = instrParser.parseFile(fileName);
+
 	if (s == FAILURE )
 		cout <<"Instructions file parsing failed " <<endl;
-	else
-		cout <<"Instructions file parsing succeeded " <<endl;
+
+	ControlFlowGraph cfg;
+	s = cfg.buildCFG(instrParser.getStatementList());
+
+	if (s == FAILURE )
+		cout <<"Building Control flow graph failed " <<endl;
+
+	cout <<"Building Control flow graph succeeded " <<endl;
 	return 0;
 }

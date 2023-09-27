@@ -17,6 +17,7 @@ public:
 
 	Expr* parseExpressionStr(char* expressionStr);
 	Expr* parseExpression();
+	Expr* parseFactor();
 	Expr* makeNewLeaf(char* token, ExprType type);
 private:
 	ExpressionTokenizer p_exprTokenizer;

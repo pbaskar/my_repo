@@ -12,11 +12,11 @@
 #include "ExpressionParser.h"
 
 using namespace std;
-enum dataType { DECL, ASSIGN, IF, ELSE, WHILE };
+enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE };
 
-struct Stmt {
-
-	Stmt(): name(0), type(DECL), value(0),condition(0) {}
+class Stmt {
+public:
+	Stmt(): name(nullptr), type(DECL), value(nullptr),condition(nullptr) {}
 	~Stmt(){
 		cout<<"Stmt destroyed " << type <<endl;
 		delete name;
@@ -28,11 +28,11 @@ struct Stmt {
 	}
     friend ostream& operator<<(ostream& os, Stmt& stmt) {
     	os << "statement: name " <<stmt.name << " type " << stmt.type << " value " << *stmt.value
-				<< " substatements " <<stmt.subStatements.size() <<endl;
+				<< " substatements " <<stmt.subStatements.size();
     	return os;
     }
     char* name;
-    dataType type;
+    StmtType type;
     Expr* value;
 
     Expr* condition;
@@ -52,11 +52,14 @@ public:
 	Status parseElse(Stmt* stmt);
 	Status parseWhile(Stmt* stmt);
 	Status parseBlock(vector<Stmt*>& stmtList);
+	const vector<Stmt*>& getStatementList();
 
 private:
     vector<Stmt*> p_stmtList;
     Tokenizer p_tokenizer;
     ExpressionParser p_exprParser;
+
+    int p_pos;
 };
 
 #endif /* INSTRPARSER_H_ */
