@@ -18,19 +18,6 @@ enum NodeType {
 	CONDITION
 };
 
-class BasicBlock {
-public:
-	BasicBlock(): p_exit(0), p_back(0) {}
-	~BasicBlock() {
-		for(Node* n : nodeList) {
-			delete n;
-		}
-	}
-	vector<Node*> nodeList;
-	Node* p_exit;
-	Node* p_back;
-};
-
 class Node {
 public:
 	Node(): p_next(0) {}
@@ -49,9 +36,10 @@ public:
 class AssignmentNode : public Node {
 public:
 	AssignmentNode() : p_name(0), p_value(0) { }
-	AssignmentNode(Stmt* stmt) {
-		p_name = stmt->name;
-		p_value = stmt->value;
+	AssignmentNode(AssignStmt stmt) {
+		p_name = stmt.p_name;
+		p_value = stmt.p_value;
+		//cout <<"assignment node const " <<*stmt.p_value <<endl;
 	}
 	virtual NodeType type() { return ASSIGNMENT; }
 	virtual ~AssignmentNode() {
@@ -70,33 +58,132 @@ public:
 
 class ConditionNode : public Node {
 public:
-	ConditionNode() : p_condition(0), p_exit(0) { }
-	ConditionNode(Stmt* stmt) {
-		p_condition = stmt->condition;
-		p_exit = 0;
+	ConditionNode() : p_condition(0) { }
+	ConditionNode(IfStmt stmt) : p_condition(stmt.p_condition) {
+	}
+	ConditionNode(WhileStmt stmt) : p_condition(stmt.p_condition) {
 	}
 	NodeType type() { return CONDITION; }
 	virtual ~ConditionNode() {
 		delete p_condition;
 	}
 	virtual void print(ostream& os) {
-		//os << "condition " << *p_condition <<" ";
+		os <<"condition "<<" ";
+        if(p_condition)
+            os <<*p_condition <<" ";
 	}
 	void setCondition(Expr* condition) { p_condition = condition; }
 
 	Expr* p_condition;
-	Node* p_exit;
+};
+
+class BasicBlock {
+public:
+	BasicBlock(): p_next(0), p_back(0) {}
+	virtual ~BasicBlock() {
+		for(Node* n : nodeList) {
+			delete n;
+		}
+	}
+	virtual void print(ostream& os) {
+		for(Node* n: nodeList) {
+			os <<*n <<" ";
+		}
+	}
+    friend ostream& operator<<(ostream& os, BasicBlock& basicBlock) {
+        basicBlock.print(os);
+        return os;
+    }
+	virtual void setBack(BasicBlock* back) {
+		p_back = back;
+	}
+	virtual void setNext(BasicBlock* next) {
+		p_next = next;
+	}
+	void addNode(Node* newNode) {
+		nodeList.push_back(newNode);
+	}
+	vector<Node*> nodeList;
+	BasicBlock* p_next;
+	BasicBlock* p_back;
+};
+
+class IfElseBlock : public BasicBlock {
+public:
+	IfElseBlock(): p_ifFirst(0), p_elseFirst(0),
+					p_ifLast(0), p_elseLast(0) {}
+	~IfElseBlock() {
+		//delete p_ifBlock;
+		//delete p_elseBlock;
+	}
+	virtual void print(ostream& os) {
+		BasicBlock* basicBlock = p_ifFirst;
+		os <<endl <<"Begin IfElse	" <<endl;
+		while(basicBlock != p_ifLast) {
+			os <<"print if " << basicBlock <<" " <<*basicBlock <<" p_next " <<basicBlock->p_next <<endl;
+			basicBlock = basicBlock->p_next;
+		}
+		os <<"last if " <<basicBlock <<" " <<*basicBlock <<" p_next " <<basicBlock->p_next <<endl;
+		basicBlock = p_elseFirst;
+		os<<endl <<"Else case " <<endl;
+		while(basicBlock != p_elseLast) {
+			os <<"print else " << basicBlock <<" " << *basicBlock <<" " <<basicBlock->p_next <<endl;
+			basicBlock = basicBlock->p_next;
+		}
+		os <<"last else " <<basicBlock <<" " <<*basicBlock <<" p_next " <<basicBlock->p_next <<endl;
+		os <<"End IfElse	" <<endl;
+	}
+	virtual void setBack(BasicBlock* back) {
+		p_ifLast->setBack(back);
+		p_elseLast->setBack(back);
+		p_back = back;
+	}
+	virtual void setNext(BasicBlock* next) {
+		p_ifLast->setNext(next);
+		p_elseLast->setNext(next);
+		p_next = next;
+	}
+	BasicBlock* p_ifFirst;
+	BasicBlock* p_elseFirst;
+	BasicBlock* p_ifLast;
+	BasicBlock* p_elseLast;
+};
+
+class WhileBlock : public BasicBlock {
+public:
+	WhileBlock(): p_last(0) {}
+	~WhileBlock() {
+	}
+	virtual void print(ostream& os) {
+		os << this <<" p_next "<< p_next <<" p_back " <<p_back <<" p_last " <<p_last;
+		BasicBlock::print(os);
+	}
+	virtual void setBack(BasicBlock* back) {
+		if(p_last != this)
+			p_last->setBack(back);
+		p_back = back;
+	}
+	virtual void setNext(BasicBlock* next) {
+		if(p_last != this)
+			p_last->setNext(next);
+		p_next = next;
+	}
+	BasicBlock* p_last;
 };
 
 class ControlFlowGraph {
 public:
 	ControlFlowGraph();
 	virtual ~ControlFlowGraph();
-
+	friend ostream& operator<<(ostream& os, ControlFlowGraph& cfg) {
+			cfg.print(os);
+			return os;
+	}
+	void print(ostream& os);
 	Status buildCFG(const vector<Stmt*>& stmtList);
-	Status buildBlock(Node*& begin, const vector<Stmt*>& stmtList, Node*& end);
+	Status buildBlock(BasicBlock*& currBlock, const vector<Stmt*>& stmtList);
 private:
-	Node* head;
+	BasicBlock* head;
 };
 
 #endif /* SRC_CONTROLFLOWGRAPH_H_ */

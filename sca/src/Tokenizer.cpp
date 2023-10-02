@@ -53,7 +53,7 @@ char Tokenizer::nextChar(bool peek) {
 	return next;
 }
 
-char* Tokenizer::nextWord(bool peek) {
+int Tokenizer::readNextWordLen() {
 	int p = p_pos;
 	if(p_line[p] == '\0') {
 		return 0;
@@ -71,14 +71,30 @@ char* Tokenizer::nextWord(bool peek) {
 			p++;
 		}
 	}
-	char* token = new char[p-p_pos+1];
-	strncpy(token, p_line + p_pos, p-p_pos);
-	token[p-p_pos] = '\0';
+	return p-p_pos;
+}
 
-	while(p_line[p] == ' ') {
-		p++;
+void Tokenizer::consumeWord() {
+	int wordLen = readNextWordLen();
+	while(p_line[p_pos+wordLen] == ' ') {
+		wordLen++;
 	}
-	if(!peek)
-		p_pos = p ;
+	p_pos += wordLen;
+	//cout<<"consumed word " <<wordLen <<" " <<p_pos <<endl;
+}
+
+char* Tokenizer::nextWord(bool peek) {
+	int wordLen = readNextWordLen();
+	char* token = new char[wordLen+1];
+	strncpy(token, p_line + p_pos, wordLen);
+	token[wordLen] = '\0';
+
+	while(p_line[p_pos+wordLen] == ' ') {
+		wordLen++;
+	}
+	if(!peek) {
+		p_pos += wordLen;
+	//cout<<"token " <<token <<" p_pos " <<p_pos<<" wordLen " <<wordLen <<endl;
+	}
     return token;
 }

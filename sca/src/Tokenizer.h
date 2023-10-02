@@ -14,6 +14,8 @@ public:
 	Tokenizer();
 	virtual ~Tokenizer();
 
+	int readNextWordLen();
+	void consumeWord();
 	char* nextWord(bool peek=false);
 	char nextChar(bool peek=false);
 	Status nextLine();

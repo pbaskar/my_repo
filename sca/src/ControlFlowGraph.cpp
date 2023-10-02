@@ -17,90 +17,81 @@ ControlFlowGraph::~ControlFlowGraph() {
 
 Status ControlFlowGraph::buildCFG(const vector<Stmt*>& stmtList) {
 	Status s = SUCCESS;
-	Node* end = 0;
-	s = buildBlock(head, stmtList,end);
-	end->p_next = 0;
+	head = new BasicBlock;
+	BasicBlock* currBlock = head;
+	s = buildBlock(currBlock, stmtList);
 	return s;
 }
 
-Status ControlFlowGraph::buildBlock(Node*& begin, const vector<Stmt*>& stmtList, Node*& end) {
+Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const vector<Stmt*>& stmtList) {
 	Status s = SUCCESS;
-	Node* currNode = begin;
-	vector<Node*> endStmtList;
+	bool beginNewBlock = false;
+
 	for(Stmt* stmt : stmtList) {
-		StmtType type = stmt->type;
+		StmtType type = stmt->p_type;
 		switch(type) {
 			case DECL:
 			case ASSIGN: {
-					AssignmentNode* newNode = new AssignmentNode(stmt);
-					cout << "Node: " << *newNode << " " <<stmtList.size() <<endl;
-					if(!begin) {
-						begin = newNode;
+				    AssignStmt* assignStmt = static_cast<AssignStmt*>(stmt);
+					AssignmentNode* newNode = new AssignmentNode(*assignStmt);
+					cout << "Assignment Node: " << *newNode << " " <<stmtList.size() <<endl;
+
+					if(beginNewBlock) {
+						beginNewBlock = false;
+						BasicBlock* newBlock = new BasicBlock;
+						currBlock->setNext(newBlock);
+						currBlock = newBlock;
 					}
-					else {
-						currNode->p_next = newNode;
-					}
-					currNode = newNode;
-					for(Node* n : endStmtList) {
-						if ( n->type() == CONDITION ) {
-							ConditionNode* c = static_cast<ConditionNode*>(n);
-							c->p_exit = newNode;
-						}
-						else
-							n->p_next = newNode;
-					}
-					endStmtList.clear();
+					currBlock->addNode(newNode);
 				}
 				break;
 		   case IF:
 		   case ELSE: {
-					Node* endIf= 0;
-					ConditionNode* ifCond = new ConditionNode(stmt);
-					cout << "Node: " << *ifCond << " " <<stmtList.size() <<endl;
-					if(!begin) {
-						begin = ifCond;
-					}
-					else {
-						currNode->p_next = ifCond;
-					}
-					currNode = ifCond;
-					for(Node* n : endStmtList) {
-						if ( n->type() == CONDITION ) {
-							ConditionNode* c = static_cast<ConditionNode*>(n);
-							c->p_exit = ifCond;
-						}
-						else
-							n->p_next = ifCond;
-					}
-					endStmtList.clear();
-					s = buildBlock(currNode, stmt->subStatements, endIf);
-					endStmtList.push_back(endIf);
-					endStmtList.push_back(ifCond);
+					IfElseBlock* ifElseBlock = new IfElseBlock;
+					currBlock->setNext(ifElseBlock);
+
+					IfStmt* ifStmt = static_cast<IfStmt*>(stmt);
+					ConditionNode* ifNode = new ConditionNode(*ifStmt);
+					cout << "If Node: " << *ifNode << " " <<stmtList.size() <<endl;
+
+					BasicBlock* ifBlock = new BasicBlock;
+					ifBlock->addNode(ifNode);
+
+					ifElseBlock->p_ifFirst = ifBlock;
+					s = buildBlock(ifBlock, ifStmt->p_subStatements);
+					ifElseBlock->p_ifLast = ifBlock;
+
+					IfStmt* elseStmt = ifStmt->p_else;
+					ConditionNode* elseNode = new ConditionNode(*elseStmt);
+					cout << "Else Node: " << *elseNode << " " <<stmtList.size() <<endl;
+
+					BasicBlock* elseBlock = new BasicBlock;
+					elseBlock->addNode(elseNode);
+
+					ifElseBlock->p_elseFirst = elseBlock;
+					s = buildBlock(elseBlock, elseStmt->p_subStatements);
+					ifElseBlock->p_elseLast = elseBlock;
+
+					currBlock = ifElseBlock;
+					beginNewBlock = true;
 				}
 				break;
 			case WHILE: {
-					ConditionNode* whileCond = new ConditionNode(stmt);
-					cout << "Node: " << *whileCond << " " <<stmtList.size() <<endl;
-					if(!begin) {
-						begin = whileCond;
-					}
-					else {
-						currNode->p_next = whileCond;
-					}
-					currNode = whileCond;
-					for(Node* n : endStmtList) {
-						if ( n->type() == CONDITION ) {
-							ConditionNode* c = static_cast<ConditionNode*>(n);
-							c->p_exit = whileCond;
-						}
-						else
-							n->p_next = whileCond;
-					}
-					endStmtList.clear();
-					Node* endWhile =0;
-					s = buildBlock(currNode, stmt->subStatements, endWhile);
-					endWhile->p_next = currNode;
-					endStmtList.push_back(whileCond);
+					WhileStmt* whileStmt = static_cast<WhileStmt*>(stmt);
+					ConditionNode* whileNode = new ConditionNode(*whileStmt);
+					cout << "While Node: " << *whileNode << " " <<stmtList.size() <<endl;
+
+					WhileBlock* whileBlock = new WhileBlock;
+					whileBlock->addNode(whileNode);
+
+					currBlock->setNext(whileBlock);
+					BasicBlock* whileBlk = whileBlock;
+					s = buildBlock(whileBlk, whileStmt->p_subStatements);
+					whileBlock->p_last = whileBlk;
+					whileBlk->p_back = whileBlock;
+
+					currBlock = whileBlock;
+					beginNewBlock = true;
 				}
 				break;
 			default: {
@@ -109,6 +100,13 @@ Status ControlFlowGraph::buildBlock(Node*& begin, const vector<Stmt*>& stmtList,
 				break;
 		}
 	}
-	end = currNode;
 	return s;
+}
+
+void ControlFlowGraph::print(ostream& os) {
+	BasicBlock* curr = head;
+	while(curr) {
+		os << *curr <<endl;
+		curr = curr->p_next;
+	}
 }
