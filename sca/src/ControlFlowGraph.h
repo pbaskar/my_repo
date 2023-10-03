@@ -100,6 +100,9 @@ public:
 	virtual void setNext(BasicBlock* next) {
 		p_next = next;
 	}
+	virtual BasicBlock* getNext() {
+		return p_next;
+	}
 	void addNode(Node* newNode) {
 		nodeList.push_back(newNode);
 	}
@@ -110,41 +113,42 @@ public:
 
 class IfElseBlock : public BasicBlock {
 public:
-	IfElseBlock(): p_ifFirst(0), p_elseFirst(0),
-					p_ifLast(0), p_elseLast(0) {}
+	IfElseBlock(): p_ifLast(0), p_elseLast(0) {}
 	~IfElseBlock() {
 		//delete p_ifBlock;
 		//delete p_elseBlock;
 	}
 	virtual void print(ostream& os) {
-		BasicBlock* basicBlock = p_ifFirst;
+		BasicBlock* basicBlock = p_next;
 		os <<endl <<"Begin IfElse	" <<endl;
 		while(basicBlock != p_ifLast) {
 			os <<"print if " << basicBlock <<" " <<*basicBlock <<" p_next " <<basicBlock->p_next <<endl;
 			basicBlock = basicBlock->p_next;
 		}
 		os <<"last if " <<basicBlock <<" " <<*basicBlock <<" p_next " <<basicBlock->p_next <<endl;
-		basicBlock = p_elseFirst;
+		basicBlock = p_back;
 		os<<endl <<"Else case " <<endl;
 		while(basicBlock != p_elseLast) {
 			os <<"print else " << basicBlock <<" " << *basicBlock <<" " <<basicBlock->p_next <<endl;
 			basicBlock = basicBlock->p_next;
 		}
-		os <<"last else " <<basicBlock <<" " <<*basicBlock <<" p_next " <<basicBlock->p_next <<endl;
+		if(basicBlock)
+			os <<"last else " <<basicBlock <<" " <<*basicBlock <<" p_next " <<basicBlock->p_next <<endl;
 		os <<"End IfElse	" <<endl;
 	}
 	virtual void setBack(BasicBlock* back) {
 		p_ifLast->setBack(back);
-		p_elseLast->setBack(back);
-		p_back = back;
+		if(p_back)
+			p_elseLast->setBack(back);
 	}
 	virtual void setNext(BasicBlock* next) {
 		p_ifLast->setNext(next);
-		p_elseLast->setNext(next);
-		p_next = next;
+		if(p_back)
+			p_elseLast->setNext(next);
 	}
-	BasicBlock* p_ifFirst;
-	BasicBlock* p_elseFirst;
+	virtual BasicBlock* getNext() {
+		return p_ifLast->getNext();;
+	}
 	BasicBlock* p_ifLast;
 	BasicBlock* p_elseLast;
 };
@@ -167,6 +171,11 @@ public:
 		if(p_last != this)
 			p_last->setNext(next);
 		p_next = next;
+	}
+	virtual BasicBlock* getNext() {
+		if(p_last != this)
+			return p_last->getNext();
+		return p_next;
 	}
 	BasicBlock* p_last;
 };

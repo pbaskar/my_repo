@@ -57,20 +57,22 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const vector<Stmt*>&
 					BasicBlock* ifBlock = new BasicBlock;
 					ifBlock->addNode(ifNode);
 
-					ifElseBlock->p_ifFirst = ifBlock;
+					ifElseBlock->p_next = ifBlock;
 					s = buildBlock(ifBlock, ifStmt->p_subStatements);
 					ifElseBlock->p_ifLast = ifBlock;
 
 					IfStmt* elseStmt = ifStmt->p_else;
+					if(elseStmt) {
 					ConditionNode* elseNode = new ConditionNode(*elseStmt);
 					cout << "Else Node: " << *elseNode << " " <<stmtList.size() <<endl;
 
 					BasicBlock* elseBlock = new BasicBlock;
 					elseBlock->addNode(elseNode);
 
-					ifElseBlock->p_elseFirst = elseBlock;
+					ifElseBlock->p_back = elseBlock;
 					s = buildBlock(elseBlock, elseStmt->p_subStatements);
 					ifElseBlock->p_elseLast = elseBlock;
+					}
 
 					currBlock = ifElseBlock;
 					beginNewBlock = true;
@@ -107,6 +109,6 @@ void ControlFlowGraph::print(ostream& os) {
 	BasicBlock* curr = head;
 	while(curr) {
 		os << *curr <<endl;
-		curr = curr->p_next;
+		curr = curr->getNext();
 	}
 }

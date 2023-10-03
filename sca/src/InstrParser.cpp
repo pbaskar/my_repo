@@ -42,7 +42,6 @@ Status InstrParser::parseBlock(vector<Stmt*>& stmtList) {
 		if(status == FAILURE) {
 			return FAILURE;
 		}
-		p_tokenizer.nextLine();
 		closeBrace = p_tokenizer.nextChar(true);
 	}
 	return status;
@@ -93,7 +92,7 @@ Status InstrParser::parseDecl(vector<Stmt*>& stmtList) {
 	delete next;
 	if(value == nullptr) return FAILURE;
 	stmt->p_value = value;
-
+	p_tokenizer.nextLine();
 	cout <<"Declarative stmt: size = " <<stmtList.size() << " " <<*stmt <<endl;
 	return status;
 }
@@ -117,7 +116,7 @@ Status InstrParser::parseAssign(vector<Stmt*>& stmtList) {
 	delete next;
 	if(value == nullptr) return FAILURE;
 	stmt->p_value = value;
-
+	p_tokenizer.nextLine();
 	cout <<"Assignment stmt: size = " << stmtList.size()  <<" " <<*stmt <<endl;
 	return status;
 }
@@ -132,9 +131,10 @@ Status InstrParser::parseIfElse(vector<Stmt*>& stmtList) {
 	if(status == FAILURE) return FAILURE;
 
 	p_tokenizer.nextLine();
-	char* next = p_tokenizer.nextWord();
-	if(strcmp(next, "else") != 0) { delete next; return FAILURE; }
+	char* next = p_tokenizer.nextWord(true);
+	if(strcmp(next, "else") != 0) { cout <<"no else " <<endl; delete next; return status; }
 	delete next;
+	p_tokenizer.consumeWord();
 
 	IfStmt* elseStmt = new IfStmt;
 	elseStmt->p_type = ELSE;
@@ -142,6 +142,7 @@ Status InstrParser::parseIfElse(vector<Stmt*>& stmtList) {
 	if(status == FAILURE) { delete elseStmt; return FAILURE; }
 
 	ifStmt->p_else = elseStmt;
+	p_tokenizer.nextLine();
 	return status;
 }
 
@@ -190,7 +191,7 @@ Status InstrParser::parseWhile(vector<Stmt*>& stmtList) {
 
 	p_tokenizer.nextLine();
 	status = parseBlock(stmt->p_subStatements);  //handle return value
-
+	p_tokenizer.nextLine();
 	cout <<"While stmt: size = " <<stmtList.size() << " " <<*stmt <<endl;
 	return status;
 }
