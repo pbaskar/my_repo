@@ -47,51 +47,56 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const vector<Stmt*>&
 				break;
 		   case IF:
 		   case ELSE: {
-					IfElseBlock* ifElseBlock = new IfElseBlock;
-					currBlock->setNext(ifElseBlock);
+					BasicBlock* first(0);
+					BasicBlock* ifLast(0);
+					BasicBlock* elseFirst(0);
+					BasicBlock* elseLast(0);
 
 					IfStmt* ifStmt = static_cast<IfStmt*>(stmt);
 					ConditionNode* ifNode = new ConditionNode(*ifStmt);
 					cout << "If Node: " << *ifNode << " " <<stmtList.size() <<endl;
 
-					BasicBlock* ifBlock = new BasicBlock;
-					ifBlock->addNode(ifNode);
+					first = new BasicBlock;
+					first->addNode(ifNode);
 
-					ifElseBlock->p_next = ifBlock;
-					s = buildBlock(ifBlock, ifStmt->p_subStatements);
-					ifElseBlock->p_ifLast = ifBlock;
+					ifLast = first;
+					s = buildBlock(ifLast, ifStmt->p_subStatements);
 
 					IfStmt* elseStmt = ifStmt->p_else;
 					if(elseStmt) {
-					ConditionNode* elseNode = new ConditionNode(*elseStmt);
-					cout << "Else Node: " << *elseNode << " " <<stmtList.size() <<endl;
+						ConditionNode* elseNode = new ConditionNode(*elseStmt);
+						cout << "Else Node: " << *elseNode << " " <<stmtList.size() <<endl;
 
-					BasicBlock* elseBlock = new BasicBlock;
-					elseBlock->addNode(elseNode);
+						elseFirst = new BasicBlock;
+						elseFirst->addNode(elseNode);
 
-					ifElseBlock->p_back = elseBlock;
-					s = buildBlock(elseBlock, elseStmt->p_subStatements);
-					ifElseBlock->p_elseLast = elseBlock;
+						elseLast = elseFirst;
+						s = buildBlock(elseLast, elseStmt->p_subStatements);
 					}
 
+					IfElseBlock* ifElseBlock = new IfElseBlock(0, first, ifLast, elseFirst, elseLast);
+					currBlock->setNext(ifElseBlock);
 					currBlock = ifElseBlock;
 					beginNewBlock = true;
 				}
 				break;
 			case WHILE: {
+					BasicBlock* first(0);
+					BasicBlock* last(0);
+
 					WhileStmt* whileStmt = static_cast<WhileStmt*>(stmt);
 					ConditionNode* whileNode = new ConditionNode(*whileStmt);
 					cout << "While Node: " << *whileNode << " " <<stmtList.size() <<endl;
 
-					WhileBlock* whileBlock = new WhileBlock;
-					whileBlock->addNode(whileNode);
+					first = new BasicBlock;
+					first->addNode(whileNode);
 
+					last = first;
+					s = buildBlock(last, whileStmt->p_subStatements);
+
+					WhileBlock* whileBlock = new WhileBlock(0,first,last);
+					//whileBlock->setSelf();
 					currBlock->setNext(whileBlock);
-					BasicBlock* whileBlk = whileBlock;
-					s = buildBlock(whileBlk, whileStmt->p_subStatements);
-					whileBlock->p_last = whileBlk;
-					whileBlk->p_back = whileBlock;
-
 					currBlock = whileBlock;
 					beginNewBlock = true;
 				}
@@ -106,9 +111,11 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const vector<Stmt*>&
 }
 
 void ControlFlowGraph::print(ostream& os) {
-	BasicBlock* curr = head;
-	while(curr) {
-		os << *curr <<endl;
-		curr = curr->getNext();
-	}
+	PrintVisitor printVisitor;
+	traverse(printVisitor);
+}
+
+void ControlFlowGraph::traverse(Visitor& visitor) {
+	if(head)
+		head->acceptVisitor(visitor);
 }
