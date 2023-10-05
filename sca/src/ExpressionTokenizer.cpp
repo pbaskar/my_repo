@@ -67,7 +67,7 @@ char* ExpressionTokenizer::nextWord(ExprType& type, bool peek) {
 	}
 	if(!peek)
 		p_pos = p ;
-    return token;
+	return token;
 }
 
 void ExpressionTokenizer::setExpressionStr(char* expressionStr) {

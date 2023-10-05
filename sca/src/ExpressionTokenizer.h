@@ -25,11 +25,11 @@ public:
 	virtual ExprType getExprType()=0;
 	virtual void print(ostream& os) =0;
 
-    friend ostream& operator<<(ostream& os, Expr& expr) {
-        //os <<expr.getExprType() <<" " ;
-    	expr.print(os);
-    	return os;
-    }
+	friend ostream& operator<<(ostream& os, Expr& expr) {
+		//os <<expr.getExprType() <<" " ;
+		expr.print(os);
+		return os;
+	}
 };
 
 class Operator : public Expr {

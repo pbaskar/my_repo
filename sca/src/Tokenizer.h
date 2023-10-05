@@ -24,9 +24,9 @@ public:
 
 private:
 	char p_line[256];
-    int p_pos;
+	int p_pos;
 
-    FileReader fr;
+	FileReader fr;
 };
 
 #endif /* TOKENIZER_H_ */

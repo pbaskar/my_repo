@@ -21,8 +21,8 @@ Tokenizer::~Tokenizer() {
 }
 
 Status Tokenizer::openFile(char* fileName) {
-    fr.setFile(fileName);
-    return fr.openFile();
+	fr.setFile(fileName);
+	return fr.openFile();
 }
 
 void Tokenizer::closeFile() {
@@ -34,8 +34,8 @@ Status Tokenizer::nextLine() {
 	memset(p_line, 0, 256);
 	p_pos = 0;
 	fr.getLine(p_line);
-    if(p_line[0] == '\0') return FAILURE;
-    return status;
+	if(p_line[0] == '\0') return FAILURE;
+	return status;
 }
 
 static bool isDelimiter(char c) {
@@ -94,7 +94,7 @@ char* Tokenizer::nextWord(bool peek) {
 	}
 	if(!peek) {
 		p_pos += wordLen;
-	//cout<<"token " <<token <<" p_pos " <<p_pos<<" wordLen " <<wordLen <<endl;
+		//cout<<"token " <<token <<" p_pos " <<p_pos<<" wordLen " <<wordLen <<endl;
 	}
-    return token;
+	return token;
 }

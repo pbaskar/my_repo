@@ -28,17 +28,17 @@ Expr* ExpressionParser::parseExpressionStr(char* expressionStr) {
 Expr* ExpressionParser::makeNewLeaf(char* token, ExprType type) {
 	Expr* expr = nullptr;
 	switch(type) {
-		case CONSTANT: {
-				int number = atoi(token);
-				delete token;
-				expr = new Constant(number);
-			}
-			break;
-		case VARIABLE: {
-				expr = new Variable(token);
-			}
-			break;
-		default: return nullptr; //failure
+	case CONSTANT: {
+		int number = atoi(token);
+		delete token;
+		expr = new Constant(number);
+	}
+	break;
+	case VARIABLE: {
+		expr = new Variable(token);
+	}
+	break;
+	default: return nullptr; //failure
 	}
 	return expr;
 }

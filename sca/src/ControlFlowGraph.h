@@ -26,12 +26,12 @@ public:
 	}
 	virtual NodeType type()=0;
 	virtual void print(ostream& os)=0;
-    friend ostream& operator<<(ostream& os, Node& node) {
-    	node.print(os);
-    	return os;
-    }
+	friend ostream& operator<<(ostream& os, Node& node) {
+		node.print(os);
+		return os;
+	}
 private:
-    Node* p_next;
+	Node* p_next;
 };
 
 class AssignmentNode : public Node {
@@ -69,8 +69,8 @@ public:
 	}
 	virtual void print(ostream& os) {
 		os <<"condition "<<" ";
-        if(p_condition)
-            os <<*p_condition <<" ";
+		if(p_condition)
+			os <<*p_condition <<" ";
 	}
 	void setCondition(Expr* condition) { p_condition = condition; }
 private:
@@ -114,7 +114,7 @@ class IfElseBlock : public BasicBlock {
 public:
 	IfElseBlock(): p_ifFirst(0), p_ifLast(0), p_elseFirst(0), p_elseLast(0) {}
 	IfElseBlock(BasicBlock* next, BasicBlock* ifFirst, BasicBlock* ifLast, BasicBlock* elseFirst, BasicBlock* elseLast)
-					: BasicBlock(next), p_ifFirst(ifFirst), p_ifLast(ifLast), p_elseFirst(elseFirst), p_elseLast(elseLast) {}
+	: BasicBlock(next), p_ifFirst(ifFirst), p_ifLast(ifLast), p_elseFirst(elseFirst), p_elseLast(elseLast) {}
 	~IfElseBlock() {
 	}
 	virtual void setNext(BasicBlock* next) {
@@ -170,8 +170,8 @@ public:
 	ControlFlowGraph();
 	virtual ~ControlFlowGraph();
 	friend ostream& operator<<(ostream& os, ControlFlowGraph& cfg) {
-			cfg.print(os);
-			return os;
+		cfg.print(os);
+		return os;
 	}
 	void print(ostream& os);
 	void traverse(Visitor& visitor);

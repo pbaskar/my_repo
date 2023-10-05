@@ -15,7 +15,7 @@ using namespace std;
 int main() {
 	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
 
-    char fileName[] = "C:\\workspace\\sca\\instructions.txt";
+	char fileName[] = "C:\\workspace\\sca\\instructions.txt";
 	InstrParser instrParser;
 	Status s = instrParser.parseFile(fileName);
 
@@ -23,7 +23,7 @@ int main() {
 		cout <<"Instructions file parsing failed " <<endl;
 		return 0;
 	}
-    cout << "********************************** Instructions file parsing done ****************************************" <<endl;
+	cout << "********************************** Instructions file parsing done ****************************************" <<endl;
 	ControlFlowGraph cfg;
 	s = cfg.buildCFG(instrParser.getStatementList());
 
