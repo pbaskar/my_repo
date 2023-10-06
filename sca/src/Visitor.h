@@ -9,13 +9,15 @@
 #define SRC_VISITOR_H_
 class ControlFlowGraph;
 class BasicBlock;
+class IfElseBlock;
+class WhileBlock;
 class Visitor {
 public:
 	Visitor();
 	virtual ~Visitor();
 	virtual void visitBasicBlock(BasicBlock* basicBlock)=0;
-	virtual void visitIfElseBlock(BasicBlock* ifElseBlock)=0;
-	virtual void visitWhileBlock(BasicBlock* whileBlock)=0;
+	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock)=0;
+	virtual void visitWhileBlock(WhileBlock* whileBlock)=0;
 };
 
 class PrintVisitor : public Visitor {
@@ -24,8 +26,17 @@ public:
 	virtual ~PrintVisitor();
 
 	virtual void visitBasicBlock(BasicBlock* basicBlock);
-	virtual void visitIfElseBlock(BasicBlock* ifElseBlock);
-	virtual void visitWhileBlock(BasicBlock* whileBlock);
+	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
+	virtual void visitWhileBlock(WhileBlock* whileBlock);
 };
 
+class DeleteVisitor : public Visitor {
+public:
+	DeleteVisitor();
+	virtual ~DeleteVisitor();
+
+	virtual void visitBasicBlock(BasicBlock* basicBlock);
+	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
+	virtual void visitWhileBlock(WhileBlock* whileBlock);
+};
 #endif /* SRC_VISITOR_H_ */

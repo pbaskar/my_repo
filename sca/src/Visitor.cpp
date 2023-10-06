@@ -29,10 +29,30 @@ void PrintVisitor::visitBasicBlock(BasicBlock* basicBlock) {
 	basicBlock->print();
 }
 
-void PrintVisitor::visitIfElseBlock(BasicBlock* ifElseBlock) {
+void PrintVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
 	ifElseBlock->print();
 }
 
-void PrintVisitor::visitWhileBlock(BasicBlock* whileBlock) {
+void PrintVisitor::visitWhileBlock(WhileBlock* whileBlock) {
 	whileBlock->print();
+}
+
+DeleteVisitor::DeleteVisitor() {
+
+}
+
+DeleteVisitor::~DeleteVisitor() {
+
+}
+
+void DeleteVisitor::visitBasicBlock(BasicBlock* basicBlock) {
+	delete basicBlock;
+}
+
+void DeleteVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
+	delete ifElseBlock;
+}
+
+void DeleteVisitor::visitWhileBlock(WhileBlock* whileBlock) {
+	delete whileBlock;
 }

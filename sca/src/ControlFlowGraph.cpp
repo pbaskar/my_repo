@@ -12,7 +12,6 @@ ControlFlowGraph::ControlFlowGraph(): head(0) {
 }
 
 ControlFlowGraph::~ControlFlowGraph() {
-	// delete all nodes
 }
 
 Status ControlFlowGraph::buildCFG(const vector<Stmt*>& stmtList) {
@@ -112,10 +111,12 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const vector<Stmt*>&
 
 void ControlFlowGraph::print(ostream& os) {
 	PrintVisitor printVisitor;
-	traverse(printVisitor);
+	TraverserAllPath tAllPath(&printVisitor);
+	tAllPath.traverseCFG(this);
 }
 
-void ControlFlowGraph::traverse(Visitor& visitor) {
-	if(head)
-		head->acceptVisitor(visitor);
+void ControlFlowGraph::clear() {
+	DeleteVisitor deleteVisitor;
+	TraverserOne tOne(&deleteVisitor);
+	tOne.traverseCFG(this);
 }

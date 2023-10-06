@@ -33,8 +33,8 @@ public:
 	AssignStmt(char* name, Expr* value) : p_name(name), p_value(value), p_dataType(INT){
 	}
 	virtual ~AssignStmt() {
-		delete p_name;
-		delete p_value;
+		//delete p_name;
+		//delete p_value;
 	}
 	virtual void print(ostream& os) {
 		os << "Assign statement: name " <<p_name << " type " << p_type << " value " << *p_value << " ";
@@ -49,7 +49,7 @@ public:
 	WhileStmt(): p_condition(0) {}
 	WhileStmt(Expr* condition): p_condition(condition) {}
 	virtual ~WhileStmt() {
-		delete p_condition;
+		//delete p_condition;
 		for(Stmt* stmt : p_subStatements) {
 			delete stmt;
 		}
@@ -68,7 +68,7 @@ public:
 	IfStmt(): p_condition(0), p_else(0) {}
 	IfStmt(Expr* condition): p_condition(condition), p_else(0) {}
 	virtual ~IfStmt() {
-		delete p_condition;
+		//delete p_condition;
 		delete p_else;
 		for(Stmt* stmt : p_subStatements) {
 			delete stmt;

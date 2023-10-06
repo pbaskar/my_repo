@@ -11,7 +11,7 @@
 #include<vector>
 #include<iostream>
 #include "InstrParser.h"
-#include "Visitor.h"
+#include "Traverser.h"
 using namespace std;
 
 enum NodeType {
@@ -95,16 +95,17 @@ public:
 	virtual void setNext(BasicBlock* next) {
 		p_next = next;
 	}
-	BasicBlock* getNext() {
-		return p_next;
-	}
 	void addNode(Node* newNode) {
 		nodeList.push_back(newNode);
 	}
 	virtual void acceptVisitor(Visitor& visitor) {
 		visitor.visitBasicBlock(this);
-		if(p_next) p_next->acceptVisitor(visitor);
 	}
+	virtual void acceptTraverser(Traverser& traverser) {
+		traverser.traverseBasicBlock(this);
+	}
+	friend TraverserOne;
+	friend TraverserAllPath;
 private:
 	vector<Node*> nodeList;
 	BasicBlock* p_next;
@@ -124,16 +125,13 @@ public:
 		BasicBlock::setNext(next);
 	}
 	virtual void acceptVisitor(Visitor& visitor) {
-		p_ifFirst->acceptVisitor(visitor);
-
-		if(p_elseFirst)
-			p_elseFirst->acceptVisitor(visitor);
-		else {
-			BasicBlock* next = BasicBlock::getNext();
-			if(next) next->acceptVisitor(visitor);
-		}
 		visitor.visitIfElseBlock(this);
 	}
+	virtual void acceptTraverser(Traverser& traverser) {
+		traverser.traverseIfElseBlock(this);
+	}
+	friend TraverserOne;
+	friend TraverserAllPath;
 private:
 	BasicBlock* p_ifFirst;
 	BasicBlock* p_ifLast;
@@ -154,12 +152,13 @@ public:
 		p_last->setNext(this);
 	}
 	virtual void acceptVisitor(Visitor& visitor) {
-		p_first->acceptVisitor(visitor);
 		visitor.visitWhileBlock(this);
-
-		BasicBlock* next = BasicBlock::getNext();
-		if(next) next->acceptVisitor(visitor);
 	}
+	virtual void acceptTraverser(Traverser& traverser) {
+		traverser.traverseWhileBlock(this);
+	}
+	friend TraverserOne;
+	friend TraverserAllPath;
 private:
 	BasicBlock* p_first;
 	BasicBlock* p_last;
@@ -174,9 +173,11 @@ public:
 		return os;
 	}
 	void print(ostream& os);
-	void traverse(Visitor& visitor);
+	void clear();
 	Status buildCFG(const vector<Stmt*>& stmtList);
 	Status buildBlock(BasicBlock*& currBlock, const vector<Stmt*>& stmtList);
+	friend TraverserOne;
+	friend TraverserAllPath;
 private:
 	BasicBlock* head;
 };
