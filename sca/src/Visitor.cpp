@@ -5,6 +5,7 @@
  *      Author: prbas_000
  */
 
+#include<cstring>
 #include "Visitor.h"
 #include "ControlFlowGraph.h"
 
@@ -55,4 +56,44 @@ void DeleteVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
 
 void DeleteVisitor::visitWhileBlock(WhileBlock* whileBlock) {
 	delete whileBlock;
+}
+
+VariableInitCheckVisitor::VariableInitCheckVisitor() {
+
+}
+
+VariableInitCheckVisitor::~VariableInitCheckVisitor() {
+
+}
+
+void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
+
+	for(Node* node: basicBlock->nodeList) {
+		if(node->type() != ASSIGNMENT) continue;
+		AssignmentNode* assignNode = static_cast<AssignmentNode*>(node);
+		for(auto variableNodeIt=p_variableNodes.begin(); variableNodeIt != p_variableNodes.end(); ) {
+			AssignmentNode* variableAssignNode = static_cast<AssignmentNode*>(*variableNodeIt);
+			/*if(variableAssignNode->matchName(*assignNode)) {
+				variableNodeIt = p_variableNodes.erase(variableNodeIt);
+			}*/
+			//else variableNodeIt++;
+		}
+		p_variableNodes.push_back(node);
+		cout<<" added " <<*assignNode <<endl;
+	}
+	cout <<"variableNodes size " <<p_variableNodes.size() <<endl;
+}
+
+void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
+	for(Node* node: ifElseBlock->nodeList) {
+		p_variableNodes.push_back(node);
+	}
+	cout <<"variableNodes ifelse size " <<p_variableNodes.size() <<endl;
+}
+
+void VariableInitCheckVisitor::visitWhileBlock(WhileBlock* whileBlock) {
+	for(Node* node: whileBlock->nodeList) {
+		p_variableNodes.push_back(node);
+	}
+	cout <<"variableNodes while size " <<p_variableNodes.size() <<endl;
 }

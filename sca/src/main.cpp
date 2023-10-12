@@ -25,13 +25,14 @@ int main() {
 	}
 	cout << "********************************** Instructions file parsing done ****************************************" <<endl;
 	ControlFlowGraph cfg;
-	s = cfg.buildCFG(instrParser.getStatementList());
+	s = cfg.buildCFG(instrParser.getBlock());
 
 	if (s == FAILURE )
 		cout <<"Building Control flow graph failed " <<endl;
 
 	cout <<"********************************** Build cfg done **********************************" <<endl;
 	cout <<cfg <<endl;
+	//cfg.variableInitCheck();
 	cfg.clear();
 	cout << "********************************** output cfg done ****************************************" <<endl;
 	return 0;

@@ -36,23 +36,22 @@ private:
 
 class AssignmentNode : public Node {
 public:
-	AssignmentNode() : p_name(0), p_value(0) { }
+	AssignmentNode() : p_var(0), p_value(0) { }
 	AssignmentNode(AssignStmt& stmt) {
-		p_name = stmt.p_name;
+		p_var = stmt.p_var;
 		p_value = stmt.p_value;
 	}
 	virtual NodeType type() { return ASSIGNMENT; }
 	virtual ~AssignmentNode() {
-		delete p_name;
+		delete p_var;
 		delete p_value;
 	}
 	virtual void print(ostream& os) {
-		os << "name " << p_name <<" value " <<*p_value <<" ";
+		os << "name " << *p_var <<" value " <<*p_value <<" ";
 	}
-	void setName(char* name) { p_name = name; }
-	void setValue(Expr* value) { p_value = value; }
+
 private:
-	char* p_name;
+	Variable* p_var;
 	Expr* p_value;
 };
 
@@ -106,6 +105,7 @@ public:
 	}
 	friend TraverserOne;
 	friend TraverserAllPath;
+	friend VariableInitCheckVisitor;
 private:
 	vector<Node*> nodeList;
 	BasicBlock* p_next;
@@ -132,6 +132,7 @@ public:
 	}
 	friend TraverserOne;
 	friend TraverserAllPath;
+	friend VariableInitCheckVisitor;
 private:
 	BasicBlock* p_ifFirst;
 	BasicBlock* p_ifLast;
@@ -159,6 +160,7 @@ public:
 	}
 	friend TraverserOne;
 	friend TraverserAllPath;
+	friend VariableInitCheckVisitor;
 private:
 	BasicBlock* p_first;
 	BasicBlock* p_last;
@@ -173,9 +175,10 @@ public:
 		return os;
 	}
 	void print(ostream& os);
+	void variableInitCheck();
 	void clear();
-	Status buildCFG(const vector<Stmt*>& stmtList);
-	Status buildBlock(BasicBlock*& currBlock, const vector<Stmt*>& stmtList);
+	Status buildCFG(const Block& block);
+	Status buildBlock(BasicBlock*& currBlock, const Block& block);
 	friend TraverserOne;
 	friend TraverserAllPath;
 private:

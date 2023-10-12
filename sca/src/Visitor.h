@@ -7,10 +7,13 @@
 
 #ifndef SRC_VISITOR_H_
 #define SRC_VISITOR_H_
+#include<vector>
+using namespace std;
 class ControlFlowGraph;
 class BasicBlock;
 class IfElseBlock;
 class WhileBlock;
+class Node;
 class Visitor {
 public:
 	Visitor();
@@ -38,5 +41,17 @@ public:
 	virtual void visitBasicBlock(BasicBlock* basicBlock);
 	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
 	virtual void visitWhileBlock(WhileBlock* whileBlock);
+};
+
+class VariableInitCheckVisitor : public Visitor {
+public:
+	VariableInitCheckVisitor();
+	virtual ~VariableInitCheckVisitor();
+
+	virtual void visitBasicBlock(BasicBlock* basicBlock);
+	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
+	virtual void visitWhileBlock(WhileBlock* whileBlock);
+private:
+	vector<Node*> p_variableNodes;
 };
 #endif /* SRC_VISITOR_H_ */

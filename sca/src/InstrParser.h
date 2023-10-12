@@ -10,10 +10,10 @@
 #include<vector>
 #include "Tokenizer.h"
 #include "ExpressionParser.h"
+#include "SymbolTable.h"
 
 using namespace std;
 enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE };
-enum DataType { INT };
 
 class Stmt {
 public:
@@ -29,19 +29,39 @@ public:
 
 class AssignStmt : public Stmt {
 public:
-	AssignStmt(): p_name(0), p_value(0), p_dataType(INT) {}
-	AssignStmt(char* name, Expr* value) : p_name(name), p_value(value), p_dataType(INT){
+	AssignStmt(): p_var(0), p_value(0), p_dataType(INT) {}
+	AssignStmt(Variable* var, Expr* value) : p_var(var), p_value(value), p_dataType(INT){
 	}
 	virtual ~AssignStmt() {
 		//delete p_name;
 		//delete p_value;
 	}
 	virtual void print(ostream& os) {
-		os << "Assign statement: name " <<p_name << " type " << p_type << " value " << *p_value << " ";
+		os << "Assign statement: name " <<p_var << " type " << p_type << " value " << *p_value << " ";
 	}
-	char* p_name;
+	Variable* p_var;
 	Expr* p_value;
 	DataType p_dataType;
+};
+
+class Block {
+public:
+	Block(): p_symbolTable(0) {}
+	Block(SymbolTable* symbolTable) : p_symbolTable(symbolTable) {}
+	~Block() {
+		for(Stmt* stmt : p_subStatements) {
+			delete stmt;
+		}
+		//delete p_symbolTable;
+	}
+	void addStatement(Stmt* stmt) {
+		p_subStatements.push_back(stmt);
+	}
+	const vector<Stmt*>& getSubStatements() const { return p_subStatements; }
+	const SymbolTable* getSymbolTable() const { return p_symbolTable; }
+private:
+	vector<Stmt*> p_subStatements;
+	SymbolTable* p_symbolTable;
 };
 
 class WhileStmt : public Stmt {
@@ -50,17 +70,15 @@ public:
 	WhileStmt(Expr* condition): p_condition(condition) {}
 	virtual ~WhileStmt() {
 		//delete p_condition;
-		for(Stmt* stmt : p_subStatements) {
-			delete stmt;
-		}
 	}
 	virtual void print(ostream& os) {
-		os << "type " << p_type << " substatements " <<p_subStatements.size() << " ";
+		//os << "type " << p_type <<
 		if(p_condition)
 			os << " condition " <<*p_condition <<" ";
 	}
+	const Block& getBlock() const { return p_block; }
 	Expr* p_condition;
-	vector<Stmt*> p_subStatements;
+	Block p_block;
 };
 
 class IfStmt : public Stmt {
@@ -70,18 +88,16 @@ public:
 	virtual ~IfStmt() {
 		//delete p_condition;
 		delete p_else;
-		for(Stmt* stmt : p_subStatements) {
-			delete stmt;
-		}
 	}
 	virtual void print(ostream& os) {
-		os << " type " << p_type << " substatements " <<p_subStatements.size() <<" ";
+		//os << " type " << p_type << " substatements " <<p_subStatements.size() <<" ";
 		if(p_condition)
 			os <<" condition " <<*p_condition <<" ";
 	}
+	const Block& getBlock() const { return p_block; }
 	Expr* p_condition;
-	vector<Stmt*> p_subStatements;
 	IfStmt* p_else;
+	Block p_block;
 };
 
 class InstrParser {
@@ -90,18 +106,18 @@ public:
 	virtual ~InstrParser();
 
 	Status parseFile(char* fileName);
-	Status parseStmt(vector<Stmt*>& stmtList);
-	Status parseDecl(vector<Stmt*>& stmtList);
-	Status parseAssign(vector<Stmt*>& stmtList);
+	Status parseStmt(Block& block);
+	Status parseDecl(Block& block);
+	Status parseAssign(Block& block);
 	Status parseIf(IfStmt* stmt);
 	Status parseElse(IfStmt* stmt);
-	Status parseIfElse(vector<Stmt*>& stmtList);
-	Status parseWhile(vector<Stmt*>& stmtList);
-	Status parseBlock(vector<Stmt*>& stmtList);
-	const vector<Stmt*>& getStatementList();
+	Status parseIfElse(Block& block);
+	Status parseWhile(Block& block);
+	Status parseBlock(Block& block);
+	const Block& getBlock() const;
 
 private:
-	vector<Stmt*> p_stmtList;
+	Block p_mainBlock;
 	Tokenizer p_tokenizer;
 	ExpressionParser p_exprParser;
 
