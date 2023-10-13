@@ -7,7 +7,7 @@
 
 #ifndef SRC_SYMBOLTABLE_H_
 #define SRC_SYMBOLTABLE_H_
-#include<unordered_set>
+#include<vector>
 #include<cstring>
 #include "ExpressionTokenizer.h"
 using namespace std;
@@ -25,7 +25,7 @@ public:
 	bool operator==(const SymbolTableEntry& other) {
 		return p_var==other.p_var;
 	}
-
+	Variable* fetchVariable(char* name);
 private:
 	Variable* p_var;
 	DataType p_dataType;
@@ -35,10 +35,12 @@ private:
 class SymbolTable {
 public:
 	SymbolTable();
+	SymbolTable(SymbolTable* outerScope);
 	virtual ~SymbolTable();
-	void makeSymbolTableEntry(char* name);
+	Variable* addSymbol(char* name);
+	Variable* fetchVariable(char* name);
 private:
-	unordered_set<SymbolTableEntry*> p_symbolSet;
+	vector<SymbolTableEntry*> p_symbolEntries;
 	SymbolTable* p_outerScope;
 };
 

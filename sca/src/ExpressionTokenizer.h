@@ -61,6 +61,9 @@ public:
 	virtual void print(ostream& os) {
 		os <<p_name << " ";
 	}
+	bool match(char* name) {
+		return strcmp(p_name, name) ==0;
+	}
 	bool operator==(const Variable& other) {
 		return strcmp(p_name, other.p_name) ==0;
 	}

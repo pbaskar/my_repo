@@ -37,7 +37,7 @@ public:
 		//delete p_value;
 	}
 	virtual void print(ostream& os) {
-		os << "Assign statement: name " <<p_var << " type " << p_type << " value " << *p_value << " ";
+		os << "Assign statement: name " <<*p_var << " type " << p_type << " value " << *p_value << " ";
 	}
 	Variable* p_var;
 	Expr* p_value;
@@ -46,8 +46,8 @@ public:
 
 class Block {
 public:
-	Block(): p_symbolTable(0) {}
-	Block(SymbolTable* symbolTable) : p_symbolTable(symbolTable) {}
+	Block(){ p_symbolTable = new SymbolTable; }
+	Block(const Block* parent) { p_symbolTable = new SymbolTable(parent->p_symbolTable); }
 	~Block() {
 		for(Stmt* stmt : p_subStatements) {
 			delete stmt;
@@ -56,6 +56,12 @@ public:
 	}
 	void addStatement(Stmt* stmt) {
 		p_subStatements.push_back(stmt);
+	}
+	Variable* addSymbol(char* name) {
+		return p_symbolTable->addSymbol(name);
+	}
+	Variable* fetchVariable(char* name) {
+		return p_symbolTable->fetchVariable(name);
 	}
 	const vector<Stmt*>& getSubStatements() const { return p_subStatements; }
 	const SymbolTable* getSymbolTable() const { return p_symbolTable; }
@@ -66,38 +72,38 @@ private:
 
 class WhileStmt : public Stmt {
 public:
-	WhileStmt(): p_condition(0) {}
-	WhileStmt(Expr* condition): p_condition(condition) {}
+	WhileStmt(): p_condition(0), p_block(0) {}
 	virtual ~WhileStmt() {
 		//delete p_condition;
+		delete p_block;
 	}
 	virtual void print(ostream& os) {
 		//os << "type " << p_type <<
 		if(p_condition)
 			os << " condition " <<*p_condition <<" ";
 	}
-	const Block& getBlock() const { return p_block; }
+	const Block* getBlock() const { return p_block; }
 	Expr* p_condition;
-	Block p_block;
+	Block* p_block;
 };
 
 class IfStmt : public Stmt {
 public:
-	IfStmt(): p_condition(0), p_else(0) {}
-	IfStmt(Expr* condition): p_condition(condition), p_else(0) {}
+	IfStmt(): p_condition(0), p_else(0), p_block(0) {}
 	virtual ~IfStmt() {
 		//delete p_condition;
 		delete p_else;
+		delete p_block;
 	}
 	virtual void print(ostream& os) {
 		//os << " type " << p_type << " substatements " <<p_subStatements.size() <<" ";
 		if(p_condition)
 			os <<" condition " <<*p_condition <<" ";
 	}
-	const Block& getBlock() const { return p_block; }
+	const Block* getBlock() const { return p_block; }
 	Expr* p_condition;
 	IfStmt* p_else;
-	Block p_block;
+	Block* p_block;
 };
 
 class InstrParser {
@@ -106,18 +112,18 @@ public:
 	virtual ~InstrParser();
 
 	Status parseFile(char* fileName);
-	Status parseStmt(Block& block);
-	Status parseDecl(Block& block);
-	Status parseAssign(Block& block);
+	Status parseStmt(Block* block);
+	Status parseDecl(Block* block);
+	Status parseAssign(Block* block);
 	Status parseIf(IfStmt* stmt);
 	Status parseElse(IfStmt* stmt);
-	Status parseIfElse(Block& block);
-	Status parseWhile(Block& block);
-	Status parseBlock(Block& block);
-	const Block& getBlock() const;
+	Status parseIfElse(Block* block);
+	Status parseWhile(Block* block);
+	Status parseBlock(Block* block);
+	const Block* getBlock() const;
 
 private:
-	Block p_mainBlock;
+	Block* p_mainBlock;
 	Tokenizer p_tokenizer;
 	ExpressionParser p_exprParser;
 

@@ -14,18 +14,18 @@ ControlFlowGraph::ControlFlowGraph(): head(0) {
 ControlFlowGraph::~ControlFlowGraph() {
 }
 
-Status ControlFlowGraph::buildCFG(const Block& block) {
+Status ControlFlowGraph::buildCFG(const Block* block) {
 	Status s = SUCCESS;
-	head = new BasicBlock;
+	head = new BasicBlock(block->getSymbolTable());
 	BasicBlock* currBlock = head;
 	s = buildBlock(currBlock, block);
 	return s;
 }
 
-Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block& block) {
+Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) {
 	Status s = SUCCESS;
 	bool beginNewBlock = false;
-	auto& stmtList = block.getSubStatements();
+	auto& stmtList = block->getSubStatements();
 	for(Stmt* stmt : stmtList ) {
 		StmtType type = stmt->p_type;
 		switch(type) {
@@ -33,11 +33,11 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block& block) 
 		case ASSIGN: {
 			AssignStmt* assignStmt = static_cast<AssignStmt*>(stmt);
 			AssignmentNode* newNode = new AssignmentNode(*assignStmt);
-			cout << "Assignment Node: " << *newNode << " " <<block.getSubStatements().size() <<endl;
+			cout << "Assignment Node: " << *newNode << " " <<block->getSubStatements().size() <<endl;
 
 			if(beginNewBlock) {
 				beginNewBlock = false;
-				BasicBlock* newBlock = new BasicBlock;
+				BasicBlock* newBlock = new BasicBlock(block->getSymbolTable());
 				currBlock->setNext(newBlock);
 				currBlock = newBlock;
 			}
@@ -53,9 +53,9 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block& block) 
 
 			IfStmt* ifStmt = static_cast<IfStmt*>(stmt);
 			ConditionNode* ifNode = new ConditionNode(*ifStmt);
-			cout << "If Node: " << *ifNode << " " <<block.getSubStatements().size() <<endl;
+			cout << "If Node: " << *ifNode << " " <<block->getSubStatements().size() <<endl;
 
-			first = new BasicBlock;
+			first = new BasicBlock(ifStmt->getBlock()->getSymbolTable());
 			first->addNode(ifNode);
 
 			ifLast = first;
@@ -64,9 +64,9 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block& block) 
 			IfStmt* elseStmt = ifStmt->p_else;
 			if(elseStmt) {
 				ConditionNode* elseNode = new ConditionNode(*elseStmt);
-				cout << "Else Node: " << *elseNode << " " <<block.getSubStatements().size() <<endl;
+				cout << "Else Node: " << *elseNode << " " <<block->getSubStatements().size() <<endl;
 
-				elseFirst = new BasicBlock;
+				elseFirst = new BasicBlock(elseStmt->getBlock()->getSymbolTable());
 				elseFirst->addNode(elseNode);
 
 				elseLast = elseFirst;
@@ -85,9 +85,9 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block& block) 
 
 			WhileStmt* whileStmt = static_cast<WhileStmt*>(stmt);
 			ConditionNode* whileNode = new ConditionNode(*whileStmt);
-			cout << "While Node: " << *whileNode << " " <<block.getSubStatements().size() <<endl;
+			cout << "While Node: " << *whileNode << " " <<block->getSubStatements().size() <<endl;
 
-			first = new BasicBlock;
+			first = new BasicBlock(whileStmt->getBlock()->getSymbolTable());
 			first->addNode(whileNode);
 
 			last = first;

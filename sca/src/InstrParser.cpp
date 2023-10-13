@@ -14,6 +14,7 @@ InstrParser::InstrParser(): p_pos(0) {
 }
 
 InstrParser::~InstrParser() {
+	delete p_mainBlock;
 }
 
 Status InstrParser::parseFile(char* fileName) {
@@ -25,13 +26,14 @@ Status InstrParser::parseFile(char* fileName) {
 	if(next=='{') {
 		status = p_tokenizer.nextLine();
 		if(status == FAILURE) { p_tokenizer.closeFile(); return status; }
+		p_mainBlock = new Block;
 		status = parseBlock(p_mainBlock);
 	}
 	p_tokenizer.closeFile();
 	return status;
 }
 
-Status InstrParser::parseBlock(Block& block) {
+Status InstrParser::parseBlock(Block* block) {
 	Status status = SUCCESS;
 	char closeBrace = p_tokenizer.nextChar(true);
 	while(closeBrace != '}' && closeBrace != '\0') {
@@ -44,7 +46,7 @@ Status InstrParser::parseBlock(Block& block) {
 	return status;
 }
 
-Status InstrParser::parseStmt(Block& block) {
+Status InstrParser::parseStmt(Block* block) {
 	char* next = p_tokenizer.nextWord(true);
 	Status status = SUCCESS;
 	if(strcmp(next, "int")==0) {
@@ -70,18 +72,15 @@ Status InstrParser::parseStmt(Block& block) {
 	return status;
 }
 
-Status InstrParser::parseDecl(Block& block) {
+Status InstrParser::parseDecl(Block* block) {
 	Status status = SUCCESS;
 	AssignStmt* stmt = new AssignStmt;
 	stmt->p_type = DECL;
-	block.addStatement(stmt);
+	block->addStatement(stmt);
 
 	char* name = p_tokenizer.nextWord();
 	if(name == nullptr) return FAILURE;
-	Variable* var = new Variable(name);
-	//addSymbol(var, INT, 0);
-	stmt->p_var = var;
-
+	stmt->p_var = block->addSymbol(name);
 
 	char equal = p_tokenizer.nextChar();
 	if (equal != '=') return FAILURE;
@@ -93,20 +92,19 @@ Status InstrParser::parseDecl(Block& block) {
 	if(value == nullptr) return FAILURE;
 	stmt->p_value = value;
 	p_tokenizer.nextLine();
-	cout <<"Declarative stmt: size = " <<block.getSubStatements().size() << " " <<*stmt <<endl;
+	cout <<"Declarative stmt: size = " <<block->getSubStatements().size() << " " <<*stmt <<endl;
 	return status;
 }
 
-Status InstrParser::parseAssign(Block& block) {
+Status InstrParser::parseAssign(Block* block) {
 	Status status = SUCCESS;
 	AssignStmt* stmt = new AssignStmt;
 	stmt->p_type = ASSIGN;
-	block.addStatement(stmt);
+	block->addStatement(stmt);
 
 	char* name = p_tokenizer.nextWord();
 	if(name == nullptr) return FAILURE;
-	Variable* var = new Variable(name);
-	stmt->p_var = var;
+	stmt->p_var = block->fetchVariable(name);
 
 	char equal = p_tokenizer.nextChar();
 	if ( equal != '=' ) return FAILURE;
@@ -118,15 +116,16 @@ Status InstrParser::parseAssign(Block& block) {
 	if(value == nullptr) return FAILURE;
 	stmt->p_value = value;
 	p_tokenizer.nextLine();
-	cout <<"Assignment stmt: size = " << block.getSubStatements().size()  <<" " <<*stmt <<endl;
+	cout <<"Assignment stmt: size = " << block->getSubStatements().size()  <<" " <<*stmt <<endl;
 	return status;
 }
 
-Status InstrParser::parseIfElse(Block& block) {
+Status InstrParser::parseIfElse(Block* block) {
 	Status status = SUCCESS;
 	IfStmt* ifStmt = new IfStmt;
 	ifStmt->p_type = IF;
-	block.addStatement(ifStmt);
+	ifStmt->p_block = new Block(block);
+	block->addStatement(ifStmt);
 
 	status = parseIf(ifStmt);
 	if(status == FAILURE) return FAILURE;
@@ -139,6 +138,7 @@ Status InstrParser::parseIfElse(Block& block) {
 
 	IfStmt* elseStmt = new IfStmt;
 	elseStmt->p_type = ELSE;
+	elseStmt->p_block = new Block(block);
 	status = parseElse(elseStmt);
 	if(status == FAILURE) { delete elseStmt; return FAILURE; }
 
@@ -162,7 +162,7 @@ Status InstrParser::parseIf(IfStmt* stmt) {
 	//SymbolTable* symTable = stmt->makeNewSymbolTable();
 	status = parseBlock(stmt->p_block);
 
-	cout <<"If stmt: " <<stmt->p_block.getSubStatements().size() << " "<<*stmt <<endl;
+	cout <<"If stmt: " <<stmt->p_block->getSubStatements().size() << " "<<*stmt <<endl;
 	return status;
 }
 
@@ -176,11 +176,12 @@ Status InstrParser::parseElse(IfStmt* stmt) {
 	return status;
 }
 
-Status InstrParser::parseWhile(Block& block) {
+Status InstrParser::parseWhile(Block* block) {
 	Status status = SUCCESS;
 	WhileStmt* stmt = new WhileStmt;
 	stmt->p_type = WHILE;
-	block.addStatement(stmt);
+	stmt->p_block = new Block(block);
+	block->addStatement(stmt);
 
 	char openBrace = p_tokenizer.nextChar();
 	if ( openBrace != '(') return FAILURE;
@@ -195,11 +196,11 @@ Status InstrParser::parseWhile(Block& block) {
 	p_tokenizer.nextLine();
 	status = parseBlock(stmt->p_block);  //handle return value
 	p_tokenizer.nextLine();
-	cout <<"While stmt: size = " <<block.getSubStatements().size() << " " <<*stmt <<endl;
+	cout <<"While stmt: size = " <<block->getSubStatements().size() << " " <<*stmt <<endl;
 	return status;
 }
 
-const Block& InstrParser::getBlock() const {
+const Block* InstrParser::getBlock() const {
 	return p_mainBlock;
 }
 

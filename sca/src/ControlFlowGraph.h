@@ -43,7 +43,7 @@ public:
 	}
 	virtual NodeType type() { return ASSIGNMENT; }
 	virtual ~AssignmentNode() {
-		delete p_var;
+		//delete p_var;
 		delete p_value;
 	}
 	virtual void print(ostream& os) {
@@ -78,12 +78,13 @@ private:
 
 class BasicBlock {
 public:
-	BasicBlock(): p_next(0) {}
-	BasicBlock(BasicBlock* next): p_next(next){}
+	BasicBlock(const SymbolTable* symbolTable) : p_next(0), p_symbolTable(symbolTable) {}
+	BasicBlock(BasicBlock* next, SymbolTable* symbolTable): p_next(next), p_symbolTable(symbolTable){}
 	virtual ~BasicBlock() {
 		for(Node* n : nodeList) {
 			delete n;
 		}
+		delete p_symbolTable;
 	}
 	void print() {
 		for(Node* n: nodeList) {
@@ -109,13 +110,13 @@ public:
 private:
 	vector<Node*> nodeList;
 	BasicBlock* p_next;
+	const SymbolTable* p_symbolTable;
 };
 
 class IfElseBlock : public BasicBlock {
 public:
-	IfElseBlock(): p_ifFirst(0), p_ifLast(0), p_elseFirst(0), p_elseLast(0) {}
 	IfElseBlock(BasicBlock* next, BasicBlock* ifFirst, BasicBlock* ifLast, BasicBlock* elseFirst, BasicBlock* elseLast)
-	: BasicBlock(next), p_ifFirst(ifFirst), p_ifLast(ifLast), p_elseFirst(elseFirst), p_elseLast(elseLast) {}
+: BasicBlock(next,0), p_ifFirst(ifFirst), p_ifLast(ifLast), p_elseFirst(elseFirst), p_elseLast(elseLast) {}
 	~IfElseBlock() {
 	}
 	virtual void setNext(BasicBlock* next) {
@@ -142,8 +143,8 @@ private:
 
 class WhileBlock : public BasicBlock {
 public:
-	WhileBlock(): p_first(0), p_last(0) {}
-	WhileBlock(BasicBlock* next, BasicBlock* first, BasicBlock* last): BasicBlock(next), p_first(first), p_last(last) {}
+	WhileBlock(BasicBlock* next, BasicBlock* first, BasicBlock* last):
+		BasicBlock(next, 0), p_first(first), p_last(last) {}
 	~WhileBlock() {
 	}
 	virtual void setNext(BasicBlock* next) {
@@ -177,8 +178,8 @@ public:
 	void print(ostream& os);
 	void variableInitCheck();
 	void clear();
-	Status buildCFG(const Block& block);
-	Status buildBlock(BasicBlock*& currBlock, const Block& block);
+	Status buildCFG(const Block* block);
+	Status buildBlock(BasicBlock*& currBlock, const Block* block);
 	friend TraverserOne;
 	friend TraverserAllPath;
 private:
