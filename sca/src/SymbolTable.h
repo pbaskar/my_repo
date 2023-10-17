@@ -38,7 +38,7 @@ public:
 	SymbolTable(SymbolTable* outerScope);
 	virtual ~SymbolTable();
 	Variable* addSymbol(char* name);
-	Variable* fetchVariable(char* name);
+	Variable* fetchVariable(char* name) const;
 private:
 	vector<SymbolTableEntry*> p_symbolEntries;
 	SymbolTable* p_outerScope;

@@ -35,7 +35,7 @@ Expr* ExpressionParser::makeNewLeaf(char* token, ExprType type) {
 	}
 	break;
 	case VARIABLE: {
-		expr = new Variable(token);
+		expr = p_symbolTable->fetchVariable(token);
 	}
 	break;
 	default: return nullptr; //failure

@@ -25,8 +25,8 @@ public:
 	virtual ~Node(){
 	}
 	virtual NodeType type()=0;
-	virtual void print(ostream& os)=0;
-	friend ostream& operator<<(ostream& os, Node& node) {
+	virtual void print(ostream& os) const=0;
+	friend ostream& operator<<(ostream& os, const Node& node) {
 		node.print(os);
 		return os;
 	}
@@ -46,9 +46,16 @@ public:
 		//delete p_var;
 		delete p_value;
 	}
-	virtual void print(ostream& os) {
-		os << "name " << *p_var <<" value " <<*p_value <<" ";
+	virtual void print(ostream& os) const {
+		os << "name " << *p_var;
+		if(p_value)
+			os <<" value " <<*p_value <<" ";
 	}
+	bool operator==(const AssignmentNode& other) {
+		return p_var == other.p_var;
+	}
+	const Variable* getVariable() { return p_var; }
+	const Expr* getValue() { return p_value; }
 
 private:
 	Variable* p_var;
@@ -66,7 +73,7 @@ public:
 	virtual ~ConditionNode() {
 		delete p_condition;
 	}
-	virtual void print(ostream& os) {
+	virtual void print(ostream& os) const {
 		os <<"condition "<<" ";
 		if(p_condition)
 			os <<*p_condition <<" ";

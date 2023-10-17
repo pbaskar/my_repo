@@ -37,7 +37,8 @@ public:
 		//delete p_value;
 	}
 	virtual void print(ostream& os) {
-		os << "Assign statement: name " <<*p_var << " type " << p_type << " value " << *p_value << " ";
+		os << "Assign statement: name " <<*p_var << " type " << p_type;
+		if(p_value) os << " value " << *p_value << " ";
 	}
 	Variable* p_var;
 	Expr* p_value;

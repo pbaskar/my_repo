@@ -32,8 +32,10 @@ int main() {
 
 	cout <<"********************************** Build cfg done **********************************" <<endl;
 	cout <<cfg <<endl;
-	//cfg.variableInitCheck();
-	cfg.clear();
 	cout << "********************************** output cfg done ****************************************" <<endl;
+	cfg.variableInitCheck();
+	cout << "********************************** Variable Init Check done ****************************************" <<endl;
+	cfg.clear();
+	cout << "********************************** CFG Clear done ****************************************" <<endl;
 	return 0;
 }

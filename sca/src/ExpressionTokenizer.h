@@ -9,6 +9,7 @@
 #define EXPRESSIONTOKENIZER_H_
 #include<iostream>
 #include<cstring>
+#include<vector>
 
 using namespace std;
 enum ExprType {
@@ -23,9 +24,10 @@ public:
 	Expr() {}
 	virtual ~Expr() {}
 	virtual ExprType getExprType()=0;
-	virtual void print(ostream& os) =0;
+	virtual void print(ostream& os) const=0;
+	virtual void getVariables(vector<const Expr*>& variables) const =0;
 
-	friend ostream& operator<<(ostream& os, Expr& expr) {
+	friend ostream& operator<<(ostream& os, const Expr& expr) {
 		//os <<expr.getExprType() <<" " ;
 		expr.print(os);
 		return os;
@@ -43,8 +45,12 @@ public:
 	void setLeftOp(Expr* left) { p_left = left; }
 	void setRightOp(Expr* right) { p_right = right; }
 	void setOp(char op) { p_op = op; }
-	virtual void print(ostream& os) {
+	virtual void print(ostream& os) const{
 		os<< *p_left <<p_op << " " <<*p_right;
+	}
+	virtual void getVariables(vector<const Expr*>& variables) const {
+		p_left->getVariables(variables);
+		p_right->getVariables(variables);
 	}
 private:
 	Expr* p_left;
@@ -55,12 +61,13 @@ private:
 class Variable : public Expr {
 public:
 	Variable(char* n): p_name(n) {}
-	virtual ~Variable() { delete p_name; }
+	virtual ~Variable() { /*delete p_name;*/ }
 	virtual ExprType getExprType() { return VARIABLE; }
 	void setName(char* name) { p_name = name; }
-	virtual void print(ostream& os) {
+	virtual void print(ostream& os) const{
 		os <<p_name << " ";
 	}
+	virtual void getVariables(vector<const Expr*>& variables) const { variables.push_back(this); }
 	bool match(char* name) {
 		return strcmp(p_name, name) ==0;
 	}
@@ -76,8 +83,9 @@ public:
 	Constant(int n): p_number(n) {}
 	virtual ~Constant() {}
 	virtual ExprType getExprType() { return CONSTANT; }
+	virtual void getVariables(vector<const Expr*>& variables) const {}
 	void setNumber(int num) { p_number = num; }
-	virtual void print(ostream& os) {
+	virtual void print(ostream& os) const {
 		os <<p_number <<" ";
 	}
 private:

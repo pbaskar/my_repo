@@ -35,7 +35,7 @@ Variable* SymbolTable::addSymbol(char* name) {
 	return var;
 }
 
-Variable* SymbolTable::fetchVariable(char* name) {
+Variable* SymbolTable::fetchVariable(char* name) const {
 	Variable* var(0);
 	for(auto symbol : p_symbolEntries) {
 		var = symbol->fetchVariable(name);
@@ -55,7 +55,7 @@ SymbolTableEntry::SymbolTableEntry() : p_var(0), p_dataType(INT), p_lineNum(0){
 }
 
 SymbolTableEntry::SymbolTableEntry(Variable* var, DataType dataType, int lineNum) :
-				p_var(var), p_dataType(dataType), p_lineNum(lineNum){
+								p_var(var), p_dataType(dataType), p_lineNum(lineNum){
 
 }
 

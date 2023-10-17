@@ -6,6 +6,7 @@
  */
 
 #include<cstring>
+#include<vector>
 #include "Visitor.h"
 #include "ControlFlowGraph.h"
 
@@ -67,21 +68,40 @@ VariableInitCheckVisitor::~VariableInitCheckVisitor() {
 }
 
 void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
-
+	vector<const Expr*> variables;
+	bool found = false;
 	for(Node* node: basicBlock->nodeList) {
 		if(node->type() != ASSIGNMENT) continue;
 		AssignmentNode* assignNode = static_cast<AssignmentNode*>(node);
+		const Expr* value=assignNode->getValue();
+		if(value) {
+			value->getVariables(variables);
+		}
+		else continue;
+		cout <<"RHS value " << *value <<endl;
+		for(auto variableIt = variables.begin(); variableIt != variables.end(); variableIt++) {
+			const Variable* variable = static_cast<const Variable*>(*variableIt);
+			if (!variable) cout <<"cast error " <<endl;
+			found = false;
+			for(auto variableNodeIt=p_variableNodes.begin(); variableNodeIt != p_variableNodes.end(); variableNodeIt++ ) {
+				AssignmentNode* variableAssignNode = static_cast<AssignmentNode*>(*variableNodeIt);
+				if(variable == variableAssignNode->getVariable()) {
+					found = true;
+				}
+			}
+			if(!found) cout <<"Not initialized " << *variable <<endl;
+		}
 		for(auto variableNodeIt=p_variableNodes.begin(); variableNodeIt != p_variableNodes.end(); ) {
 			AssignmentNode* variableAssignNode = static_cast<AssignmentNode*>(*variableNodeIt);
-			/*if(variableAssignNode->matchName(*assignNode)) {
+			if(*variableAssignNode==*assignNode) {
 				variableNodeIt = p_variableNodes.erase(variableNodeIt);
-			}*/
-			//else variableNodeIt++;
+			}
+			else variableNodeIt++;
 		}
 		p_variableNodes.push_back(node);
 		cout<<" added " <<*assignNode <<endl;
 	}
-	cout <<"variableNodes size " <<p_variableNodes.size() <<endl;
+	cout <<"End of Block: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {

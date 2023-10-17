@@ -35,6 +35,7 @@ Status InstrParser::parseFile(char* fileName) {
 
 Status InstrParser::parseBlock(Block* block) {
 	Status status = SUCCESS;
+	p_exprParser.setSymbolTable(block->getSymbolTable());
 	char closeBrace = p_tokenizer.nextChar(true);
 	while(closeBrace != '}' && closeBrace != '\0') {
 		Status status = parseStmt(block);
@@ -83,7 +84,8 @@ Status InstrParser::parseDecl(Block* block) {
 	stmt->p_var = block->addSymbol(name);
 
 	char equal = p_tokenizer.nextChar();
-	if (equal != '=') return FAILURE;
+	if(equal == ';') { 	p_tokenizer.nextLine(); return status; }
+	if(equal != '=') return FAILURE;
 
 	char* next = p_tokenizer.nextWord();
 	if(next == nullptr) return FAILURE;

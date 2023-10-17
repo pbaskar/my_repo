@@ -9,6 +9,7 @@
 #define EXPRESSIONPARSER_H_
 
 #include "ExpressionTokenizer.h"
+#include "SymbolTable.h"
 
 class ExpressionParser {
 public:
@@ -19,8 +20,10 @@ public:
 	Expr* parseExpression();
 	Expr* parseFactor();
 	Expr* makeNewLeaf(char* token, ExprType type);
+	void setSymbolTable(const SymbolTable* symbolTable) { p_symbolTable = symbolTable; }
 private:
 	ExpressionTokenizer p_exprTokenizer;
+	const SymbolTable* p_symbolTable;
 };
 
 #endif /* EXPRESSIONPARSER_H_ */
