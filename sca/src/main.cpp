@@ -12,10 +12,10 @@
 #include "ControlFlowGraph.h"
 using namespace std;
 
-int main() {
+int main(int argc, char* argv[]) {
 	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
-
-	char fileName[] = "C:\\workspace\\sca\\instructions.txt";
+	if(argc==0) return 0;
+	char* fileName = argv[1];
 	InstrParser instrParser;
 	Status s = instrParser.parseFile(fileName);
 
