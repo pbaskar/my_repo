@@ -100,6 +100,32 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 			beginNewBlock = true;
 		}
 		break;
+		case FUNC_DECL: {
+			BasicBlock* first(0);
+			BasicBlock* last(0);
+
+			FunctionDeclStmt* functionDeclStmt = static_cast<FunctionDeclStmt*>(stmt);
+
+			first = new BasicBlock(functionDeclStmt->getBlock()->getSymbolTable());
+			auto formalArguments = functionDeclStmt->getFormalArguments();
+			//cout << "Function Decl Node: " << *functionDeclNode << " " <<block->getSubStatements().size() <<endl;
+			for(Variable* var : formalArguments) {
+				AssignmentNode* functionDeclNode = new AssignmentNode(var);
+				first->addNode(functionDeclNode);
+			}
+
+			last = first;
+			s = buildBlock(last, functionDeclStmt->getBlock());
+
+			FunctionDeclBlock* functionDeclBlock = new FunctionDeclBlock(0,first,last);
+			//currBlock->setNext(whileBlock);
+			//currBlock = whileBlock;
+			//beginNewBlock = true;
+		}
+		break;
+		case FUNC_CALL:
+			cout <<"CFG::buildBlock FUNC_CALL "<<endl;
+			break;
 		default: {
 			cout <<"error " <<endl;
 		}

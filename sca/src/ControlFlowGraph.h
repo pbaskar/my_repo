@@ -37,6 +37,7 @@ private:
 class AssignmentNode : public Node {
 public:
 	AssignmentNode() : p_var(0), p_value(0) { }
+	AssignmentNode(Variable* var) : p_var(var), p_value(0) { }
 	AssignmentNode(AssignStmt& stmt) {
 		p_var = stmt.p_var;
 		p_value = stmt.p_value;
@@ -165,6 +166,29 @@ public:
 	}
 	virtual void acceptTraverser(Traverser& traverser) {
 		traverser.traverseWhileBlock(this);
+	}
+	friend TraverserOne;
+	friend TraverserAllPath;
+	friend VariableInitCheckVisitor;
+private:
+	BasicBlock* p_first;
+	BasicBlock* p_last;
+};
+
+class FunctionDeclBlock : public BasicBlock {
+public:
+	FunctionDeclBlock(BasicBlock* next, BasicBlock* first, BasicBlock* last):
+		BasicBlock(next, 0), p_first(first), p_last(last) {}
+	~FunctionDeclBlock() {
+	}
+	virtual void setNext(BasicBlock* next) {
+		p_last->setNext(next);
+	}
+	virtual void acceptVisitor(Visitor& visitor) {
+		//visitor.visitFunctionDeclBlock(this);
+	}
+	virtual void acceptTraverser(Traverser& traverser) {
+		//traverser.traverseFunctionDeclBlock(this);
 	}
 	friend TraverserOne;
 	friend TraverserAllPath;

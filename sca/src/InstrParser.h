@@ -13,7 +13,7 @@
 #include "SymbolTable.h"
 
 using namespace std;
-enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE };
+enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE, FUNC_DECL, FUNC_CALL };
 
 class Stmt {
 public:
@@ -107,6 +107,38 @@ public:
 	Block* p_block;
 };
 
+class FunctionDeclStmt : public Stmt {
+public:
+	FunctionDeclStmt(): p_block(0) {}
+	virtual ~FunctionDeclStmt() {
+		//delete p_condition;
+		delete p_block;
+	}
+	virtual void print(ostream& os) {
+		//os << "type " << p_type <<
+	}
+	const Block* getBlock() const { return p_block; }
+	const vector<Variable*>& getFormalArguments() const { return p_formalArguments; }
+	//private:
+	char* p_name;
+	vector<Variable*> p_formalArguments;
+	Block* p_block;
+};
+
+class FunctionCallStmt : public Stmt {
+public:
+	FunctionCallStmt() {}
+	virtual ~FunctionCallStmt() {
+
+	}
+	virtual void print(ostream& os) {
+		//os << "type " << p_type <<
+	}
+	//private:
+	char* p_name;
+	vector<Expr*> p_actualArguments;
+};
+
 class InstrParser {
 public:
 	InstrParser();
@@ -121,6 +153,8 @@ public:
 	Status parseIfElse(Block* block);
 	Status parseWhile(Block* block);
 	Status parseBlock(Block* block);
+	Status parseFunctionDecl(Block* block);
+	Status parseFunctionCall(Block* block);
 	const Block* getBlock() const;
 
 private:
