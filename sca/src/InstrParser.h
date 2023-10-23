@@ -65,7 +65,7 @@ public:
 		return p_symbolTable->fetchVariable(name);
 	}
 	const vector<Stmt*>& getSubStatements() const { return p_subStatements; }
-	const SymbolTable* getSymbolTable() const { return p_symbolTable; }
+	SymbolTable* getSymbolTable() const { return p_symbolTable; }
 private:
 	vector<Stmt*> p_subStatements;
 	SymbolTable* p_symbolTable;

@@ -117,7 +117,8 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 			last = first;
 			s = buildBlock(last, functionDeclStmt->getBlock());
 
-			FunctionDeclBlock* functionDeclBlock = new FunctionDeclBlock(0,first,last);
+			FunctionDeclBlock* functionDeclBlock = new FunctionDeclBlock(0,functionDeclStmt->p_name,first,last);
+			currBlock->addFnSymbol(functionDeclBlock);
 			//currBlock->setNext(whileBlock);
 			//currBlock = whileBlock;
 			//beginNewBlock = true;
@@ -138,17 +139,17 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 void ControlFlowGraph::print(ostream& os) {
 	PrintVisitor printVisitor;
 	TraverserAllPath tAllPath(&printVisitor);
-	tAllPath.traverseCFG(this);
+	tAllPath.traverseCFG(this->head);
 }
 
 void ControlFlowGraph::variableInitCheck() {
 	VariableInitCheckVisitor variableInitCheckVisitor;
 	TraverserAllPath tAllPath(&variableInitCheckVisitor);
-	tAllPath.traverseCFG(this);
+	tAllPath.traverseCFG(this->head);
 }
 
 void ControlFlowGraph::clear() {
 	DeleteVisitor deleteVisitor;
 	TraverserOne tOne(&deleteVisitor);
-	tOne.traverseCFG(this);
+	tOne.traverseCFG(this->head);
 }

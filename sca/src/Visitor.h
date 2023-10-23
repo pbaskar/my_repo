@@ -13,6 +13,7 @@ class ControlFlowGraph;
 class BasicBlock;
 class IfElseBlock;
 class WhileBlock;
+class FunctionDeclBlock;
 class Node;
 class Visitor {
 public:
@@ -21,6 +22,7 @@ public:
 	virtual void visitBasicBlock(BasicBlock* basicBlock)=0;
 	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock)=0;
 	virtual void visitWhileBlock(WhileBlock* whileBlock)=0;
+	virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock)=0;
 };
 
 class PrintVisitor : public Visitor {
@@ -31,6 +33,7 @@ public:
 	virtual void visitBasicBlock(BasicBlock* basicBlock);
 	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
 	virtual void visitWhileBlock(WhileBlock* whileBlock);
+	virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
 };
 
 class DeleteVisitor : public Visitor {
@@ -41,6 +44,7 @@ public:
 	virtual void visitBasicBlock(BasicBlock* basicBlock);
 	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
 	virtual void visitWhileBlock(WhileBlock* whileBlock);
+	virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
 };
 
 class VariableInitCheckVisitor : public Visitor {
@@ -51,6 +55,7 @@ public:
 	virtual void visitBasicBlock(BasicBlock* basicBlock);
 	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
 	virtual void visitWhileBlock(WhileBlock* whileBlock);
+	virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
 private:
 	vector<Node*> p_variableNodes;
 };

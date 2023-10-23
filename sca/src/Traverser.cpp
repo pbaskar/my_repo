@@ -67,8 +67,21 @@ void TraverserOne::traverseWhileBlock(WhileBlock* whileBlock) {
 	whileBlock->acceptVisitor(*p_visitor);
 }
 
-void TraverserOne::traverseCFG(ControlFlowGraph* cfg) {
-	BasicBlock* block = cfg->head;
+void TraverserOne::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
+	/*BasicBlock* block = whileBlock->p_first;
+	BasicBlock* lastBlock = whileBlock->p_last;
+	BasicBlock* next(0);
+
+	while(block != lastBlock) {
+		next = block->p_next;
+		block->acceptTraverser(*this);
+		block = next;
+	}
+	block->acceptTraverser(*this);
+	whileBlock->acceptVisitor(*p_visitor);*/
+}
+
+void TraverserOne::traverseCFG(BasicBlock* block) {
 	BasicBlock* next(0);
 	while(block) {
 		next = block->p_next;
@@ -115,8 +128,16 @@ void TraverserAllPath::traverseWhileBlock(WhileBlock* whileBlock) {
 	if(next) next->acceptTraverser(*this);
 }
 
-void TraverserAllPath::traverseCFG(ControlFlowGraph* cfg) {
-	BasicBlock* block = cfg->head;
+void TraverserAllPath::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
+	/*whileBlock->acceptVisitor(*p_visitor);
+	BasicBlock* block = whileBlock->p_first;
+	block->acceptTraverser(*this);
+
+	BasicBlock* next = whileBlock->p_next;
+	if(next) next->acceptTraverser(*this);*/
+}
+
+void TraverserAllPath::traverseCFG(BasicBlock* block) {
 	if(block)
 		block->acceptTraverser(*this);
 }

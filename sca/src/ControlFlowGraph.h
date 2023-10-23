@@ -86,7 +86,7 @@ private:
 
 class BasicBlock {
 public:
-	BasicBlock(const SymbolTable* symbolTable) : p_next(0), p_symbolTable(symbolTable) {}
+	BasicBlock(SymbolTable* symbolTable) : p_next(0), p_symbolTable(symbolTable) {}
 	BasicBlock(BasicBlock* next, SymbolTable* symbolTable): p_next(next), p_symbolTable(symbolTable){}
 	virtual ~BasicBlock() {
 		for(Node* n : nodeList) {
@@ -99,6 +99,18 @@ public:
 			cout <<*n <<" ";
 		}
 		cout<<endl;
+	}
+	Variable* addSymbol(char* name) {
+		return p_symbolTable->addSymbol(name);
+	}
+	Variable* fetchVariable(char* name) {
+		return p_symbolTable->fetchVariable(name);
+	}
+	FunctionDeclBlock* addFnSymbol(FunctionDeclBlock* functionDeclBlock) {
+		return p_symbolTable->addFnSymbol(functionDeclBlock);
+	}
+	FunctionDeclBlock* fetchFunctionDeclBlock(char* name) {
+		return p_symbolTable->fetchFunctionDeclBlock(name);
 	}
 	virtual void setNext(BasicBlock* next) {
 		p_next = next;
@@ -118,7 +130,7 @@ public:
 private:
 	vector<Node*> nodeList;
 	BasicBlock* p_next;
-	const SymbolTable* p_symbolTable;
+	SymbolTable* p_symbolTable;
 };
 
 class IfElseBlock : public BasicBlock {
@@ -177,23 +189,29 @@ private:
 
 class FunctionDeclBlock : public BasicBlock {
 public:
-	FunctionDeclBlock(BasicBlock* next, BasicBlock* first, BasicBlock* last):
-		BasicBlock(next, 0), p_first(first), p_last(last) {}
+	FunctionDeclBlock(BasicBlock* next, char* name, BasicBlock* first, BasicBlock* last):
+		BasicBlock(next, 0), p_name(0), p_first(first), p_last(last) {}
 	~FunctionDeclBlock() {
+		cout <<"FunctionDeclBlock destructor " <<p_name <<endl;
+		delete p_name;
 	}
 	virtual void setNext(BasicBlock* next) {
 		p_last->setNext(next);
 	}
 	virtual void acceptVisitor(Visitor& visitor) {
-		//visitor.visitFunctionDeclBlock(this);
+		visitor.visitFunctionDeclBlock(this);
 	}
 	virtual void acceptTraverser(Traverser& traverser) {
 		//traverser.traverseFunctionDeclBlock(this);
+	}
+	bool match(char* name) {
+		return strcmp(p_name, name) ==0;
 	}
 	friend TraverserOne;
 	friend TraverserAllPath;
 	friend VariableInitCheckVisitor;
 private:
+	char* p_name;
 	BasicBlock* p_first;
 	BasicBlock* p_last;
 };

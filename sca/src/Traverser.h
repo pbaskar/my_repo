@@ -23,7 +23,8 @@ public:
 	virtual void traverseBasicBlock(BasicBlock* basicBlock)=0;
 	virtual void traverseIfElseBlock(IfElseBlock* ifElseBlock)=0;
 	virtual void traverseWhileBlock(WhileBlock* whileBlock)=0;
-	virtual void traverseCFG(ControlFlowGraph* cfg)=0;
+	virtual void traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock)=0;
+	virtual void traverseCFG(BasicBlock* block)=0;
 
 	Visitor* p_visitor;
 };
@@ -36,7 +37,8 @@ public:
 	virtual void traverseBasicBlock(BasicBlock* basicBlock);
 	virtual void traverseIfElseBlock(IfElseBlock* ifElseBlock);
 	virtual void traverseWhileBlock(WhileBlock* whileBlock);
-	virtual void traverseCFG(ControlFlowGraph* cfg);
+	virtual void traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
+	virtual void traverseCFG(BasicBlock* block);
 };
 
 class TraverserAllPath : public Traverser {
@@ -47,7 +49,8 @@ public:
 	virtual void traverseBasicBlock(BasicBlock* basicBlock);
 	virtual void traverseIfElseBlock(IfElseBlock* ifElseBlock);
 	virtual void traverseWhileBlock(WhileBlock* whileBlock);
-	virtual void traverseCFG(ControlFlowGraph* cfg);
+	virtual void traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
+	virtual void traverseCFG(BasicBlock* block);
 };
 
 #endif /* SRC_TRAVERSER_H_ */
