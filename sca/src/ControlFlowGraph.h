@@ -30,6 +30,7 @@ public:
 		node.print(os);
 		return os;
 	}
+	const Node* getNext() { return p_next; }
 private:
 	Node* p_next;
 };
@@ -39,8 +40,8 @@ public:
 	AssignmentNode() : p_var(0), p_value(0) { }
 	AssignmentNode(Variable* var) : p_var(var), p_value(0) { }
 	AssignmentNode(AssignStmt& stmt) {
-		p_var = stmt.p_var;
-		p_value = stmt.p_value;
+		p_var = stmt.getVar();
+		p_value = stmt.getValue();
 	}
 	virtual NodeType type() { return ASSIGNMENT; }
 	virtual ~AssignmentNode() {
@@ -59,16 +60,16 @@ public:
 	const Expr* getValue() { return p_value; }
 
 private:
-	Variable* p_var;
-	Expr* p_value;
+	const Variable* p_var;
+	const Expr* p_value;
 };
 
 class ConditionNode : public Node {
 public:
 	ConditionNode() : p_condition(0) { }
-	ConditionNode(IfStmt& stmt) : p_condition(stmt.p_condition) {
+	ConditionNode(const IfStmt& stmt) : p_condition(stmt.getCondition()) {
 	}
-	ConditionNode(WhileStmt& stmt) : p_condition(stmt.p_condition) {
+	ConditionNode(const WhileStmt& stmt) : p_condition(stmt.getCondition()) {
 	}
 	NodeType type() { return CONDITION; }
 	virtual ~ConditionNode() {
@@ -81,7 +82,7 @@ public:
 	}
 	void setCondition(Expr* condition) { p_condition = condition; }
 private:
-	Expr* p_condition;
+	const Expr* p_condition;
 };
 
 class BasicBlock {
@@ -115,18 +116,17 @@ public:
 	virtual void setNext(BasicBlock* next) {
 		p_next = next;
 	}
+	BasicBlock* getNext() { return p_next; }
 	void addNode(Node* newNode) {
 		nodeList.push_back(newNode);
 	}
+	const vector<Node*>& getNodeList() { return nodeList; }
 	virtual void acceptVisitor(Visitor& visitor) {
 		visitor.visitBasicBlock(this);
 	}
 	virtual void acceptTraverser(Traverser& traverser) {
 		traverser.traverseBasicBlock(this);
 	}
-	friend TraverserOne;
-	friend TraverserAllPath;
-	friend VariableInitCheckVisitor;
 private:
 	vector<Node*> nodeList;
 	BasicBlock* p_next;
@@ -151,9 +151,10 @@ public:
 	virtual void acceptTraverser(Traverser& traverser) {
 		traverser.traverseIfElseBlock(this);
 	}
-	friend TraverserOne;
-	friend TraverserAllPath;
-	friend VariableInitCheckVisitor;
+	BasicBlock* getIfFirst() { return p_ifFirst; }
+	BasicBlock* getIfLast() { return p_ifLast; }
+	BasicBlock* getElseFirst() { return p_elseFirst; }
+	BasicBlock* getElseLast() { return p_elseLast; }
 private:
 	BasicBlock* p_ifFirst;
 	BasicBlock* p_ifLast;
@@ -179,9 +180,8 @@ public:
 	virtual void acceptTraverser(Traverser& traverser) {
 		traverser.traverseWhileBlock(this);
 	}
-	friend TraverserOne;
-	friend TraverserAllPath;
-	friend VariableInitCheckVisitor;
+	BasicBlock* getFirst() { return p_first; }
+	BasicBlock* getLast() { return p_last; }
 private:
 	BasicBlock* p_first;
 	BasicBlock* p_last;
@@ -189,7 +189,7 @@ private:
 
 class FunctionDeclBlock : public BasicBlock {
 public:
-	FunctionDeclBlock(BasicBlock* next, char* name, BasicBlock* first, BasicBlock* last):
+	FunctionDeclBlock(BasicBlock* next, const char* name, BasicBlock* first, BasicBlock* last):
 		BasicBlock(next, 0), p_name(0), p_first(first), p_last(last) {}
 	~FunctionDeclBlock() {
 		cout <<"FunctionDeclBlock destructor " <<p_name <<endl;
@@ -204,14 +204,13 @@ public:
 	virtual void acceptTraverser(Traverser& traverser) {
 		//traverser.traverseFunctionDeclBlock(this);
 	}
+	BasicBlock* getFirst() { return p_first; }
+	BasicBlock* getLast() { return p_last; }
 	bool match(char* name) {
 		return strcmp(p_name, name) ==0;
 	}
-	friend TraverserOne;
-	friend TraverserAllPath;
-	friend VariableInitCheckVisitor;
 private:
-	char* p_name;
+	const char* p_name;
 	BasicBlock* p_first;
 	BasicBlock* p_last;
 };
@@ -229,8 +228,6 @@ public:
 	void clear();
 	Status buildCFG(const Block* block);
 	Status buildBlock(BasicBlock*& currBlock, const Block* block);
-	friend TraverserOne;
-	friend TraverserAllPath;
 private:
 	BasicBlock* head;
 };

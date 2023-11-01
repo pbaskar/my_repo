@@ -31,19 +31,19 @@ void TraverserOne::traverseBasicBlock(BasicBlock* basicBlock) {
 }
 
 void TraverserOne::traverseIfElseBlock(IfElseBlock* ifElseBlock) {
-	BasicBlock* block = ifElseBlock->p_ifFirst;
-	BasicBlock* lastBlock = ifElseBlock->p_ifLast;
+	BasicBlock* block = ifElseBlock->getIfFirst();
+	BasicBlock* lastBlock = ifElseBlock->getIfLast();
 	BasicBlock* next(0);
 	while(block != lastBlock) {
-		next = block->p_next;
+		next = block->getNext();
 		block->acceptTraverser(*this);
 		block = next;
 	}
 	lastBlock->acceptTraverser(*this);
-	block = ifElseBlock->p_elseFirst;
-	lastBlock = ifElseBlock->p_elseLast;
+	block = ifElseBlock->getElseFirst();
+	lastBlock = ifElseBlock->getElseLast();
 	while(block != lastBlock) {
-		next = block->p_next;
+		next = block->getNext();
 		block->acceptTraverser(*this);
 		block = next;
 	}
@@ -54,12 +54,12 @@ void TraverserOne::traverseIfElseBlock(IfElseBlock* ifElseBlock) {
 }
 
 void TraverserOne::traverseWhileBlock(WhileBlock* whileBlock) {
-	BasicBlock* block = whileBlock->p_first;
-	BasicBlock* lastBlock = whileBlock->p_last;
+	BasicBlock* block = whileBlock->getFirst();
+	BasicBlock* lastBlock = whileBlock->getLast();
 	BasicBlock* next(0);
 
 	while(block != lastBlock) {
-		next = block->p_next;
+		next = block->getNext();
 		block->acceptTraverser(*this);
 		block = next;
 	}
@@ -68,12 +68,12 @@ void TraverserOne::traverseWhileBlock(WhileBlock* whileBlock) {
 }
 
 void TraverserOne::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
-	/*BasicBlock* block = whileBlock->p_first;
-	BasicBlock* lastBlock = whileBlock->p_last;
+	/*BasicBlock* block = whileBlock->getFirst();
+	BasicBlock* lastBlock = whileBlock->getLast();
 	BasicBlock* next(0);
 
 	while(block != lastBlock) {
-		next = block->p_next;
+		next = block->getNext();
 		block->acceptTraverser(*this);
 		block = next;
 	}
@@ -84,7 +84,7 @@ void TraverserOne::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBloc
 void TraverserOne::traverseCFG(BasicBlock* block) {
 	BasicBlock* next(0);
 	while(block) {
-		next = block->p_next;
+		next = block->getNext();
 		block->acceptTraverser(*this);
 		block = next;
 	}
@@ -101,39 +101,39 @@ TraverserAllPath::~TraverserAllPath() {
 
 void TraverserAllPath::traverseBasicBlock(BasicBlock* basicBlock) {
 	basicBlock->acceptVisitor(*p_visitor);
-	BasicBlock* block = basicBlock->p_next;
+	BasicBlock* block = basicBlock->getNext();
 	if(block) block->acceptTraverser(*this);
 }
 
 void TraverserAllPath::traverseIfElseBlock(IfElseBlock* ifElseBlock) {
 	ifElseBlock->acceptVisitor(*p_visitor);
-	BasicBlock* block = ifElseBlock->p_ifFirst;
+	BasicBlock* block = ifElseBlock->getIfFirst();
 	block->acceptTraverser(*this);
 
-	block = ifElseBlock->p_elseFirst;
+	block = ifElseBlock->getElseFirst();
 	if(block)
 		block->acceptTraverser(*this);
 	else {
-		BasicBlock* next = ifElseBlock->p_next;
+		BasicBlock* next = ifElseBlock->getNext();
 		if(next) next->acceptTraverser(*this);
 	}
 }
 
 void TraverserAllPath::traverseWhileBlock(WhileBlock* whileBlock) {
 	whileBlock->acceptVisitor(*p_visitor);
-	BasicBlock* block = whileBlock->p_first;
+	BasicBlock* block = whileBlock->getFirst();
 	block->acceptTraverser(*this);
 
-	BasicBlock* next = whileBlock->p_next;
+	BasicBlock* next = whileBlock->getNext();
 	if(next) next->acceptTraverser(*this);
 }
 
 void TraverserAllPath::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
 	/*whileBlock->acceptVisitor(*p_visitor);
-	BasicBlock* block = whileBlock->p_first;
+	BasicBlock* block = whileBlock->getFirst();
 	block->acceptTraverser(*this);
 
-	BasicBlock* next = whileBlock->p_next;
+	BasicBlock* next = whileBlock->getNext();
 	if(next) next->acceptTraverser(*this);*/
 }
 

@@ -17,20 +17,21 @@ enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE, FUNC_DECL, FUNC_CALL };
 
 class Stmt {
 public:
-	Stmt(): p_type(DECL) {}
+	Stmt(StmtType type): p_type(type) {}
 	virtual ~Stmt(){}
 	friend ostream& operator<<(ostream& os, Stmt& stmt) {
 		stmt.print(os);
 		return os;
 	}
 	virtual void print(ostream& os)=0;
+	StmtType getType() { return p_type; }
 	StmtType p_type;
 };
 
 class AssignStmt : public Stmt {
 public:
-	AssignStmt(): p_var(0), p_value(0), p_dataType(INT) {}
-	AssignStmt(Variable* var, Expr* value) : p_var(var), p_value(value), p_dataType(INT){
+	AssignStmt(StmtType type): Stmt(type), p_var(0), p_value(0), p_dataType(INT) {}
+	AssignStmt(StmtType type, Variable* var, Expr* value) : Stmt(type), p_var(var), p_value(value), p_dataType(INT){
 	}
 	virtual ~AssignStmt() {
 		//delete p_name;
@@ -40,6 +41,11 @@ public:
 		os << "Assign statement: name " <<*p_var << " type " << p_type;
 		if(p_value) os << " value " << *p_value << " ";
 	}
+	void setVar(Variable* var) { p_var = var; }
+	void setValue(Expr* value) { p_value = value; }
+	const Variable* getVar() const { return p_var; }
+	const Expr* getValue() const { return p_value; }
+private:
 	Variable* p_var;
 	Expr* p_value;
 	DataType p_dataType;
@@ -73,7 +79,7 @@ private:
 
 class WhileStmt : public Stmt {
 public:
-	WhileStmt(): p_condition(0), p_block(0) {}
+	WhileStmt(StmtType type): Stmt(type), p_condition(0), p_block(0) {}
 	virtual ~WhileStmt() {
 		//delete p_condition;
 		delete p_block;
@@ -83,14 +89,19 @@ public:
 		if(p_condition)
 			os << " condition " <<*p_condition <<" ";
 	}
-	const Block* getBlock() const { return p_block; }
+	const Expr* getCondition() const { return p_condition; }
+	Block* getBlock() const { return p_block; }
+	void setCondition(Expr* condition) { p_condition = condition; }
+	void setBlock(Block* block) {p_block = block; }
+	void addStatement(Stmt* stmt) { p_block->addStatement(stmt); }
+private:
 	Expr* p_condition;
 	Block* p_block;
 };
 
 class IfStmt : public Stmt {
 public:
-	IfStmt(): p_condition(0), p_else(0), p_block(0) {}
+	IfStmt(StmtType type): Stmt(type), p_condition(0), p_else(0), p_block(0) {}
 	virtual ~IfStmt() {
 		//delete p_condition;
 		delete p_else;
@@ -101,7 +112,14 @@ public:
 		if(p_condition)
 			os <<" condition " <<*p_condition <<" ";
 	}
-	const Block* getBlock() const { return p_block; }
+	const Expr* getCondition() const { return p_condition; }
+	const IfStmt* getElse() const { return p_else; }
+	Block* getBlock() const { return p_block; }
+	void setCondition(Expr* condition) { p_condition = condition; }
+	void setElse(IfStmt* elseStmt) { p_else = elseStmt; }
+	void setBlock(Block* block) {p_block = block; }
+	void addStatement(Stmt* stmt) { p_block->addStatement(stmt); }
+private:
 	Expr* p_condition;
 	IfStmt* p_else;
 	Block* p_block;
@@ -109,17 +127,20 @@ public:
 
 class FunctionDeclStmt : public Stmt {
 public:
-	FunctionDeclStmt(): p_block(0) {}
+	FunctionDeclStmt(StmtType type): Stmt(type), p_name(0), p_block(0) {}
 	virtual ~FunctionDeclStmt() {
-		//delete p_condition;
 		delete p_block;
 	}
 	virtual void print(ostream& os) {
 		//os << "type " << p_type <<
 	}
-	const Block* getBlock() const { return p_block; }
+	Block* getBlock() const { return p_block; }
+	const char* getName() const { return p_name; }
 	const vector<Variable*>& getFormalArguments() const { return p_formalArguments; }
-	//private:
+	void setBlock(Block* block) {p_block = block; }
+	void addFormalArgument(Variable* argument) { p_formalArguments.push_back(argument); }
+	void addStatement(Stmt* stmt) { p_block->addStatement(stmt); }
+private:
 	char* p_name;
 	vector<Variable*> p_formalArguments;
 	Block* p_block;
@@ -127,14 +148,16 @@ public:
 
 class FunctionCallStmt : public Stmt {
 public:
-	FunctionCallStmt() {}
+	FunctionCallStmt(StmtType type): Stmt(type), p_name(0) {}
 	virtual ~FunctionCallStmt() {
 
 	}
 	virtual void print(ostream& os) {
 		//os << "type " << p_type <<
 	}
-	//private:
+	const char* getName() const { return p_name; }
+	void addActualArgument(Expr* argument) { p_actualArguments.push_back(argument); }
+private:
 	char* p_name;
 	vector<Expr*> p_actualArguments;
 };
@@ -155,7 +178,7 @@ public:
 	Status parseBlock(Block* block);
 	Status parseFunctionDecl(Block* block);
 	Status parseFunctionCall(Block* block);
-	const Block* getBlock() const;
+	Block* getBlock() const;
 
 private:
 	Block* p_mainBlock;

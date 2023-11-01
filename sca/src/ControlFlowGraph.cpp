@@ -27,7 +27,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 	bool beginNewBlock = false;
 	auto& stmtList = block->getSubStatements();
 	for(Stmt* stmt : stmtList ) {
-		StmtType type = stmt->p_type;
+		StmtType type = stmt->getType();
 		switch(type) {
 		case DECL:
 		case ASSIGN: {
@@ -61,7 +61,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 			ifLast = first;
 			s = buildBlock(ifLast, ifStmt->getBlock());
 
-			IfStmt* elseStmt = ifStmt->p_else;
+			const IfStmt* elseStmt = ifStmt->getElse();
 			if(elseStmt) {
 				ConditionNode* elseNode = new ConditionNode(*elseStmt);
 				cout << "Else Node: " << *elseNode << " " <<block->getSubStatements().size() <<endl;
@@ -117,11 +117,11 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 			last = first;
 			s = buildBlock(last, functionDeclStmt->getBlock());
 
-			FunctionDeclBlock* functionDeclBlock = new FunctionDeclBlock(0,functionDeclStmt->p_name,first,last);
+			FunctionDeclBlock* functionDeclBlock = new FunctionDeclBlock(0,functionDeclStmt->getName(),first,last);
 			currBlock->addFnSymbol(functionDeclBlock);
+			beginNewBlock = true;
 			//currBlock->setNext(whileBlock);
 			//currBlock = whileBlock;
-			//beginNewBlock = true;
 		}
 		break;
 		case FUNC_CALL:

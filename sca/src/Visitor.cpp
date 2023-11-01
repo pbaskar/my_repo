@@ -77,7 +77,8 @@ VariableInitCheckVisitor::~VariableInitCheckVisitor() {
 void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
 	vector<const Expr*> variables;
 	bool found = false;
-	for(Node* node: basicBlock->nodeList) {
+	const vector<Node*>& nodeList = basicBlock->getNodeList();
+	for(Node* node: nodeList) {
 		if(node->type() != ASSIGNMENT) continue;
 		AssignmentNode* assignNode = static_cast<AssignmentNode*>(node);
 		const Expr* value=assignNode->getValue();
@@ -112,14 +113,16 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
 }
 
 void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
-	for(Node* node: ifElseBlock->nodeList) {
+	const vector<Node*>& nodeList = ifElseBlock->getNodeList();
+	for(Node* node: nodeList) {
 		p_variableNodes.push_back(node);
 	}
 	cout <<"variableNodes ifelse size " <<p_variableNodes.size() <<endl;
 }
 
 void VariableInitCheckVisitor::visitWhileBlock(WhileBlock* whileBlock) {
-	for(Node* node: whileBlock->nodeList) {
+	const vector<Node*>& nodeList = whileBlock->getNodeList();
+	for(Node* node: nodeList) {
 		p_variableNodes.push_back(node);
 	}
 	cout <<"variableNodes while size " <<p_variableNodes.size() <<endl;

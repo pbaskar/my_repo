@@ -69,12 +69,11 @@ Status InstrParser::parseStmt(Block* block) {
 
 Status InstrParser::parseDecl(Block* block) {
 	Status status = SUCCESS;
-	AssignStmt* stmt = new AssignStmt;
-	stmt->p_type = DECL;
+	AssignStmt* stmt = new AssignStmt(DECL);
 	block->addStatement(stmt);
 	char* name = p_tokenizer.nextWord();
 	if(name == nullptr) { cout<<"InstrParser::parseDecl: name not found "<<endl; return FAILURE; }
-	stmt->p_var = block->addSymbol(name);
+	stmt->setVar(block->addSymbol(name));
 
 	char equal = p_tokenizer.nextChar();
 	if(equal == ';') { 	p_tokenizer.nextLine(); return status; }
@@ -85,7 +84,7 @@ Status InstrParser::parseDecl(Block* block) {
 	Expr* value = p_exprParser.parseExpressionStr(next);
 	delete next;
 	if(value == nullptr) { cout<<"InstrParser::parseDecl: could not parse value "<<endl; return FAILURE; }
-	stmt->p_value = value;
+	stmt->setValue(value);
 	p_tokenizer.nextLine();
 	cout <<"Declarative stmt: size = " <<block->getSubStatements().size() << " " <<*stmt <<endl;
 	return status;
@@ -93,13 +92,12 @@ Status InstrParser::parseDecl(Block* block) {
 
 Status InstrParser::parseAssign(Block* block) {
 	Status status = SUCCESS;
-	AssignStmt* stmt = new AssignStmt;
-	stmt->p_type = ASSIGN;
+	AssignStmt* stmt = new AssignStmt(ASSIGN);
 	block->addStatement(stmt);
 
 	char* name = p_tokenizer.nextWord();
 	if(name == nullptr) return FAILURE;
-	stmt->p_var = block->fetchVariable(name);
+	stmt->setVar(block->fetchVariable(name));
 
 	char equal = p_tokenizer.nextChar();
 	if ( equal != '=' ) return FAILURE;
@@ -109,7 +107,7 @@ Status InstrParser::parseAssign(Block* block) {
 	Expr* value = p_exprParser.parseExpressionStr(next);
 	delete next;
 	if(value == nullptr) return FAILURE;
-	stmt->p_value = value;
+	stmt->setValue(value);
 	p_tokenizer.nextLine();
 	cout <<"Assignment stmt: size = " << block->getSubStatements().size()  <<" " <<*stmt <<endl;
 	return status;
@@ -117,9 +115,8 @@ Status InstrParser::parseAssign(Block* block) {
 
 Status InstrParser::parseIfElse(Block* block) {
 	Status status = SUCCESS;
-	IfStmt* ifStmt = new IfStmt;
-	ifStmt->p_type = IF;
-	ifStmt->p_block = new Block(block);
+	IfStmt* ifStmt = new IfStmt(IF);
+	ifStmt->setBlock(new Block(block));
 	block->addStatement(ifStmt);
 
 	status = parseIf(ifStmt);
@@ -131,13 +128,12 @@ Status InstrParser::parseIfElse(Block* block) {
 	delete next;
 	p_tokenizer.consumeWord();
 
-	IfStmt* elseStmt = new IfStmt;
-	elseStmt->p_type = ELSE;
-	elseStmt->p_block = new Block(block);
+	IfStmt* elseStmt = new IfStmt(ELSE);
+	elseStmt->setBlock(new Block(block));
 	status = parseElse(elseStmt);
 	if(status == FAILURE) { delete elseStmt; return FAILURE; }
 
-	ifStmt->p_else = elseStmt;
+	ifStmt->setElse(elseStmt);
 	p_tokenizer.nextLine();
 	return status;
 }
@@ -152,12 +148,11 @@ Status InstrParser::parseIf(IfStmt* stmt) {
 	Expr* condition = p_exprParser.parseExpressionStr(next);
 	delete next;
 	if(condition == nullptr) return FAILURE;
-	stmt->p_condition = condition;
+	stmt->setCondition(condition);
 	p_tokenizer.nextLine();
-	//SymbolTable* symTable = stmt->makeNewSymbolTable();
-	status = parseBlock(stmt->p_block);
+	status = parseBlock(stmt->getBlock());
 
-	cout <<"If stmt: " <<stmt->p_block->getSubStatements().size() << " "<<*stmt <<endl;
+	cout <<"If stmt: " <<stmt->getBlock()->getSubStatements().size() << " "<<*stmt <<endl;
 	return status;
 }
 
@@ -165,7 +160,7 @@ Status InstrParser::parseElse(IfStmt* stmt) {
 	Status status = SUCCESS;
 
 	p_tokenizer.nextLine();
-	status = parseBlock(stmt->p_block);
+	status = parseBlock(stmt->getBlock());
 
 	cout <<"Else stmt: " <<*stmt <<endl;
 	return status;
@@ -173,9 +168,8 @@ Status InstrParser::parseElse(IfStmt* stmt) {
 
 Status InstrParser::parseWhile(Block* block) {
 	Status status = SUCCESS;
-	WhileStmt* stmt = new WhileStmt;
-	stmt->p_type = WHILE;
-	stmt->p_block = new Block(block);
+	WhileStmt* stmt = new WhileStmt(WHILE);
+	stmt->setBlock(new Block(block));
 	block->addStatement(stmt);
 
 	char openBrace = p_tokenizer.nextChar();
@@ -186,10 +180,10 @@ Status InstrParser::parseWhile(Block* block) {
 	Expr* condition = p_exprParser.parseExpressionStr(next);
 	delete next;
 	if(condition == nullptr) return FAILURE;
-	stmt->p_condition = condition;
+	stmt->setCondition(condition);
 
 	p_tokenizer.nextLine();
-	status = parseBlock(stmt->p_block);
+	status = parseBlock(stmt->getBlock());
 	p_tokenizer.nextLine();
 	cout <<"While stmt: size = " <<block->getSubStatements().size() << " " <<*stmt <<endl;
 	return status;
@@ -197,9 +191,8 @@ Status InstrParser::parseWhile(Block* block) {
 
 Status InstrParser::parseFunctionDecl(Block* block) {
 	Status status = SUCCESS;
-	FunctionDeclStmt* stmt = new FunctionDeclStmt;
-	stmt->p_type = FUNC_DECL;
-	stmt->p_block = new Block;
+	FunctionDeclStmt* stmt = new FunctionDeclStmt(FUNC_DECL);
+	stmt->setBlock(new Block(block));
 	block->addStatement(stmt);
 
 	char* next = p_tokenizer.nextWord(); //return type
@@ -214,20 +207,19 @@ Status InstrParser::parseFunctionDecl(Block* block) {
 	next = p_tokenizer.nextWord();
 	if(next == nullptr) return FAILURE;
 	Variable* argument = block->addSymbol(next);
-	stmt->p_formalArguments.push_back(argument);
+	stmt->addFormalArgument(argument);
 
 	p_tokenizer.nextLine();
-	status = parseBlock(stmt->p_block);
+	status = parseBlock(stmt->getBlock());
 	p_tokenizer.nextLine();
-	cout <<"Function Decl stmt: size = " <<stmt->p_block->getSubStatements().size() << " parent size "
+	cout <<"Function Decl stmt: size = " <<stmt->getBlock()->getSubStatements().size() << " parent size "
 			<<block->getSubStatements().size() << " " <<*stmt <<" status " <<status <<endl;
 	return status;
 }
 
 Status InstrParser::parseFunctionCall(Block* block) {
 	Status status = SUCCESS;
-	FunctionCallStmt* stmt = new FunctionCallStmt;
-	stmt->p_type = FUNC_CALL;
+	FunctionCallStmt* stmt = new FunctionCallStmt(FUNC_CALL);
 	block->addStatement(stmt);
 
 	char* next = p_tokenizer.nextWord(); //function name
@@ -241,14 +233,13 @@ Status InstrParser::parseFunctionCall(Block* block) {
 	Expr* argument = p_exprParser.parseExpressionStr(next);
 	delete next;
 	if(argument == nullptr) { cout<<"InstrParser::parseFunctionCall: could not parse argument "<<endl; return FAILURE; }
-	stmt->p_actualArguments.push_back(argument);
+	stmt->addActualArgument(argument);
 
 	p_tokenizer.nextLine();
 	cout <<"Function Call stmt: size = " <<block->getSubStatements().size() << " " <<*stmt <<endl;
 	return status;
 }
 
-const Block* InstrParser::getBlock() const {
+Block* InstrParser::getBlock() const {
 	return p_mainBlock;
 }
-

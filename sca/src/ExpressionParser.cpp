@@ -10,7 +10,7 @@
 using namespace std;
 
 static const char operators[] = { '+', '-', '*', '/' };
-ExpressionParser::ExpressionParser() {
+ExpressionParser::ExpressionParser(): p_symbolTable(0) {
 	// TODO Auto-generated constructor stub
 
 }
