@@ -40,6 +40,7 @@ void PrintVisitor::visitWhileBlock(WhileBlock* whileBlock) {
 }
 
 void PrintVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
+	functionDeclBlock->print();
 }
 
 DeleteVisitor::DeleteVisitor() {

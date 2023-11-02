@@ -13,7 +13,6 @@ InstrParser::InstrParser(): p_mainBlock(0), p_pos(0) {
 }
 
 InstrParser::~InstrParser() {
-	delete p_mainBlock;
 }
 
 Status InstrParser::parseFile(char* fileName) {
@@ -200,14 +199,16 @@ Status InstrParser::parseFunctionDecl(Block* block) {
 
 	next = p_tokenizer.nextWord();	//function name - add to symbol table
 	if(next == nullptr) { cout<<"InstrParser::parseFunctionDecl: function name not found "<<endl; return FAILURE; }
+	stmt->setName(next);
+	cout<<"function name " <<next <<endl;
 
 	char openBrace = p_tokenizer.nextChar();
 	if ( openBrace != '(') { cout<<"InstrParser::parseFunctionDecl: open brace not found "<<endl; return FAILURE; }
 
 	next = p_tokenizer.nextWord();
 	if(next == nullptr) return FAILURE;
-	Variable* argument = block->addSymbol(next);
-	stmt->addFormalArgument(argument);
+	//Variable* argument = block->addSymbol(next);
+	//stmt->addFormalArgument(argument);
 
 	p_tokenizer.nextLine();
 	status = parseBlock(stmt->getBlock());
@@ -242,4 +243,8 @@ Status InstrParser::parseFunctionCall(Block* block) {
 
 Block* InstrParser::getBlock() const {
 	return p_mainBlock;
+}
+
+void InstrParser::clear() {
+	delete p_mainBlock;
 }

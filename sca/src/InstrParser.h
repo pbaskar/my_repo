@@ -34,8 +34,8 @@ public:
 	AssignStmt(StmtType type, Variable* var, Expr* value) : Stmt(type), p_var(var), p_value(value), p_dataType(INT){
 	}
 	virtual ~AssignStmt() {
-		//delete p_name;
-		//delete p_value;
+		if(p_value && p_value->getExprType() != VARIABLE)
+			delete p_value;
 	}
 	virtual void print(ostream& os) {
 		os << "Assign statement: name " <<*p_var << " type " << p_type;
@@ -59,7 +59,7 @@ public:
 		for(Stmt* stmt : p_subStatements) {
 			delete stmt;
 		}
-		//delete p_symbolTable;
+		delete p_symbolTable;
 	}
 	void addStatement(Stmt* stmt) {
 		p_subStatements.push_back(stmt);
@@ -81,7 +81,8 @@ class WhileStmt : public Stmt {
 public:
 	WhileStmt(StmtType type): Stmt(type), p_condition(0), p_block(0) {}
 	virtual ~WhileStmt() {
-		//delete p_condition;
+		if(p_condition && p_condition->getExprType() != VARIABLE)
+			delete p_condition;
 		delete p_block;
 	}
 	virtual void print(ostream& os) {
@@ -103,7 +104,8 @@ class IfStmt : public Stmt {
 public:
 	IfStmt(StmtType type): Stmt(type), p_condition(0), p_else(0), p_block(0) {}
 	virtual ~IfStmt() {
-		//delete p_condition;
+		if(p_condition && p_condition->getExprType() != VARIABLE)
+			delete p_condition;
 		delete p_else;
 		delete p_block;
 	}
@@ -138,6 +140,7 @@ public:
 	const char* getName() const { return p_name; }
 	const vector<Variable*>& getFormalArguments() const { return p_formalArguments; }
 	void setBlock(Block* block) {p_block = block; }
+	void setName(char* name) { p_name = name; }
 	void addFormalArgument(Variable* argument) { p_formalArguments.push_back(argument); }
 	void addStatement(Stmt* stmt) { p_block->addStatement(stmt); }
 private:
@@ -179,6 +182,7 @@ public:
 	Status parseFunctionDecl(Block* block);
 	Status parseFunctionCall(Block* block);
 	Block* getBlock() const;
+	void clear();
 
 private:
 	Block* p_mainBlock;

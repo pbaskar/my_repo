@@ -107,19 +107,25 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 			FunctionDeclStmt* functionDeclStmt = static_cast<FunctionDeclStmt*>(stmt);
 
 			first = new BasicBlock(functionDeclStmt->getBlock()->getSymbolTable());
-			auto formalArguments = functionDeclStmt->getFormalArguments();
+			/*auto formalArguments = functionDeclStmt->getFormalArguments();
 			//cout << "Function Decl Node: " << *functionDeclNode << " " <<block->getSubStatements().size() <<endl;
 			for(Variable* var : formalArguments) {
 				AssignmentNode* functionDeclNode = new AssignmentNode(var);
 				first->addNode(functionDeclNode);
-			}
+			}*/
 
 			last = first;
 			s = buildBlock(last, functionDeclStmt->getBlock());
-
+			cout <<"function decl block "  <<functionDeclStmt->getName() <<endl;
 			FunctionDeclBlock* functionDeclBlock = new FunctionDeclBlock(0,functionDeclStmt->getName(),first,last);
 			currBlock->addFnSymbol(functionDeclBlock);
 			beginNewBlock = true;
+			/*PrintVisitor printVisitor;
+			TraverserOne tOne(&printVisitor);
+			tOne.traverseFunctionDeclBlock(functionDeclBlock);
+			DeleteVisitor deleteVisitor;
+			TraverserOne tOne2(&deleteVisitor);
+			tOne2.traverseFunctionDeclBlock(functionDeclBlock);*/
 			//currBlock->setNext(whileBlock);
 			//currBlock = whileBlock;
 		}
@@ -138,8 +144,8 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 
 void ControlFlowGraph::print(ostream& os) {
 	PrintVisitor printVisitor;
-	TraverserAllPath tAllPath(&printVisitor);
-	tAllPath.traverseCFG(this->head);
+	TraverserOne tOne(&printVisitor);
+	tOne.traverseCFG(this->head);
 }
 
 void ControlFlowGraph::variableInitCheck() {

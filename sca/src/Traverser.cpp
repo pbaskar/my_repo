@@ -68,8 +68,8 @@ void TraverserOne::traverseWhileBlock(WhileBlock* whileBlock) {
 }
 
 void TraverserOne::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
-	/*BasicBlock* block = whileBlock->getFirst();
-	BasicBlock* lastBlock = whileBlock->getLast();
+	BasicBlock* block = functionDeclBlock->getFirst();
+	BasicBlock* lastBlock = functionDeclBlock->getLast();
 	BasicBlock* next(0);
 
 	while(block != lastBlock) {
@@ -78,7 +78,7 @@ void TraverserOne::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBloc
 		block = next;
 	}
 	block->acceptTraverser(*this);
-	whileBlock->acceptVisitor(*p_visitor);*/
+	functionDeclBlock->acceptVisitor(*p_visitor);
 }
 
 void TraverserOne::traverseCFG(BasicBlock* block) {

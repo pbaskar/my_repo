@@ -46,7 +46,7 @@ public:
 	virtual NodeType type() { return ASSIGNMENT; }
 	virtual ~AssignmentNode() {
 		//delete p_var;
-		delete p_value;
+		//delete p_value;
 	}
 	virtual void print(ostream& os) const {
 		os << "name " << *p_var;
@@ -73,7 +73,7 @@ public:
 	}
 	NodeType type() { return CONDITION; }
 	virtual ~ConditionNode() {
-		delete p_condition;
+		//delete p_condition;
 	}
 	virtual void print(ostream& os) const {
 		os <<"condition "<<" ";
@@ -93,7 +93,7 @@ public:
 		for(Node* n : nodeList) {
 			delete n;
 		}
-		delete p_symbolTable;
+		//delete p_symbolTable;
 	}
 	void print() {
 		for(Node* n: nodeList) {
@@ -190,9 +190,8 @@ private:
 class FunctionDeclBlock : public BasicBlock {
 public:
 	FunctionDeclBlock(BasicBlock* next, const char* name, BasicBlock* first, BasicBlock* last):
-		BasicBlock(next, 0), p_name(0), p_first(first), p_last(last) {}
+		BasicBlock(next, 0), p_name(name), p_first(first), p_last(last) {}
 	~FunctionDeclBlock() {
-		cout <<"FunctionDeclBlock destructor " <<p_name <<endl;
 		delete p_name;
 	}
 	virtual void setNext(BasicBlock* next) {

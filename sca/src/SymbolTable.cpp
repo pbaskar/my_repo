@@ -83,7 +83,7 @@ SymbolTableEntry::SymbolTableEntry() : p_var(0), p_dataType(INT), p_lineNum(0){
 }
 
 SymbolTableEntry::SymbolTableEntry(Variable* var, DataType dataType, int lineNum) :
-										p_var(var), p_dataType(dataType), p_lineNum(lineNum){
+						p_var(var), p_dataType(dataType), p_lineNum(lineNum){
 
 }
 
@@ -101,7 +101,7 @@ FnSymbolTableEntry::FnSymbolTableEntry() : p_functionDeclBlock(0), p_dataType(IN
 }
 
 FnSymbolTableEntry::FnSymbolTableEntry(FunctionDeclBlock* fnDeclBlock, DataType dataType, int lineNum) :
-				p_functionDeclBlock(fnDeclBlock), p_dataType(dataType), p_lineNum(lineNum){
+						p_functionDeclBlock(fnDeclBlock), p_dataType(dataType), p_lineNum(lineNum){
 
 }
 

@@ -38,8 +38,10 @@ class Operator : public Expr {
 public:
 	Operator(Expr* l, char o, Expr* r): p_left(l), p_op(o), p_right(r) {}
 	virtual ~Operator() {
-		delete p_left;
-		delete p_right;
+		if(p_left->getExprType() != VARIABLE)
+			delete p_left;
+		if(p_right->getExprType() != VARIABLE)
+			delete p_right;
 	}
 	virtual ExprType getExprType() { return OPERATOR; }
 	void setLeftOp(Expr* left) { p_left = left; }

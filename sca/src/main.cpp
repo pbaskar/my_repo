@@ -37,5 +37,7 @@ int main(int argc, char* argv[]) {
 	cout << "********************************** Variable Init Check done ****************************************" <<endl;
 	cfg.clear();
 	cout << "********************************** CFG Clear done ****************************************" <<endl;
+	instrParser.clear();
+	cout << "********************************** InstrParser Clear done ****************************************" <<endl;
 	return 0;
 }
