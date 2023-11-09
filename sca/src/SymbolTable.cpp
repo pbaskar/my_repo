@@ -47,9 +47,12 @@ Variable* SymbolTable::fetchVariable(char* name) const {
 		if(var) break;
 	}
 	if(var) { return var; }
-	while(p_outerScope) {
-		var = p_outerScope->fetchVariable(name);
+
+	const SymbolTable* outerScope(p_outerScope);
+	while(outerScope) {
+		var = outerScope->fetchVariable(name);
 		if(var) break;
+		outerScope = outerScope->getOuterScope();
 	}
 	if(var) { return var; }
 	return 0;
@@ -70,9 +73,11 @@ FunctionDeclBlock* SymbolTable::fetchFunctionDeclBlock(char* name) const {
 		if(fnDeclBlock) break;
 	}
 	if(fnDeclBlock) { return fnDeclBlock; }
-	while(p_outerScope) {
-		fnDeclBlock = p_outerScope->fetchFunctionDeclBlock(name);
+	const SymbolTable* outerScope(p_outerScope);
+	while(outerScope) {
+		fnDeclBlock = outerScope->fetchFunctionDeclBlock(name);
 		if(fnDeclBlock) break;
+		outerScope = outerScope->getOuterScope();
 	}
 	if(fnDeclBlock) { return fnDeclBlock; }
 	return 0;
@@ -83,7 +88,7 @@ SymbolTableEntry::SymbolTableEntry() : p_var(0), p_dataType(INT), p_lineNum(0){
 }
 
 SymbolTableEntry::SymbolTableEntry(Variable* var, DataType dataType, int lineNum) :
-						p_var(var), p_dataType(dataType), p_lineNum(lineNum){
+								p_var(var), p_dataType(dataType), p_lineNum(lineNum){
 
 }
 
@@ -101,7 +106,7 @@ FnSymbolTableEntry::FnSymbolTableEntry() : p_functionDeclBlock(0), p_dataType(IN
 }
 
 FnSymbolTableEntry::FnSymbolTableEntry(FunctionDeclBlock* fnDeclBlock, DataType dataType, int lineNum) :
-						p_functionDeclBlock(fnDeclBlock), p_dataType(dataType), p_lineNum(lineNum){
+								p_functionDeclBlock(fnDeclBlock), p_dataType(dataType), p_lineNum(lineNum){
 
 }
 

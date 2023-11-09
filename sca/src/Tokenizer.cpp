@@ -85,6 +85,7 @@ void Tokenizer::consumeWord() {
 
 char* Tokenizer::nextWord(bool peek) {
 	int wordLen = readNextWordLen();
+	if(wordLen == 0) return nullptr;
 	char* token = new char[wordLen+1];
 	strncpy(token, p_line + p_pos, wordLen);
 	token[wordLen] = '\0';

@@ -58,6 +58,7 @@ public:
 	Variable* fetchVariable(char* name) const;
 	FunctionDeclBlock* addFnSymbol(FunctionDeclBlock* fnDeclBlock);
 	FunctionDeclBlock* fetchFunctionDeclBlock(char* name) const;
+	const SymbolTable* getOuterScope() const { return p_outerScope; }
 private:
 	vector<SymbolTableEntry*> p_symbolEntries;
 	vector<FnSymbolTableEntry*> p_fnSymbolEntries;

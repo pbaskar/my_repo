@@ -6,7 +6,9 @@
  */
 #include<iostream>
 #include<cstring>
+#include<cstdarg>
 #include "InstrParser.h"
+#include "Logger.h"
 
 InstrParser::InstrParser(): p_mainBlock(0), p_pos(0) {
 
@@ -21,7 +23,12 @@ Status InstrParser::parseFile(char* fileName) {
 	status = p_tokenizer.nextLine();
 	if(status == FAILURE) { p_tokenizer.closeFile(); return status; }
 	p_mainBlock = new Block;
-	status = parseFunctionDecl(p_mainBlock);
+	char nextChar = p_tokenizer.nextChar(true);
+	while(nextChar != '\0') {
+		status = parseFunctionDecl(p_mainBlock);
+		if(status == FAILURE) { p_tokenizer.closeFile(); return status; }
+		nextChar = p_tokenizer.nextChar(true);
+	}
 	p_tokenizer.closeFile();
 	return status;
 }
@@ -51,10 +58,6 @@ Status InstrParser::parseStmt(Block* block) {
 		p_tokenizer.consumeWord();
 		status = parseIfElse(block);
 	}
-	else if(strcmp(next, "else")==0) {
-		p_tokenizer.consumeWord();
-		//status = parseElse(block);
-	}
 	else if(strcmp(next, "while")==0) {
 		p_tokenizer.consumeWord();
 		status = parseWhile(block);
@@ -71,18 +74,18 @@ Status InstrParser::parseDecl(Block* block) {
 	AssignStmt* stmt = new AssignStmt(DECL);
 	block->addStatement(stmt);
 	char* name = p_tokenizer.nextWord();
-	if(name == nullptr) { cout<<"InstrParser::parseDecl: name not found "<<endl; return FAILURE; }
+	if(name == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseDecl:", "name");return FAILURE; }
 	stmt->setVar(block->addSymbol(name));
 
 	char equal = p_tokenizer.nextChar();
 	if(equal == ';') { 	p_tokenizer.nextLine(); return status; }
-	if(equal != '=') { cout<<"InstrParser::parseDecl: = not found "<<endl; return FAILURE; }
+	if(equal != '=') {  Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseDecl:", "="); return FAILURE; }
 
 	char* next = p_tokenizer.nextWord();
-	if(next == nullptr) { cout<<"InstrParser::parseDecl: value not found "<<endl; return FAILURE; }
+	if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseDecl:", "value"); return FAILURE; }
 	Expr* value = p_exprParser.parseExpressionStr(next);
 	delete next;
-	if(value == nullptr) { cout<<"InstrParser::parseDecl: could not parse value "<<endl; return FAILURE; }
+	if(value == nullptr) { Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseDecl:", "value"); return FAILURE; }
 	stmt->setValue(value);
 	p_tokenizer.nextLine();
 	cout <<"Declarative stmt: size = " <<block->getSubStatements().size() << " " <<*stmt <<endl;
@@ -123,7 +126,7 @@ Status InstrParser::parseIfElse(Block* block) {
 
 	p_tokenizer.nextLine();
 	char* next = p_tokenizer.nextWord(true);
-	if(strcmp(next, "else") != 0) { cout <<"no else " <<endl; delete next; return status; }
+	if(next == nullptr || strcmp(next, "else") != 0) { cout <<"no else " <<endl; delete next; return status; }
 	delete next;
 	p_tokenizer.consumeWord();
 
@@ -195,15 +198,15 @@ Status InstrParser::parseFunctionDecl(Block* block) {
 	block->addStatement(stmt);
 
 	char* next = p_tokenizer.nextWord(); //return type
-	if(next == nullptr) { cout<<"InstrParser::parseFunctionDecl: return type not found "<<endl; return FAILURE; }
+	if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "return type"); return FAILURE; }
 
 	next = p_tokenizer.nextWord();	//function name - add to symbol table
-	if(next == nullptr) { cout<<"InstrParser::parseFunctionDecl: function name not found "<<endl; return FAILURE; }
+	if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "function name"); return FAILURE; }
 	stmt->setName(next);
 	cout<<"function name " <<next <<endl;
 
 	char openBrace = p_tokenizer.nextChar();
-	if ( openBrace != '(') { cout<<"InstrParser::parseFunctionDecl: open brace not found "<<endl; return FAILURE; }
+	if ( openBrace != '(') { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "open brace"); return FAILURE; }
 
 	next = p_tokenizer.nextWord();
 	if(next == nullptr) return FAILURE;
@@ -212,6 +215,7 @@ Status InstrParser::parseFunctionDecl(Block* block) {
 
 	p_tokenizer.nextLine();
 	status = parseBlock(stmt->getBlock());
+	if(status == FAILURE) { return FAILURE; }
 	p_tokenizer.nextLine();
 	cout <<"Function Decl stmt: size = " <<stmt->getBlock()->getSubStatements().size() << " parent size "
 			<<block->getSubStatements().size() << " " <<*stmt <<" status " <<status <<endl;
@@ -224,17 +228,17 @@ Status InstrParser::parseFunctionCall(Block* block) {
 	block->addStatement(stmt);
 
 	char* next = p_tokenizer.nextWord(); //function name
-	if(next == nullptr) { cout<<"InstrParser::parseFunctionCall: function name not found "<<endl; return FAILURE; }
+	if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionCall:", "function name"); return FAILURE; }
 
 	char openBrace = p_tokenizer.nextChar();
-	if ( openBrace != '(') { cout<<"InstrParser::parseFunctionCall: open brace not found "<<endl; return FAILURE; }
+	if ( openBrace != '(') { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionCall:", "open brace"); return FAILURE; }
 
 	next = p_tokenizer.nextWord();
 	if(next == nullptr) { return status; }
-	Expr* argument = p_exprParser.parseExpressionStr(next);
+	/*Expr* argument = p_exprParser.parseExpressionStr(next);
 	delete next;
 	if(argument == nullptr) { cout<<"InstrParser::parseFunctionCall: could not parse argument "<<endl; return FAILURE; }
-	stmt->addActualArgument(argument);
+	stmt->addActualArgument(argument);*/
 
 	p_tokenizer.nextLine();
 	cout <<"Function Call stmt: size = " <<block->getSubStatements().size() << " " <<*stmt <<endl;
