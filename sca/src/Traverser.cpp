@@ -6,8 +6,8 @@
  */
 
 #include "Traverser.h"
+#include "BasicBlock.h"
 #include "Visitor.h"
-#include "ControlFlowGraph.h"
 
 Traverser::Traverser(Visitor* visitor) : p_visitor(visitor) {
 	// TODO Auto-generated constructor stub

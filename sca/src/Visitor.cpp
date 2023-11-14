@@ -8,7 +8,7 @@
 #include<cstring>
 #include<vector>
 #include "Visitor.h"
-#include "ControlFlowGraph.h"
+#include "BasicBlock.h"
 
 Visitor::Visitor() {
 	// TODO Auto-generated constructor stub

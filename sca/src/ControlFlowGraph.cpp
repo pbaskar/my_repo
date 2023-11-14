@@ -15,15 +15,15 @@ ControlFlowGraph::~ControlFlowGraph() {
 }
 
 Status ControlFlowGraph::buildCFG(const Block* block) {
-	Status s = SUCCESS;
+	Status status = SUCCESS;
 	head = new BasicBlock(block->getSymbolTable());
 	BasicBlock* currBlock = head;
-	s = buildBlock(currBlock, block);
-	return s;
+	status = buildBlock(currBlock, block);
+	return status;
 }
 
 Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) {
-	Status s = SUCCESS;
+	Status status = SUCCESS;
 	bool beginNewBlock = false;
 	auto& stmtList = block->getSubStatements();
 	for(Stmt* stmt : stmtList ) {
@@ -59,7 +59,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 			first->addNode(ifNode);
 
 			ifLast = first;
-			s = buildBlock(ifLast, ifStmt->getBlock());
+			status = buildBlock(ifLast, ifStmt->getBlock());
 
 			const IfStmt* elseStmt = ifStmt->getElse();
 			if(elseStmt) {
@@ -70,7 +70,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 				elseFirst->addNode(elseNode);
 
 				elseLast = elseFirst;
-				s = buildBlock(elseLast, elseStmt->getBlock());
+				status = buildBlock(elseLast, elseStmt->getBlock());
 			}
 
 			IfElseBlock* ifElseBlock = new IfElseBlock(0, first, ifLast, elseFirst, elseLast);
@@ -91,7 +91,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 			first->addNode(whileNode);
 
 			last = first;
-			s = buildBlock(last, whileStmt->getBlock());
+			status = buildBlock(last, whileStmt->getBlock());
 
 			WhileBlock* whileBlock = new WhileBlock(0,first,last);
 			//whileBlock->setSelf();
@@ -115,7 +115,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 			}*/
 
 			last = first;
-			s = buildBlock(last, functionDeclStmt->getBlock());
+			status = buildBlock(last, functionDeclStmt->getBlock());
 			cout <<"function decl block "  <<functionDeclStmt->getName() <<endl;
 			FunctionDeclBlock* functionDeclBlock = new FunctionDeclBlock(0,functionDeclStmt->getName(),first,last);
 			currBlock->addFnSymbol(functionDeclBlock);
@@ -139,7 +139,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 		break;
 		}
 	}
-	return s;
+	return status;
 }
 
 void ControlFlowGraph::print(ostream& os) {

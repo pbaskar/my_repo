@@ -10,15 +10,19 @@
 #include<cstdarg>
 
 enum ErrorCode {
-	INVALID_CHARACTER,
+	CHAR_INVALID,
 	NOT_FOUND,
-	NOT_PARSE
+	NOT_PARSE,
+	FILE_NOT_OPEN,
+	FILE_EMPTY
 };
 
 static const char errorMessage[][80] = {
 		"Invalid character %1",
 		"Character %1 not found",
-		"Could not parse %1"
+		"Could not parse %1",
+		"Could not open file %1",
+		"File %1 is empty"
 };
 
 class Logger {

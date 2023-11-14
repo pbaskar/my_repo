@@ -19,9 +19,9 @@ InstrParser::~InstrParser() {
 
 Status InstrParser::parseFile(char* fileName) {
 	Status status = p_tokenizer.openFile(fileName);
-	if(status == FAILURE) { p_tokenizer.closeFile(); return status; }
+	if(status == FAILURE) { Logger::logMessage(ErrorCode::FILE_NOT_OPEN,  2, "InstrParser::parseFile:", fileName); p_tokenizer.closeFile(); return status; }
 	status = p_tokenizer.nextLine();
-	if(status == FAILURE) { p_tokenizer.closeFile(); return status; }
+	if(status == FAILURE) { Logger::logMessage(ErrorCode::FILE_EMPTY,  2, "InstrParser::parseFile:", fileName); p_tokenizer.closeFile(); return status; }
 	p_mainBlock = new Block;
 	char nextChar = p_tokenizer.nextChar(true);
 	while(nextChar != '\0') {
@@ -74,7 +74,7 @@ Status InstrParser::parseDecl(Block* block) {
 	AssignStmt* stmt = new AssignStmt(DECL);
 	block->addStatement(stmt);
 	char* name = p_tokenizer.nextWord();
-	if(name == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseDecl:", "name");return FAILURE; }
+	if(name == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseDecl:", "name"); return FAILURE; }
 	stmt->setVar(block->addSymbol(name));
 
 	char equal = p_tokenizer.nextChar();
@@ -98,17 +98,17 @@ Status InstrParser::parseAssign(Block* block) {
 	block->addStatement(stmt);
 
 	char* name = p_tokenizer.nextWord();
-	if(name == nullptr) return FAILURE;
+	if(name == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "name"); return FAILURE; }
 	stmt->setVar(block->fetchVariable(name));
 
 	char equal = p_tokenizer.nextChar();
-	if ( equal != '=' ) return FAILURE;
+	if ( equal != '=' ) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "="); return FAILURE; }
 
 	char* next = p_tokenizer.nextWord();
-	if(next == nullptr) return FAILURE;
+	if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "value"); return FAILURE; }
 	Expr* value = p_exprParser.parseExpressionStr(next);
 	delete next;
-	if(value == nullptr) return FAILURE;
+	if(value == nullptr) { Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseAssign:", "value"); return FAILURE; }
 	stmt->setValue(value);
 	p_tokenizer.nextLine();
 	cout <<"Assignment stmt: size = " << block->getSubStatements().size()  <<" " <<*stmt <<endl;
@@ -144,15 +144,16 @@ Status InstrParser::parseIf(IfStmt* stmt) {
 	Status status = SUCCESS;
 
 	char openBrace = p_tokenizer.nextChar();
-	if ( openBrace != '(')	return FAILURE;
+	if ( openBrace != '(')	{ Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseIf:", "open brace"); return FAILURE; }
 	char* next = p_tokenizer.nextWord();
-	if(next == nullptr) return FAILURE;
+	if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseIf:", "condition"); return FAILURE; }
 	Expr* condition = p_exprParser.parseExpressionStr(next);
 	delete next;
-	if(condition == nullptr) return FAILURE;
+	if(condition == nullptr) { Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseIf:", "condition"); return FAILURE; }
 	stmt->setCondition(condition);
 	p_tokenizer.nextLine();
 	status = parseBlock(stmt->getBlock());
+	if(status == FAILURE) { return FAILURE; }
 
 	cout <<"If stmt: " <<stmt->getBlock()->getSubStatements().size() << " "<<*stmt <<endl;
 	return status;
@@ -163,6 +164,7 @@ Status InstrParser::parseElse(IfStmt* stmt) {
 
 	p_tokenizer.nextLine();
 	status = parseBlock(stmt->getBlock());
+	if(status == FAILURE) { return FAILURE; }
 
 	cout <<"Else stmt: " <<*stmt <<endl;
 	return status;
@@ -175,17 +177,19 @@ Status InstrParser::parseWhile(Block* block) {
 	block->addStatement(stmt);
 
 	char openBrace = p_tokenizer.nextChar();
-	if ( openBrace != '(') return FAILURE;
+	if ( openBrace != '(') { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseWhile:", "open brace"); return FAILURE; }
 
 	char* next = p_tokenizer.nextWord();
-	if(next == nullptr) return FAILURE;
+	if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseWhile:", "condition"); return FAILURE; }
 	Expr* condition = p_exprParser.parseExpressionStr(next);
 	delete next;
-	if(condition == nullptr) return FAILURE;
+	if(condition == nullptr) { Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseWhile:", "condition"); return FAILURE; }
 	stmt->setCondition(condition);
 
 	p_tokenizer.nextLine();
 	status = parseBlock(stmt->getBlock());
+	if(status == FAILURE) { return FAILURE; }
+
 	p_tokenizer.nextLine();
 	cout <<"While stmt: size = " <<block->getSubStatements().size() << " " <<*stmt <<endl;
 	return status;
@@ -209,13 +213,14 @@ Status InstrParser::parseFunctionDecl(Block* block) {
 	if ( openBrace != '(') { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "open brace"); return FAILURE; }
 
 	next = p_tokenizer.nextWord();
-	if(next == nullptr) return FAILURE;
+	if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "argument"); return FAILURE; }
 	//Variable* argument = block->addSymbol(next);
 	//stmt->addFormalArgument(argument);
 
 	p_tokenizer.nextLine();
 	status = parseBlock(stmt->getBlock());
 	if(status == FAILURE) { return FAILURE; }
+
 	p_tokenizer.nextLine();
 	cout <<"Function Decl stmt: size = " <<stmt->getBlock()->getSubStatements().size() << " parent size "
 			<<block->getSubStatements().size() << " " <<*stmt <<" status " <<status <<endl;

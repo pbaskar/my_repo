@@ -10,7 +10,6 @@
 
 #include "Visitor.h"
 
-class ControlFlowGraph;
 class BasicBlock;
 class IfElseBlock;
 class WhileBlock;

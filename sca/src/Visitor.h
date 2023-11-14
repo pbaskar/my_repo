@@ -9,7 +9,7 @@
 #define SRC_VISITOR_H_
 #include<vector>
 using namespace std;
-class ControlFlowGraph;
+
 class BasicBlock;
 class IfElseBlock;
 class WhileBlock;

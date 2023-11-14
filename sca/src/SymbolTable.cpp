@@ -7,8 +7,8 @@
 
 #include "SymbolTable.h"
 #include<cstring>
-#include "ExpressionTokenizer.h"
-#include "ControlFlowGraph.h"
+#include "Expr.h"
+#include "BasicBlock.h" // FunctionDeclBlock
 
 SymbolTable::SymbolTable() : p_outerScope(0) {
 }
@@ -111,9 +111,7 @@ FnSymbolTableEntry::FnSymbolTableEntry(FunctionDeclBlock* fnDeclBlock, DataType 
 }
 
 FnSymbolTableEntry::~FnSymbolTableEntry() {
-	DeleteVisitor deleteVisitor;
-	TraverserOne tOne(&deleteVisitor);
-	tOne.traverseFunctionDeclBlock(p_functionDeclBlock);
+	delete p_functionDeclBlock;
 }
 
 FunctionDeclBlock* FnSymbolTableEntry::fetchFunctionDeclBlock(char* name) {
