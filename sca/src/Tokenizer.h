@@ -14,9 +14,10 @@ public:
 	Tokenizer();
 	virtual ~Tokenizer();
 
-	int readNextWordLen();
+	int readNextWordLen(int begin=0);
 	void consumeWord();
 	char* nextWord(bool peek=false);
+	char lookAhead(int num);
 	char nextChar(bool peek=false);
 	Status nextLine();
 	Status openFile(char* fileName);

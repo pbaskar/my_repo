@@ -43,6 +43,10 @@ void PrintVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) 
 	functionDeclBlock->print();
 }
 
+void PrintVisitor::visitFunctionCallBlock(FunctionCallBlock* functionCallBlock) {
+	functionCallBlock->print();
+}
+
 DeleteVisitor::DeleteVisitor() {
 
 }
@@ -64,7 +68,11 @@ void DeleteVisitor::visitWhileBlock(WhileBlock* whileBlock) {
 }
 
 void DeleteVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
-	delete functionDeclBlock;
+	//delete functionDeclBlock;
+}
+
+void DeleteVisitor::visitFunctionCallBlock(FunctionCallBlock* functionCallBlock) {
+	delete functionCallBlock;
 }
 
 VariableInitCheckVisitor::VariableInitCheckVisitor() {
@@ -130,5 +138,9 @@ void VariableInitCheckVisitor::visitWhileBlock(WhileBlock* whileBlock) {
 }
 
 void VariableInitCheckVisitor::visitFunctionDeclBlock(FunctionDeclBlock* whileBlock) {
+
+}
+
+void VariableInitCheckVisitor::visitFunctionCallBlock(FunctionCallBlock* whileBlock) {
 
 }

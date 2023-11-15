@@ -20,7 +20,11 @@ void WhileBlock::acceptTraverser(Traverser& traverser) {
 }
 
 void FunctionDeclBlock::acceptTraverser(Traverser& traverser) {
-	//traverser.traverseFunctionDeclBlock(this);
+	traverser.traverseFunctionDeclBlock(this);
+}
+
+void FunctionCallBlock::acceptTraverser(Traverser& traverser) {
+	traverser.traverseFunctionCallBlock(this);
 }
 
 void BasicBlock::acceptVisitor(Visitor& visitor) {
@@ -37,6 +41,10 @@ void WhileBlock::acceptVisitor(Visitor& visitor) {
 
 void FunctionDeclBlock::acceptVisitor(Visitor& visitor) {
 	visitor.visitFunctionDeclBlock(this);
+}
+
+void FunctionCallBlock::acceptVisitor(Visitor& visitor) {
+	visitor.visitFunctionCallBlock(this);
 }
 
 FunctionDeclBlock::~FunctionDeclBlock() {

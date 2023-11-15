@@ -14,6 +14,7 @@ class BasicBlock;
 class IfElseBlock;
 class WhileBlock;
 class FunctionDeclBlock;
+class FunctionCallBlock;
 class Node;
 class Visitor {
 public:
@@ -23,6 +24,7 @@ public:
 	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock)=0;
 	virtual void visitWhileBlock(WhileBlock* whileBlock)=0;
 	virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock)=0;
+	virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock)=0;
 };
 
 class PrintVisitor : public Visitor {
@@ -34,6 +36,7 @@ public:
 	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
 	virtual void visitWhileBlock(WhileBlock* whileBlock);
 	virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
+	virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
 };
 
 class DeleteVisitor : public Visitor {
@@ -45,6 +48,7 @@ public:
 	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
 	virtual void visitWhileBlock(WhileBlock* whileBlock);
 	virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
+	virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
 };
 
 class VariableInitCheckVisitor : public Visitor {
@@ -56,6 +60,7 @@ public:
 	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
 	virtual void visitWhileBlock(WhileBlock* whileBlock);
 	virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
+	virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
 private:
 	vector<Node*> p_variableNodes;
 };

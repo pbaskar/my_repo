@@ -81,6 +81,15 @@ void TraverserOne::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBloc
 	functionDeclBlock->acceptVisitor(*p_visitor);
 }
 
+void TraverserOne::traverseFunctionCallBlock(FunctionCallBlock* functionCallBlock) {
+	BasicBlock* block = functionCallBlock->getFirst();
+	block->acceptTraverser(*this);
+
+	block = functionCallBlock->getFnDecl();
+	block->acceptTraverser(*this);
+	functionCallBlock->acceptVisitor(*p_visitor);
+}
+
 void TraverserOne::traverseCFG(BasicBlock* block) {
 	BasicBlock* next(0);
 	while(block) {
@@ -129,6 +138,15 @@ void TraverserAllPath::traverseWhileBlock(WhileBlock* whileBlock) {
 }
 
 void TraverserAllPath::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
+	/*whileBlock->acceptVisitor(*p_visitor);
+	BasicBlock* block = whileBlock->getFirst();
+	block->acceptTraverser(*this);
+
+	BasicBlock* next = whileBlock->getNext();
+	if(next) next->acceptTraverser(*this);*/
+}
+
+void TraverserAllPath::traverseFunctionCallBlock(FunctionCallBlock* functionCallBlock) {
 	/*whileBlock->acceptVisitor(*p_visitor);
 	BasicBlock* block = whileBlock->getFirst();
 	block->acceptTraverser(*this);

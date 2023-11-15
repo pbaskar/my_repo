@@ -29,6 +29,10 @@ Status InstrParser::parseFile(char* fileName) {
 		if(status == FAILURE) { p_tokenizer.closeFile(); return status; }
 		nextChar = p_tokenizer.nextChar(true);
 	}
+	FunctionCallStmt* stmt = new FunctionCallStmt(FUNC_CALL);
+	stmt->setName("main");
+	p_mainBlock->addStatement(stmt);
+
 	p_tokenizer.closeFile();
 	return status;
 }
@@ -63,7 +67,15 @@ Status InstrParser::parseStmt(Block* block) {
 		status = parseWhile(block);
 	}
 	else {
-		status = parseAssign(block);
+		char c = p_tokenizer.lookAhead(1);
+		if(c == '=')
+			status = parseAssign(block);
+		else if(c == '(')
+			status = parseFunctionCall(block);
+		else {
+			Logger::logMessage(ErrorCode::STMT_INVALID,  1, "InstrParser::parseStmt:");
+			status = FAILURE;
+		}
 	}
 	delete next;
 	return status;
@@ -234,6 +246,7 @@ Status InstrParser::parseFunctionCall(Block* block) {
 
 	char* next = p_tokenizer.nextWord(); //function name
 	if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionCall:", "function name"); return FAILURE; }
+	stmt->setName(next);
 
 	char openBrace = p_tokenizer.nextChar();
 	if ( openBrace != '(') { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionCall:", "open brace"); return FAILURE; }

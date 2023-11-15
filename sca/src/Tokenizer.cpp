@@ -53,8 +53,8 @@ char Tokenizer::nextChar(bool peek) {
 	return next;
 }
 
-int Tokenizer::readNextWordLen() {
-	int p = p_pos;
+int Tokenizer::readNextWordLen(int begin) {
+	int p = begin > p_pos ? begin : p_pos;
 	if(p_line[p] == '\0') {
 		return 0;
 	}
@@ -98,4 +98,16 @@ char* Tokenizer::nextWord(bool peek) {
 		//cout<<"token " <<token <<" p_pos " <<p_pos<<" wordLen " <<wordLen <<endl;
 	}
 	return token;
+}
+
+char Tokenizer::lookAhead(int num) {
+	int len=0;
+	while(num) {
+		len += readNextWordLen(len);
+		while(p_line[len] == ' ') {
+			len++;
+		}
+		num--;
+	}
+	return p_line[len];
 }

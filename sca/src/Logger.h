@@ -11,6 +11,7 @@
 
 enum ErrorCode {
 	CHAR_INVALID,
+	STMT_INVALID,
 	NOT_FOUND,
 	NOT_PARSE,
 	FILE_NOT_OPEN,
@@ -22,7 +23,8 @@ static const char errorMessage[][80] = {
 		"Character %1 not found",
 		"Could not parse %1",
 		"Could not open file %1",
-		"File %1 is empty"
+		"File %1 is empty",
+		"Invalid statement"
 };
 
 class Logger {

@@ -139,11 +139,11 @@ public:
 	const char* getName() const { return p_name; }
 	const vector<Variable*>& getFormalArguments() const { return p_formalArguments; }
 	void setBlock(Block* block) {p_block = block; }
-	void setName(char* name) { p_name = name; }
+	void setName(const char* name) { p_name = name; }
 	void addFormalArgument(Variable* argument) { p_formalArguments.push_back(argument); }
 	void addStatement(Stmt* stmt) { p_block->addStatement(stmt); }
 private:
-	char* p_name;
+	const char* p_name;
 	vector<Variable*> p_formalArguments;
 	Block* p_block;
 };
@@ -158,9 +158,10 @@ public:
 		//os << "type " << p_type <<
 	}
 	const char* getName() const { return p_name; }
+	void setName(const char* name) { p_name = name; }
 	void addActualArgument(Expr* argument) { p_actualArguments.push_back(argument); }
 private:
-	char* p_name;
+	const char* p_name;
 	vector<Expr*> p_actualArguments;
 };
 

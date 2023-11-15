@@ -62,22 +62,22 @@ private:
 
 class Variable : public Expr {
 public:
-	Variable(char* n): p_name(n) {}
+	Variable(const char* n): p_name(n) {}
 	virtual ~Variable() { /*delete p_name;*/ }
 	virtual ExprType getExprType() { return VARIABLE; }
-	void setName(char* name) { p_name = name; }
+	void setName(const char* name) { p_name = name; }
 	virtual void print(ostream& os) const{
 		os <<p_name << " ";
 	}
 	virtual void getVariables(vector<const Expr*>& variables) const { variables.push_back(this); }
-	bool match(char* name) {
+	bool match(const char* name) {
 		return strcmp(p_name, name) ==0;
 	}
 	bool operator==(const Variable& other) {
 		return strcmp(p_name, other.p_name) ==0;
 	}
 private:
-	char* p_name;
+	const char* p_name;
 };
 
 class Constant : public Expr {

@@ -25,7 +25,7 @@ SymbolTable::~SymbolTable() {
 	}
 }
 
-Variable* SymbolTable::addSymbol(char* name) {
+Variable* SymbolTable::addSymbol(const char* name) {
 	Variable* var(0);
 
 	for(auto symbol : p_symbolEntries) {
@@ -40,7 +40,7 @@ Variable* SymbolTable::addSymbol(char* name) {
 	return var;
 }
 
-Variable* SymbolTable::fetchVariable(char* name) const {
+Variable* SymbolTable::fetchVariable(const char* name) const {
 	Variable* var(0);
 	for(auto symbol : p_symbolEntries) {
 		var = symbol->fetchVariable(name);
@@ -66,8 +66,9 @@ FunctionDeclBlock* SymbolTable::addFnSymbol(FunctionDeclBlock* fnDeclBlock) {
 	return fnDeclBlock;
 }
 
-FunctionDeclBlock* SymbolTable::fetchFunctionDeclBlock(char* name) const {
+FunctionDeclBlock* SymbolTable::fetchFunctionDeclBlock(const char* name) const {
 	FunctionDeclBlock* fnDeclBlock(0);
+
 	for(auto symbol : p_fnSymbolEntries) {
 		fnDeclBlock = symbol->fetchFunctionDeclBlock(name);
 		if(fnDeclBlock) break;
@@ -96,7 +97,7 @@ SymbolTableEntry::~SymbolTableEntry() {
 	delete p_var;
 }
 
-Variable* SymbolTableEntry::fetchVariable(char* name) {
+Variable* SymbolTableEntry::fetchVariable(const char* name) {
 	if(p_var->match(name)) return p_var;
 	return 0;
 }
@@ -114,7 +115,7 @@ FnSymbolTableEntry::~FnSymbolTableEntry() {
 	delete p_functionDeclBlock;
 }
 
-FunctionDeclBlock* FnSymbolTableEntry::fetchFunctionDeclBlock(char* name) {
+FunctionDeclBlock* FnSymbolTableEntry::fetchFunctionDeclBlock(const char* name) {
 	if(p_functionDeclBlock->match(name)) return p_functionDeclBlock;
 	return 0;
 }

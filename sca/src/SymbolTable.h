@@ -27,7 +27,7 @@ public:
 	bool operator==(const SymbolTableEntry& other) {
 		return p_var==other.p_var;
 	}
-	Variable* fetchVariable(char* name);
+	Variable* fetchVariable(const char* name);
 private:
 	Variable* p_var;
 	DataType p_dataType;
@@ -42,7 +42,7 @@ public:
 	bool operator==(const FnSymbolTableEntry& other) {
 		return p_functionDeclBlock==other.p_functionDeclBlock;
 	}
-	FunctionDeclBlock* fetchFunctionDeclBlock(char* name);
+	FunctionDeclBlock* fetchFunctionDeclBlock(const char* name);
 private:
 	FunctionDeclBlock* p_functionDeclBlock;
 	DataType p_dataType;
@@ -54,10 +54,10 @@ public:
 	SymbolTable();
 	SymbolTable(SymbolTable* outerScope);
 	virtual ~SymbolTable();
-	Variable* addSymbol(char* name);
-	Variable* fetchVariable(char* name) const;
+	Variable* addSymbol(const char* name);
+	Variable* fetchVariable(const char* name) const;
 	FunctionDeclBlock* addFnSymbol(FunctionDeclBlock* fnDeclBlock);
-	FunctionDeclBlock* fetchFunctionDeclBlock(char* name) const;
+	FunctionDeclBlock* fetchFunctionDeclBlock(const char* name) const;
 	const SymbolTable* getOuterScope() const { return p_outerScope; }
 private:
 	vector<SymbolTableEntry*> p_symbolEntries;

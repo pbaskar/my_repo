@@ -118,7 +118,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 			status = buildBlock(last, functionDeclStmt->getBlock());
 			cout <<"function decl block "  <<functionDeclStmt->getName() <<endl;
 			FunctionDeclBlock* functionDeclBlock = new FunctionDeclBlock(0,functionDeclStmt->getName(),first,last);
-			currBlock->addFnSymbol(functionDeclBlock);
+			head->addFnSymbol(functionDeclBlock);
 			beginNewBlock = true;
 			/*PrintVisitor printVisitor;
 			TraverserOne tOne(&printVisitor);
@@ -130,9 +130,24 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 			//currBlock = whileBlock;
 		}
 		break;
-		case FUNC_CALL:
-			cout <<"CFG::buildBlock FUNC_CALL "<<endl;
-			break;
+		case FUNC_CALL: {
+			BasicBlock* first(0);
+			FunctionDeclBlock* fnDecl(0);
+
+			FunctionCallStmt* functionCallStmt = static_cast<FunctionCallStmt*>(stmt);
+			first = new BasicBlock(block->getSymbolTable());
+
+			fnDecl = head->fetchFunctionDeclBlock(functionCallStmt->getName());
+
+			first->setNext(fnDecl);
+			FunctionCallBlock* functionCallBlock = new FunctionCallBlock(0,functionCallStmt->getName(),first,fnDecl);
+			cout <<"function call block "  <<functionCallStmt->getName() <<endl;
+
+			currBlock->setNext(functionCallBlock);
+			currBlock = functionCallBlock;
+			beginNewBlock = true;
+		}
+		break;
 		default: {
 			cout <<"error " <<endl;
 		}

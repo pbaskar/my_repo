@@ -101,16 +101,16 @@ public:
 		}
 		cout<<endl;
 	}
-	Variable* addSymbol(char* name) {
+	Variable* addSymbol(const char* name) {
 		return p_symbolTable->addSymbol(name);
 	}
-	Variable* fetchVariable(char* name) {
+	Variable* fetchVariable(const char* name) {
 		return p_symbolTable->fetchVariable(name);
 	}
 	FunctionDeclBlock* addFnSymbol(FunctionDeclBlock* functionDeclBlock) {
 		return p_symbolTable->addFnSymbol(functionDeclBlock);
 	}
-	FunctionDeclBlock* fetchFunctionDeclBlock(char* name) {
+	FunctionDeclBlock* fetchFunctionDeclBlock(const char* name) {
 		return p_symbolTable->fetchFunctionDeclBlock(name);
 	}
 	virtual void setNext(BasicBlock* next) {
@@ -133,7 +133,7 @@ class IfElseBlock : public BasicBlock {
 public:
 	IfElseBlock(BasicBlock* next, BasicBlock* ifFirst, BasicBlock* ifLast, BasicBlock* elseFirst, BasicBlock* elseLast)
 : BasicBlock(next,0), p_ifFirst(ifFirst), p_ifLast(ifLast), p_elseFirst(elseFirst), p_elseLast(elseLast) {}
-	~IfElseBlock() {
+	virtual ~IfElseBlock() {
 	}
 	virtual void setNext(BasicBlock* next) {
 		p_ifLast->setNext(next);
@@ -158,7 +158,7 @@ class WhileBlock : public BasicBlock {
 public:
 	WhileBlock(BasicBlock* next, BasicBlock* first, BasicBlock* last):
 		BasicBlock(next, 0), p_first(first), p_last(last) {}
-	~WhileBlock() {
+	virtual ~WhileBlock() {
 	}
 	virtual void setNext(BasicBlock* next) {
 		BasicBlock::setNext(next);
@@ -179,7 +179,7 @@ class FunctionDeclBlock : public BasicBlock {
 public:
 	FunctionDeclBlock(BasicBlock* next, const char* name, BasicBlock* first, BasicBlock* last):
 		BasicBlock(next, 0), p_name(name), p_first(first), p_last(last) {}
-	~FunctionDeclBlock();
+	virtual ~FunctionDeclBlock();
 	virtual void setNext(BasicBlock* next) {
 		p_last->setNext(next);
 	}
@@ -187,7 +187,8 @@ public:
 	virtual void acceptTraverser(Traverser& traverser);
 	BasicBlock* getFirst() { return p_first; }
 	BasicBlock* getLast() { return p_last; }
-	bool match(char* name) {
+	const char* getName() { return p_name; }
+	bool match(const char* name) {
 		return strcmp(p_name, name) ==0;
 	}
 private:
@@ -196,6 +197,25 @@ private:
 	BasicBlock* p_last;
 };
 
-
+class FunctionCallBlock : public BasicBlock {
+public:
+	FunctionCallBlock(BasicBlock* next, const char* name, BasicBlock* first, FunctionDeclBlock* fnDecl):
+		BasicBlock(next, 0), p_name(name), p_first(first), p_fnDecl(fnDecl){}
+	virtual ~FunctionCallBlock(){}
+	virtual void setNext(BasicBlock* next) {
+		p_fnDecl->setNext(next);
+	}
+	virtual void acceptVisitor(Visitor& visitor);
+	virtual void acceptTraverser(Traverser& traverser);
+	BasicBlock* getFnDecl() { return p_fnDecl; }
+	BasicBlock* getFirst() { return p_first; }
+	bool match(const char* name) {
+		return strcmp(p_name, name) ==0;
+	}
+private:
+	const char* p_name;
+	BasicBlock* p_first;
+	FunctionDeclBlock* p_fnDecl;
+};
 
 #endif /* BASICBLOCK_H_ */
