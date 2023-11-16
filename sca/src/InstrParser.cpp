@@ -225,9 +225,14 @@ Status InstrParser::parseFunctionDecl(Block* block) {
 	if ( openBrace != '(') { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "open brace"); return FAILURE; }
 
 	next = p_tokenizer.nextWord();
-	if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "argument"); return FAILURE; }
-	//Variable* argument = block->addSymbol(next);
-	//stmt->addFormalArgument(argument);
+	if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "argument declaration"); return FAILURE; }
+	delete next;
+
+	next = p_tokenizer.nextWord();
+	if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "argument name"); return FAILURE; }
+
+	Variable* argument = block->addSymbol(next); // add to the current symbol table
+	stmt->addFormalArgument(argument);
 
 	p_tokenizer.nextLine();
 	status = parseBlock(stmt->getBlock());
@@ -253,10 +258,10 @@ Status InstrParser::parseFunctionCall(Block* block) {
 
 	next = p_tokenizer.nextWord();
 	if(next == nullptr) { return status; }
-	/*Expr* argument = p_exprParser.parseExpressionStr(next);
+	Expr* argument = p_exprParser.parseExpressionStr(next);
 	delete next;
 	if(argument == nullptr) { cout<<"InstrParser::parseFunctionCall: could not parse argument "<<endl; return FAILURE; }
-	stmt->addActualArgument(argument);*/
+	stmt->addActualArgument(argument);
 
 	p_tokenizer.nextLine();
 	cout <<"Function Call stmt: size = " <<block->getSubStatements().size() << " " <<*stmt <<endl;

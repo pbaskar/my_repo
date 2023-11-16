@@ -107,27 +107,19 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 			FunctionDeclStmt* functionDeclStmt = static_cast<FunctionDeclStmt*>(stmt);
 
 			first = new BasicBlock(functionDeclStmt->getBlock()->getSymbolTable());
-			/*auto formalArguments = functionDeclStmt->getFormalArguments();
-			//cout << "Function Decl Node: " << *functionDeclNode << " " <<block->getSubStatements().size() <<endl;
-			for(Variable* var : formalArguments) {
-				AssignmentNode* functionDeclNode = new AssignmentNode(var);
-				first->addNode(functionDeclNode);
-			}*/
 
 			last = first;
 			status = buildBlock(last, functionDeclStmt->getBlock());
-			cout <<"function decl block "  <<functionDeclStmt->getName() <<endl;
 			FunctionDeclBlock* functionDeclBlock = new FunctionDeclBlock(0,functionDeclStmt->getName(),first,last);
+
+			auto formalArguments = functionDeclStmt->getFormalArguments();
+
+			for(Variable* var : formalArguments) {
+				functionDeclBlock->addFormalArgument(var);
+			}
+			cout << "Function Decl Block: " << functionDeclBlock->getName() << " " <<block->getSubStatements().size() <<endl;
 			head->addFnSymbol(functionDeclBlock);
 			beginNewBlock = true;
-			/*PrintVisitor printVisitor;
-			TraverserOne tOne(&printVisitor);
-			tOne.traverseFunctionDeclBlock(functionDeclBlock);
-			DeleteVisitor deleteVisitor;
-			TraverserOne tOne2(&deleteVisitor);
-			tOne2.traverseFunctionDeclBlock(functionDeclBlock);*/
-			//currBlock->setNext(whileBlock);
-			//currBlock = whileBlock;
 		}
 		break;
 		case FUNC_CALL: {
@@ -141,8 +133,16 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 
 			first->setNext(fnDecl);
 			FunctionCallBlock* functionCallBlock = new FunctionCallBlock(0,functionCallStmt->getName(),first,fnDecl);
-			cout <<"function call block "  <<functionCallStmt->getName() <<endl;
-
+			auto formalArguments = fnDecl->getFormalArguments();
+			auto actualArguments = functionCallStmt->getActualArguments();
+			int i=0;
+			for(Expr* expr : actualArguments) {
+				AssignmentNode* functionDeclNode = new AssignmentNode(formalArguments[i], expr);
+				first->addNode(functionDeclNode);
+				functionCallBlock->addActualArgument(expr);
+				i++;
+			}
+			cout <<"Function Call Block: "  <<functionCallBlock->getName() << " " <<block->getSubStatements().size()<<endl;
 			currBlock->setNext(functionCallBlock);
 			currBlock = functionCallBlock;
 			beginNewBlock = true;

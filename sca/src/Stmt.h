@@ -133,7 +133,10 @@ public:
 		delete p_block;
 	}
 	virtual void print(ostream& os) {
-		//os << "type " << p_type <<
+		os << " Function name " << p_name << " arguments ";
+		for(Variable* v : p_formalArguments) {
+			os << *v << " ";
+		}
 	}
 	Block* getBlock() const { return p_block; }
 	const char* getName() const { return p_name; }
@@ -155,9 +158,13 @@ public:
 
 	}
 	virtual void print(ostream& os) {
-		//os << "type " << p_type <<
+		os << " Function name " << p_name << " arguments ";
+		for(Expr* v : p_actualArguments) {
+			os << *v << " ";
+		}
 	}
 	const char* getName() const { return p_name; }
+	const vector<Expr*>& getActualArguments() const { return p_actualArguments; }
 	void setName(const char* name) { p_name = name; }
 	void addActualArgument(Expr* argument) { p_actualArguments.push_back(argument); }
 private:

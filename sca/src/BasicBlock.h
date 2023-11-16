@@ -38,7 +38,7 @@ private:
 class AssignmentNode : public Node {
 public:
 	AssignmentNode() : p_var(0), p_value(0) { }
-	AssignmentNode(Variable* var) : p_var(var), p_value(0) { }
+	AssignmentNode(Variable* var, Expr* value) : p_var(var), p_value(value) { }
 	AssignmentNode(AssignStmt& stmt) {
 		p_var = stmt.getVar();
 		p_value = stmt.getValue();
@@ -95,7 +95,7 @@ public:
 		}
 		//delete p_symbolTable;
 	}
-	void print() {
+	virtual void print() {
 		for(Node* n: nodeList) {
 			cout <<*n <<" ";
 		}
@@ -188,13 +188,23 @@ public:
 	BasicBlock* getFirst() { return p_first; }
 	BasicBlock* getLast() { return p_last; }
 	const char* getName() { return p_name; }
+	const vector<Variable*>& getFormalArguments() const { return p_formalArguments; }
 	bool match(const char* name) {
 		return strcmp(p_name, name) ==0;
+	}
+	void addFormalArgument(Variable* var) { p_formalArguments.push_back(var); }
+	virtual void print() {
+		cout << "Function name " << p_name << " formal arguments ";
+		for(Variable* v : p_formalArguments) {
+			cout << *v << " ";
+		}
+		cout<<endl;
 	}
 private:
 	const char* p_name;
 	BasicBlock* p_first;
 	BasicBlock* p_last;
+	vector<Variable*> p_formalArguments;
 };
 
 class FunctionCallBlock : public BasicBlock {
@@ -209,13 +219,23 @@ public:
 	virtual void acceptTraverser(Traverser& traverser);
 	BasicBlock* getFnDecl() { return p_fnDecl; }
 	BasicBlock* getFirst() { return p_first; }
+	const char* getName() { return p_name; }
 	bool match(const char* name) {
 		return strcmp(p_name, name) ==0;
+	}
+	void addActualArgument(Expr* expr) { p_actualArguments.push_back(expr); }
+	virtual void print() {
+		cout << "Function name " << p_name << " actual arguments ";
+		for(Expr* e : p_actualArguments) {
+			cout << *e << " ";
+		}
+		cout <<endl;
 	}
 private:
 	const char* p_name;
 	BasicBlock* p_first;
 	FunctionDeclBlock* p_fnDecl;
+	vector<Expr*> p_actualArguments;
 };
 
 #endif /* BASICBLOCK_H_ */
