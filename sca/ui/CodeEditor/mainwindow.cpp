@@ -59,6 +59,7 @@ void MainWindow::run()
     messages <<"a" <<"b" <<"c";
     model->setStringList(messages);
     p_outputView->setModel(model);
+    p_socketClient.writeToSocket("run");
 }
 
 void MainWindow::closeWindow()

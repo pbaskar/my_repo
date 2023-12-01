@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QTextEdit>
 #include <QListView>
+#include "socketclient.h"
 
 class MainWindow : public QMainWindow
 {
@@ -23,5 +24,7 @@ private slots:
 private:
     QListView* p_outputView;
     QTextEdit* p_codeEdit;
+
+    SocketClient p_socketClient;
 };
 #endif // MAINWINDOW_H
