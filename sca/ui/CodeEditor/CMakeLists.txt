@@ -17,11 +17,18 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Network)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Network)
 
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS QuickWidgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS QuickWidgets)
+
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
         mainwindow.h
         socketclient.h socketclient.cpp
+        codetextedit.h codetextedit.cpp
+        constants.h
+        celistview.h celistview.cpp
+        qml.qrc
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -49,6 +56,7 @@ endif()
 
 target_link_libraries(CodeEditor PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(CodeEditor PRIVATE Qt${QT_VERSION_MAJOR}::Network)
+target_link_libraries(CodeEditor PRIVATE Qt${QT_VERSION_MAJOR}::QuickWidgets)
 
 set_target_properties(CodeEditor PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

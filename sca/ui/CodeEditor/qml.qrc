@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Visualizer/CFGView.qml</file>
+    </qresource>
+</RCC>

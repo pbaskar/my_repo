@@ -5,6 +5,8 @@
 #include <QTextEdit>
 #include <QListView>
 #include "socketclient.h"
+#include "codetextedit.h"
+#include "celistview.h"
 
 class MainWindow : public QMainWindow
 {
@@ -15,6 +17,7 @@ public:
     ~MainWindow();
 
     void createMenus();
+    void createWidgets();
 
 private slots:
     void openFile();
@@ -22,9 +25,9 @@ private slots:
     void closeWindow();
 
 private:
-    QListView* p_outputView;
-    QTextEdit* p_codeEdit;
+    CEListView* p_outputView;
+    CodeTextEdit* p_codeEdit;
 
-    SocketClient p_socketClient;
+   // SocketClient p_socketClient;
 };
 #endif // MAINWINDOW_H

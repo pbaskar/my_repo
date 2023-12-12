@@ -1,45 +1,83 @@
 #include "mainwindow.h"
-#include<QHBoxLayout>
-#include<QMenu>
-#include<QMenuBar>
-#include<QApplication>
-#include<QFile>
-#include<QStringListModel>
+#include <QSplitter>
+#include <QVBoxLayout>
+#include <QTabWidget>
+#include <QQuickWidget>
+#include <QLabel>
+#include <QMenu>
+#include <QMenuBar>
+#include <QToolBar>
+#include <QStatusBar>
+#include <QApplication>
+#include <QFile>
+#include <QStringListModel>
+#include <QScreen>
+#include "constants.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    QWidget* mainWidget = new QWidget;
-    QHBoxLayout* hLayout = new QHBoxLayout;
-
-    p_codeEdit = new QTextEdit;
-    p_outputView = new QListView;
-
-    hLayout->addWidget(p_codeEdit);
-    hLayout->addWidget(p_outputView);
-
-    mainWidget->setLayout(hLayout);
-    setCentralWidget(mainWidget);
-
+    createWidgets();
     createMenus();
 
-    setGeometry(50,50,1400,700);
+    QSize s = qApp->primaryScreen()->availableSize();
+    int h = s.height();
+    int w = s.width();
+    setGeometry(w*0.25,h*0.25,w*0.5,h*0.5);
+}
+
+void MainWindow::createWidgets()
+{
+    QSplitter* mainWidget = new QSplitter;
+    mainWidget->setChildrenCollapsible(false);
+
+    QQuickWidget* cfgQuickWidget = new QQuickWidget;
+    cfgQuickWidget->setSource(QUrl("qrc:/Visualizer/CFGView.qml"));
+
+    QVBoxLayout* codeTextEditLayout  = new QVBoxLayout;
+    QWidget* codeTextEditWidget = new QWidget;
+
+    QLabel* codeTextEditLabel = new QLabel(tr("Code"));
+    p_codeEdit = new CodeTextEdit;
+    codeTextEditLayout->addWidget(codeTextEditLabel);
+    codeTextEditLayout->addWidget(p_codeEdit);
+    codeTextEditWidget->setLayout(codeTextEditLayout);
+
+    QVBoxLayout* outputViewLayout  = new QVBoxLayout;
+    QWidget* outputViewWidget = new QWidget;
+
+    QLabel* outputViewLabel = new QLabel(tr("Output"));
+    p_outputView = new CEListView;
+    outputViewLayout->addWidget(outputViewLabel);
+    outputViewLayout->addWidget(p_outputView);
+    outputViewWidget->setLayout(outputViewLayout);
+
+    QTabWidget* codeVisual = new QTabWidget;
+    codeVisual->addTab(codeTextEditWidget, tr("Text"));
+    codeVisual->addTab(cfgQuickWidget, tr("Visual"));
+
+    mainWidget->addWidget(codeVisual);
+    mainWidget->addWidget(outputViewWidget);
+
+    setCentralWidget(mainWidget);
 }
 
 void MainWindow::createMenus()
 {
     QMenu* fileMenu = new QMenu(tr("File"));
-    QAction* openFileAction = new QAction(tr("Open"), this);
-    fileMenu->addAction(openFileAction);
-    QAction* runAction = new QAction(tr("Run"), this);
-    fileMenu->addAction(runAction);
-    QAction* closeAction = new QAction(tr("Close"), this);
-    fileMenu->addAction(closeAction);
+    QAction* openFileAction = fileMenu->addAction(tr("Open"), QKeySequence(Qt::ALT | Qt::Key_O));
+    QAction* runAction = fileMenu->addAction(tr("Run"), QKeySequence(Qt::ALT | Qt::Key_R));
+    QAction* closeAction = fileMenu->addAction(tr("Close"), QKeySequence(Qt::ALT | Qt::Key_C));
     menuBar()->addMenu(fileMenu);
 
     connect(openFileAction, &QAction::triggered, this, &MainWindow::openFile);
     connect(runAction, &QAction::triggered, this, &MainWindow::run);
     connect(closeAction, &QAction::triggered, this, &MainWindow::close);
+
+    QToolBar* fileToolBar = addToolBar(tr("File"));
+    fileToolBar->addAction(openFileAction);
+    fileToolBar->addAction(runAction);
+    fileToolBar->addAction(closeAction);
 }
 
 void MainWindow::openFile()
@@ -50,6 +88,7 @@ void MainWindow::openFile()
     QTextStream ts(&file);
     p_codeEdit->setPlainText(ts.readAll());
     file.close();
+    statusBar()->showMessage(tr("File opened"), 2000);
 }
 
 void MainWindow::run()
@@ -59,7 +98,8 @@ void MainWindow::run()
     messages <<"a" <<"b" <<"c";
     model->setStringList(messages);
     p_outputView->setModel(model);
-    p_socketClient.writeToSocket("run");
+    //p_socketClient.writeToSocket("run");
+    statusBar()->showMessage(tr("Run command"), 2000);
 }
 
 void MainWindow::closeWindow()
