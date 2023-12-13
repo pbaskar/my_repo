@@ -19,53 +19,53 @@ class FunctionCallBlock;
 class Node;
 class Visitor {
 public:
-	Visitor();
-	virtual ~Visitor();
-	virtual void visitBasicBlock(BasicBlock* basicBlock)=0;
-	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock)=0;
-	virtual void visitWhileBlock(WhileBlock* whileBlock)=0;
-	virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock)=0;
-	virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock)=0;
+    Visitor();
+    virtual ~Visitor();
+    virtual void visitBasicBlock(BasicBlock* basicBlock)=0;
+    virtual void visitIfElseBlock(IfElseBlock* ifElseBlock)=0;
+    virtual void visitWhileBlock(WhileBlock* whileBlock)=0;
+    virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock)=0;
+    virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock)=0;
 };
 
 class PrintVisitor : public Visitor {
 public:
-	PrintVisitor();
-	virtual ~PrintVisitor();
+    PrintVisitor();
+    virtual ~PrintVisitor();
 
-	virtual void visitBasicBlock(BasicBlock* basicBlock);
-	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
-	virtual void visitWhileBlock(WhileBlock* whileBlock);
-	virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
-	virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
+    virtual void visitBasicBlock(BasicBlock* basicBlock);
+    virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
+    virtual void visitWhileBlock(WhileBlock* whileBlock);
+    virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
+    virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
 };
 
 class DeleteVisitor : public Visitor {
 public:
-	DeleteVisitor();
-	virtual ~DeleteVisitor();
+    DeleteVisitor();
+    virtual ~DeleteVisitor();
 
-	virtual void visitBasicBlock(BasicBlock* basicBlock);
-	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
-	virtual void visitWhileBlock(WhileBlock* whileBlock);
-	virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
-	virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
+    virtual void visitBasicBlock(BasicBlock* basicBlock);
+    virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
+    virtual void visitWhileBlock(WhileBlock* whileBlock);
+    virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
+    virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
 };
 
 class VariableInitCheckVisitor : public Visitor {
 public:
-	VariableInitCheckVisitor();
-	virtual ~VariableInitCheckVisitor();
+    VariableInitCheckVisitor();
+    virtual ~VariableInitCheckVisitor();
 
-	virtual void visitBasicBlock(BasicBlock* basicBlock);
-	virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
-	virtual void visitWhileBlock(WhileBlock* whileBlock);
-	virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
-	virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
+    virtual void visitBasicBlock(BasicBlock* basicBlock);
+    virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
+    virtual void visitWhileBlock(WhileBlock* whileBlock);
+    virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
+    virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
 
     const vector<Result>& getResults() { return p_results; }
 private:
-	vector<Node*> p_variableNodes;
+    vector<Node*> p_variableNodes;
     vector<Result> p_results;
 };
 #endif /* SRC_VISITOR_H_ */

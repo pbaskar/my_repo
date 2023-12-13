@@ -13,17 +13,17 @@
 
 class ExpressionParser {
 public:
-	ExpressionParser();
-	virtual ~ExpressionParser();
+    ExpressionParser();
+    virtual ~ExpressionParser();
 
-	Expr* parseExpressionStr(char* expressionStr);
-	Expr* parseExpression();
-	Expr* parseFactor();
-	Expr* makeNewLeaf(char* token, ExprType type);
-	void setSymbolTable(const SymbolTable* symbolTable) { p_symbolTable = symbolTable; }
+    Expr* parseExpressionStr(char* expressionStr);
+    Expr* parseExpression();
+    Expr* parseFactor();
+    Expr* makeNewLeaf(char* token, ExprType type);
+    void setSymbolTable(const SymbolTable* symbolTable) { p_symbolTable = symbolTable; }
 private:
-	ExpressionTokenizer p_exprTokenizer;
-	const SymbolTable* p_symbolTable;
+    ExpressionTokenizer p_exprTokenizer;
+    const SymbolTable* p_symbolTable;
 };
 
 #endif /* EXPRESSIONPARSER_H_ */

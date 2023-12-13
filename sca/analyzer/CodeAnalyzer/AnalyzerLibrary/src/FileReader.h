@@ -14,16 +14,16 @@ using namespace std;
 
 class FileReader {
 public:
-	FileReader();
-	virtual ~FileReader();
+    FileReader();
+    virtual ~FileReader();
 
     void setFile(const char* fileName);
-	Status openFile();
-	void closeFile();
-	void getLine(char* line);
+    Status openFile();
+    void closeFile();
+    void getLine(char* line);
 private:
-	ifstream p_is;
-	char p_fileName[50];
+    ifstream p_is;
+    char p_fileName[50];
 };
 
 #endif /* FILEREADER_H_ */

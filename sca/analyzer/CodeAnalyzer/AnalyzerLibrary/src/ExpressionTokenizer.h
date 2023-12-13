@@ -16,16 +16,16 @@ using namespace std;
 
 class ExpressionTokenizer {
 public:
-	ExpressionTokenizer();
-	virtual ~ExpressionTokenizer();
+    ExpressionTokenizer();
+    virtual ~ExpressionTokenizer();
 
-	char nextChar(bool peek=false);
-	char* nextWord(ExprType& type,bool peek=false);
-	void setExpressionStr(char* expressionStr);
+    char nextChar(bool peek=false);
+    char* nextWord(ExprType& type,bool peek=false);
+    void setExpressionStr(char* expressionStr);
 
 private:
-	char* p_expressionStr;
-	int p_pos;
+    char* p_expressionStr;
+    int p_pos;
 };
 
 #endif /* EXPRESSIONTOKENIZER_H_ */

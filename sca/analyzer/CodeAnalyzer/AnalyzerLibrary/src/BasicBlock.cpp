@@ -8,43 +8,43 @@
 #include "Traverser.h" //Traverse FunctionDeclBlock
 
 void BasicBlock::acceptTraverser(Traverser& traverser) {
-	traverser.traverseBasicBlock(this);
+    traverser.traverseBasicBlock(this);
 }
 
 void IfElseBlock::acceptTraverser(Traverser& traverser) {
-	traverser.traverseIfElseBlock(this);
+    traverser.traverseIfElseBlock(this);
 }
 
 void WhileBlock::acceptTraverser(Traverser& traverser) {
-	traverser.traverseWhileBlock(this);
+    traverser.traverseWhileBlock(this);
 }
 
 void FunctionDeclBlock::acceptTraverser(Traverser& traverser) {
-	traverser.traverseFunctionDeclBlock(this);
+    traverser.traverseFunctionDeclBlock(this);
 }
 
 void FunctionCallBlock::acceptTraverser(Traverser& traverser) {
-	traverser.traverseFunctionCallBlock(this);
+    traverser.traverseFunctionCallBlock(this);
 }
 
 void BasicBlock::acceptVisitor(Visitor& visitor) {
-	visitor.visitBasicBlock(this);
+    visitor.visitBasicBlock(this);
 }
 
 void IfElseBlock::acceptVisitor(Visitor& visitor) {
-	visitor.visitIfElseBlock(this);
+    visitor.visitIfElseBlock(this);
 }
 
 void WhileBlock::acceptVisitor(Visitor& visitor) {
-	visitor.visitWhileBlock(this);
+    visitor.visitWhileBlock(this);
 }
 
 void FunctionDeclBlock::acceptVisitor(Visitor& visitor) {
-	visitor.visitFunctionDeclBlock(this);
+    visitor.visitFunctionDeclBlock(this);
 }
 
 void FunctionCallBlock::acceptVisitor(Visitor& visitor) {
-	visitor.visitFunctionCallBlock(this);
+    visitor.visitFunctionCallBlock(this);
 }
 
 FunctionDeclBlock::~FunctionDeclBlock() {

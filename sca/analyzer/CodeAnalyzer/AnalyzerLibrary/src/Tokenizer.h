@@ -11,23 +11,23 @@
 
 class Tokenizer {
 public:
-	Tokenizer();
-	virtual ~Tokenizer();
+    Tokenizer();
+    virtual ~Tokenizer();
 
-	int readNextWordLen(int begin=0);
-	void consumeWord();
-	char* nextWord(bool peek=false);
-	char lookAhead(int num);
-	char nextChar(bool peek=false);
-	Status nextLine();
+    int readNextWordLen(int begin=0);
+    void consumeWord();
+    char* nextWord(bool peek=false);
+    char lookAhead(int num);
+    char nextChar(bool peek=false);
+    Status nextLine();
     Status openFile(const char* fileName);
-	void closeFile();
+    void closeFile();
 
 private:
-	char p_line[256];
-	int p_pos;
+    char p_line[256];
+    int p_pos;
 
-	FileReader fr;
+    FileReader fr;
 };
 
 #endif /* TOKENIZER_H_ */

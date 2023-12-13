@@ -20,19 +20,19 @@ using namespace std;
 
 class ControlFlowGraph {
 public:
-	ControlFlowGraph();
-	virtual ~ControlFlowGraph();
-	friend ostream& operator<<(ostream& os, ControlFlowGraph& cfg) {
-		cfg.print(os);
-		return os;
-	}
-	void print(ostream& os);
+    ControlFlowGraph();
+    virtual ~ControlFlowGraph();
+    friend ostream& operator<<(ostream& os, ControlFlowGraph& cfg) {
+        cfg.print(os);
+        return os;
+    }
+    void print(ostream& os);
     void variableInitCheck(vector<Result>& results);
-	void clear();
-	Status buildCFG(const Block* block);
-	Status buildBlock(BasicBlock*& currBlock, const Block* block);
+    void clear();
+    Status buildCFG(const Block* block);
+    Status buildBlock(BasicBlock*& currBlock, const Block* block);
 private:
-	BasicBlock* head;
+    BasicBlock* head;
 };
 
 #endif /* SRC_CONTROLFLOWGRAPH_H_ */

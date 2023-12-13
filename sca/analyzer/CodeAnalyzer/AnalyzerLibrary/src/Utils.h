@@ -9,14 +9,14 @@
 #define UTILS_H_
 
 enum Status{
-	SUCCESS,
-	FAILURE
+    SUCCESS,
+    FAILURE
 };
 
 class Utils {
 public:
-	Utils();
-	virtual ~Utils();
+    Utils();
+    virtual ~Utils();
 
 
 };
