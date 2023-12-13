@@ -145,10 +145,10 @@ void VariableInitCheckVisitor::visitWhileBlock(WhileBlock* whileBlock) {
 	cout <<"variableNodes while size " <<p_variableNodes.size() <<endl;
 }
 
-void VariableInitCheckVisitor::visitFunctionDeclBlock(FunctionDeclBlock* whileBlock) {
+void VariableInitCheckVisitor::visitFunctionDeclBlock(FunctionDeclBlock* fnDeclBlock) {
 
 }
 
-void VariableInitCheckVisitor::visitFunctionCallBlock(FunctionCallBlock* whileBlock) {
+void VariableInitCheckVisitor::visitFunctionCallBlock(FunctionCallBlock* fnCallBlock) {
 
 }

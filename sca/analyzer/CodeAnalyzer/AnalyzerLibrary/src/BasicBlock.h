@@ -113,6 +113,9 @@ public:
 	FunctionDeclBlock* fetchFunctionDeclBlock(const char* name) {
 		return p_symbolTable->fetchFunctionDeclBlock(name);
 	}
+    void clearFnSymbolEntries() {
+        p_symbolTable->clearFnSymbolEntries();
+    }
 	virtual void setNext(BasicBlock* next) {
 		p_next = next;
 	}

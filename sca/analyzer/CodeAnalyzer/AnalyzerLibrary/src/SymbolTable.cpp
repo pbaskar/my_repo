@@ -17,12 +17,15 @@ SymbolTable::SymbolTable() : p_outerScope(0) {
 SymbolTable::SymbolTable(SymbolTable* outerScope) : p_outerScope(outerScope) {
 }
 
+void SymbolTable::clearFnSymbolEntries() {
+    for(auto fnSymbol : p_fnSymbolEntries) {
+        delete(fnSymbol);
+    }
+}
+
 SymbolTable::~SymbolTable() {
 	for(auto symbol : p_symbolEntries) {
 		delete(symbol);
-	}
-	for(auto fnSymbol : p_fnSymbolEntries) {
-		delete(fnSymbol);
 	}
 }
 
@@ -114,7 +117,7 @@ FnSymbolTableEntry::FnSymbolTableEntry(FunctionDeclBlock* fnDeclBlock, DataType 
 
 FnSymbolTableEntry::~FnSymbolTableEntry() {
     DeleteVisitor deleteVisitor;
-    TraverserOne tOne(&deleteVisitor);
+    TraverserOne tOne(&deleteVisitor, true);
     tOne.traverseFunctionDeclBlock(p_functionDeclBlock);
 }
 

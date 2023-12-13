@@ -69,7 +69,6 @@ void TraverserOne::traverseWhileBlock(WhileBlock* whileBlock) {
 }
 
 void TraverserOne::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
-    if(p_skipFnDeclBlock) return;
 	BasicBlock* block = functionDeclBlock->getFirst();
 	BasicBlock* lastBlock = functionDeclBlock->getLast();
 	BasicBlock* next(0);
@@ -79,18 +78,18 @@ void TraverserOne::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBloc
 		block->acceptTraverser(*this);
 		block = next;
     }
-    std::cout << " function name1 " << functionDeclBlock->getName();
     block->acceptTraverser(*this);
 	functionDeclBlock->acceptVisitor(*p_visitor);
 }
 
 void TraverserOne::traverseFunctionCallBlock(FunctionCallBlock* functionCallBlock) {
-    if(p_skipFnDeclBlock) return;
 	BasicBlock* block = functionCallBlock->getFirst();
 	block->acceptTraverser(*this);
 
-    /*block = functionCallBlock->getFnDecl();
-    block->acceptTraverser(*this);*/
+    if(!p_skipFnDeclBlock) {
+        block = functionCallBlock->getFnDecl();
+        block->acceptTraverser(*this);
+    }
 	functionCallBlock->acceptVisitor(*p_visitor);
 }
 
