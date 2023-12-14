@@ -16,7 +16,7 @@ class IfElseBlock;
 class WhileBlock;
 class FunctionDeclBlock;
 class FunctionCallBlock;
-class Node;
+class AssignmentNode;
 class Visitor {
 public:
     Visitor();
@@ -26,6 +26,7 @@ public:
     virtual void visitWhileBlock(WhileBlock* whileBlock)=0;
     virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock)=0;
     virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock)=0;
+    virtual void visitCFG(BasicBlock* block)=0;
 };
 
 class PrintVisitor : public Visitor {
@@ -38,6 +39,7 @@ public:
     virtual void visitWhileBlock(WhileBlock* whileBlock);
     virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
     virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
+    virtual void visitCFG(BasicBlock* block){}
 };
 
 class DeleteVisitor : public Visitor {
@@ -50,6 +52,7 @@ public:
     virtual void visitWhileBlock(WhileBlock* whileBlock);
     virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
     virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
+    virtual void visitCFG(BasicBlock* block){}
 };
 
 class VariableInitCheckVisitor : public Visitor {
@@ -62,10 +65,12 @@ public:
     virtual void visitWhileBlock(WhileBlock* whileBlock);
     virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
     virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
+    virtual void visitCFG(BasicBlock* block);
 
+    void intersect(vector<AssignmentNode*>& dest, vector<AssignmentNode*>& source);
     const vector<Result>& getResults() { return p_results; }
 private:
-    vector<Node*> p_variableNodes;
+    vector<AssignmentNode*> p_variableNodes;
     vector<Result> p_results;
 };
 #endif /* SRC_VISITOR_H_ */

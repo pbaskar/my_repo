@@ -16,7 +16,7 @@ public:
     Analyzer();
 	virtual ~Analyzer();
 
-    int execute(const char* fileName, std::vector<Result>& results);
+    Status execute(const char* fileName, std::vector<Result>& results);
 };
 
 #endif /* SRC_ANALYZER_H_ */

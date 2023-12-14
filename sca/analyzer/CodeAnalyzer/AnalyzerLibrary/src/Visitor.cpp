@@ -7,6 +7,7 @@
 
 #include<cstring>
 #include<vector>
+#include<map>
 #include "Visitor.h"
 #include "BasicBlock.h"
 
@@ -84,6 +85,7 @@ VariableInitCheckVisitor::~VariableInitCheckVisitor() {
 }
 
 void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
+    cout <<"Beginning of Block: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
     vector<const Expr*> variables;
     bool found = false;
     const vector<Node*>& nodeList = basicBlock->getNodeList();
@@ -101,8 +103,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
             if (!variable) cout <<"cast error " <<endl;
             found = false;
             for(auto variableNodeIt=p_variableNodes.begin(); variableNodeIt != p_variableNodes.end(); variableNodeIt++ ) {
-                AssignmentNode* variableAssignNode = static_cast<AssignmentNode*>(*variableNodeIt);
-                if(variable == variableAssignNode->getVariable()) {
+                if(variable == (*variableNodeIt)->getVariable()) {
                     found = true;
                 }
             }
@@ -110,45 +111,123 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                 const char* m = "Not initialized ";
                 const char* name = variable->getName();
                 Result r;
-                r.errorMessage = new char[strlen(m)+strlen(name)];
+                r.errorMessage = new char[strlen(m)+strlen(name)+1];
+                r.errorMessage[0] = '\0';
                 strncat(r.errorMessage,m,strlen(m));
                 strncat(r.errorMessage,name,strlen(name));
+                r.errorMessage[strlen(m)+strlen(name)] = '\0';
                 p_results.push_back(r);
             }
         }
         for(auto variableNodeIt=p_variableNodes.begin(); variableNodeIt != p_variableNodes.end(); ) {
-            AssignmentNode* variableAssignNode = static_cast<AssignmentNode*>(*variableNodeIt);
-            if(*variableAssignNode==*assignNode) {
+            if(*assignNode==*(*variableNodeIt)) {
                 variableNodeIt = p_variableNodes.erase(variableNodeIt);
             }
             else variableNodeIt++;
         }
-        p_variableNodes.push_back(node);
+        p_variableNodes.push_back(assignNode);
         cout<<" added " <<*assignNode <<endl;
     }
     cout <<"End of Block: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
 }
 
-void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
-    const vector<Node*>& nodeList = ifElseBlock->getNodeList();
-    for(Node* node: nodeList) {
-        p_variableNodes.push_back(node);
+void VariableInitCheckVisitor::intersect(vector<AssignmentNode*>& dest, vector<AssignmentNode*>& source) {
+    map<AssignmentNode*, int> sourceMap;
+    vector<AssignmentNode*> result;
+    for(auto sourceIt=source.begin(); sourceIt != source.end(); sourceIt++) {
+        sourceMap.insert(pair<AssignmentNode*,int>(*sourceIt, 0));
     }
-    cout <<"variableNodes ifelse size " <<p_variableNodes.size() <<endl;
+    for(auto destIt=dest.begin(); destIt != dest.end(); destIt++) {
+        auto match = sourceMap.find(*destIt);
+        if(match != sourceMap.end()) {
+            result.push_back(*destIt);
+            sourceMap.erase(match);
+        }
+    }
+    for(auto sourceMapIt: sourceMap) {
+        result.push_back(sourceMapIt.first);
+    }
+    dest = result;
+}
+
+void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
+    cout <<"Beginning of IfElseBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    vector<AssignmentNode*> variableNodesBegin = p_variableNodes;
+    vector<AssignmentNode*> variableNodesEnd;
+    BasicBlock* block = ifElseBlock->getIfFirst();
+    BasicBlock* lastBlock = ifElseBlock->getIfLast();
+    BasicBlock* next(0);
+    while(block != lastBlock) {
+        next = block->getNext();
+        block->acceptVisitor(*this);
+        block = next;
+    }
+    lastBlock->acceptVisitor(*this);
+
+    variableNodesEnd = p_variableNodes;
+    p_variableNodes = variableNodesBegin;
+
+    block = ifElseBlock->getElseFirst();
+    lastBlock = ifElseBlock->getElseLast();
+    while(block != lastBlock) {
+        next = block->getNext();
+        block->acceptVisitor(*this);
+        block = next;
+    }
+    if(block) {
+        block->acceptVisitor(*this);
+    }
+    intersect(p_variableNodes, variableNodesEnd);
+    cout <<"End of IfElseBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::visitWhileBlock(WhileBlock* whileBlock) {
-    const vector<Node*>& nodeList = whileBlock->getNodeList();
-    for(Node* node: nodeList) {
-        p_variableNodes.push_back(node);
+    cout <<"Beginning of WhileBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    BasicBlock* block = whileBlock->getFirst();
+    BasicBlock* lastBlock = whileBlock->getLast();
+    BasicBlock* next(0);
+
+    while(block != lastBlock) {
+        next = block->getNext();
+        block->acceptVisitor(*this);
+        block = next;
     }
-    cout <<"variableNodes while size " <<p_variableNodes.size() <<endl;
+    block->acceptVisitor(*this);
+    cout <<"End of WhileBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
 }
 
-void VariableInitCheckVisitor::visitFunctionDeclBlock(FunctionDeclBlock* fnDeclBlock) {
+void VariableInitCheckVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
+    cout <<"Beginning of FunctionDeclBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    BasicBlock* block = functionDeclBlock->getFirst();
+    BasicBlock* lastBlock = functionDeclBlock->getLast();
+    BasicBlock* next(0);
 
+    while(block != lastBlock) {
+        next = block->getNext();
+        block->acceptVisitor(*this);
+        block = next;
+    }
+    block->acceptVisitor(*this);
+    cout <<"End of FunctionDeclBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
 }
 
-void VariableInitCheckVisitor::visitFunctionCallBlock(FunctionCallBlock* fnCallBlock) {
+void VariableInitCheckVisitor::visitFunctionCallBlock(FunctionCallBlock* functionCallBlock) {
+    cout <<"Beginning of FunctionCallBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    BasicBlock* block = functionCallBlock->getFirst();
+    block->acceptVisitor(*this);
 
+    block = functionCallBlock->getFnDecl();
+    block->acceptVisitor(*this);
+    cout <<"End of FunctionCallBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+}
+
+void VariableInitCheckVisitor::visitCFG(BasicBlock* block) {
+    cout <<"Beginning of CFG: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    BasicBlock* next(0);
+    while(block) {
+        next = block->getNext();
+        block->acceptVisitor(*this);
+        block = next;
+    }
+    cout <<"End of CFG: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
 }

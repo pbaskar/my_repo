@@ -7,11 +7,7 @@
 
 #ifndef UTILS_H_
 #define UTILS_H_
-
-enum Status{
-    SUCCESS,
-    FAILURE
-};
+#include "Results.h"
 
 class Utils {
 public:

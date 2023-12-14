@@ -20,11 +20,11 @@ enum ErrorCode {
 
 static const char errorMessage[][80] = {
         "Invalid character %1",
+        "Invalid statement",
         "Character %1 not found",
         "Could not parse %1",
         "Could not open file %1",
-        "File %1 is empty",
-        "Invalid statement"
+        "File %1 is empty"
 };
 
 class Logger {

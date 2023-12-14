@@ -165,8 +165,7 @@ void ControlFlowGraph::print(ostream& os) {
 
 void ControlFlowGraph::variableInitCheck(vector<Result>& results) {
     VariableInitCheckVisitor variableInitCheckVisitor;
-    TraverserAllPath tAllPath(&variableInitCheckVisitor);
-    tAllPath.traverseCFG(this->head);
+    variableInitCheckVisitor.visitCFG(head);
     results = variableInitCheckVisitor.getResults();
 }
 

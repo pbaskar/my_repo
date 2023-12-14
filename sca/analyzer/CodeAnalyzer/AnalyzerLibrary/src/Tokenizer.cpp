@@ -47,67 +47,68 @@ static bool isDelimiter(char c) {
 }
 
 char Tokenizer::nextChar(bool peek) {
-    char next = p_line[p_pos];
+    int p = p_pos;
+    while(p_line[p] == ' ') {
+        p++;
+    }
+    char next = p_line[p];
     if(!peek && next != '\0')
-        p_pos++;
+        p_pos = p+1;
     return next;
 }
 
-int Tokenizer::readNextWordLen(int begin) {
+int Tokenizer::readNextWordLen(int& begin) {
     int p = begin > p_pos ? begin : p_pos;
+    int wordLen =0;
     if(p_line[p] == '\0') {
         return 0;
     }
     while(p_line[p] == ' ') {
+        begin++;
         p++;
     }
     if(isDelimiter(p_line[p])) {
-
-        p++;
+        wordLen++;
     }
     else {
         while( p_line[p] != ' ' && p_line[p] != '\0' && !isDelimiter(p_line[p])) {
-
+            wordLen++;
             p++;
         }
     }
-    return p-p_pos;
+    return wordLen;
 }
 
 void Tokenizer::consumeWord() {
-    int wordLen = readNextWordLen();
-    while(p_line[p_pos+wordLen] == ' ') {
-        wordLen++;
-    }
-    p_pos += wordLen;
+    int begin = p_pos;
+    int wordLen = readNextWordLen(begin);
+    p_pos = begin + wordLen;
     //cout<<"consumed word " <<wordLen <<" " <<p_pos <<endl;
 }
 
 char* Tokenizer::nextWord(bool peek) {
-    int wordLen = readNextWordLen();
+    int begin = p_pos;
+    int wordLen = readNextWordLen(begin);
     if(wordLen == 0) return nullptr;
     char* token = new char[wordLen+1];
-    strncpy(token, p_line + p_pos, wordLen);
+    strncpy(token, p_line + begin, wordLen);
     token[wordLen] = '\0';
 
-    while(p_line[p_pos+wordLen] == ' ') {
-        wordLen++;
-    }
     if(!peek) {
-        p_pos += wordLen;
+        p_pos = begin + wordLen;
         //cout<<"token " <<token <<" p_pos " <<p_pos<<" wordLen " <<wordLen <<endl;
     }
     return token;
 }
 
 char Tokenizer::lookAhead(int num) {
-    int len=0;
+    int begin=p_pos;
+    int wordLen = 0;
     while(num) {
-        len += readNextWordLen(len);
-        while(p_line[len] == ' ') {
-            len++;
-        }
+        begin += wordLen;
+        wordLen = readNextWordLen(begin);
+        if(wordLen==0) return '\0';
         num--;
     }
-    return p_line[len];
+    return p_line[begin];
 }

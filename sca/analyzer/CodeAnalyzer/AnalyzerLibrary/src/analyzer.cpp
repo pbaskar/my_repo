@@ -21,21 +21,23 @@ Analyzer::~Analyzer() {
     // TODO Auto-generated destructor stub
 }
 
-int Analyzer::execute(const char* fileName, std::vector<Result>& results) {
+Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
     //char* fileName = "C:\\workspace\\my_repo\\sca\\test\\instructions.c";
     InstrParser instrParser;
     Status s = instrParser.parseFile(fileName);
 
     if (s == FAILURE ) {
         cout <<"Instructions file parsing failed " <<endl;
-        return 0;
+        return s;
     }
     cout << "********************************** Instructions file parsing done ****************************************" <<endl;
     ControlFlowGraph cfg;
     s = cfg.buildCFG(instrParser.getBlock());
 
-    if (s == FAILURE )
+    if (s == FAILURE ) {
         cout <<"Building Control flow graph failed " <<endl;
+        return s;
+    }
 
     cout <<"********************************** Build cfg done **********************************" <<endl;
     cout <<cfg <<endl;
@@ -46,5 +48,6 @@ int Analyzer::execute(const char* fileName, std::vector<Result>& results) {
     cout << "********************************** CFG Clear done ****************************************" <<endl;
     instrParser.clear();
     cout << "********************************** InstrParser Clear done ****************************************" <<endl;
-    return 0;
+    cout.flush();
+    return s;
 }

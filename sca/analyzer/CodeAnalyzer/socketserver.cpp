@@ -7,7 +7,7 @@ SocketServer::SocketServer()
     connect(&p_timer, &QTimer::timeout, this, &SocketServer::timerTriggered);
     connect(this, &SocketServer::newConnection, this, &SocketServer::onNewConnection);
     listen(QHostAddress::LocalHost, 1234);
-    p_timer.start(5000);
+    p_timer.start(5);
 }
 
 SocketServer::~SocketServer()
@@ -47,10 +47,15 @@ void SocketServer::timerTriggered()
     qDebug() <<"Timer fired ";
     Analyzer analyzer;
     std::vector<Result> results;
-    analyzer.execute("C:\\workspace\\my_repo\\sca\\test\\instructions.c", results);
-    qDebug() <<"num of messages " <<results.size();
-    for(Result r: results) {
-        qDebug() <<"message " <<r.errorMessage;
+    Status s = analyzer.execute("C:\\workspace\\my_repo\\sca\\test\\instructions.c", results);
+    if(s == SUCCESS) {
+        qDebug() <<"num of messages " <<results.size();
+        for(Result r: results) {
+            qDebug() <<"message " <<r.errorMessage;
+        }
+    }
+    else {
+        qDebug() <<"Analysis failed";
     }
     qApp->quit();
 }

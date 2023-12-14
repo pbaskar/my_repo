@@ -67,7 +67,7 @@ Status InstrParser::parseStmt(Block* block) {
         status = parseWhile(block);
     }
     else {
-        char c = p_tokenizer.lookAhead(1);
+        char c = p_tokenizer.lookAhead(2);
         if(c == '=')
             status = parseAssign(block);
         else if(c == '(')
@@ -111,7 +111,9 @@ Status InstrParser::parseAssign(Block* block) {
 
     char* name = p_tokenizer.nextWord();
     if(name == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "name"); return FAILURE; }
-    stmt->setVar(block->fetchVariable(name));
+    Variable* var = block->fetchVariable(name);
+    if(var == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "name declaration"); return FAILURE; }
+    stmt->setVar(var);
 
     char equal = p_tokenizer.nextChar();
     if ( equal != '=' ) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "="); return FAILURE; }
