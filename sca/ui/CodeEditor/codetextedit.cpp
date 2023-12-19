@@ -10,6 +10,11 @@ CodeTextEdit::CodeTextEdit(QWidget *parent)
     setViewportMargins(Constants::MARGIN, Constants::MARGIN, Constants::MARGIN, Constants::MARGIN);
 }
 
+CodeTextEdit::~CodeTextEdit()
+{
+    qDebug() <<Q_FUNC_INFO;
+}
+
 void CodeTextEdit::wheelEvent(QWheelEvent *e)
 {
     QTextEdit::wheelEvent(e);

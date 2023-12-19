@@ -28,6 +28,7 @@ set(PROJECT_SOURCES
         codetextedit.h codetextedit.cpp
         constants.h
         celistview.h celistview.cpp
+        cemodel.h cemodel.cpp
         qml.qrc
 )
 

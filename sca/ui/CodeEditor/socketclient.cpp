@@ -15,21 +15,26 @@ void SocketClient::writeToSocket(QByteArray data)
 
 void SocketClient::onConnected()
 {
-    qDebug() << "SocketClient::onConnected ";
+    qDebug() <<Q_FUNC_INFO;
 }
 
 void SocketClient::onConnectionError()
 {
     qDebug() << Q_FUNC_INFO <<p_socket.errorString();
+    QByteArray resultsJson = "[{\"errorMessage\" : \"Not initialized b\"}]";
+    QJsonDocument results = QJsonDocument::fromJson(resultsJson);
+    emit resultsAvailable(results);
 }
 
 void SocketClient::readData()
 {
-    qDebug() <<"Reply from Server " <<p_socket.readAll();
-    //bytearray to QJsonDocument and then output
+    QByteArray resultsJson = p_socket.readAll();
+    qDebug() <<Q_FUNC_INFO << "Reply from Server " <<resultsJson;
+    QJsonDocument results = QJsonDocument::fromJson(resultsJson);
+    emit resultsAvailable(results);
 }
 
 SocketClient::~SocketClient()
 {
-
+    qDebug() <<Q_FUNC_INFO;
 }

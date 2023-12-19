@@ -10,6 +10,7 @@ class CodeTextEdit : public QTextEdit
     Q_OBJECT
 public:
     CodeTextEdit(QWidget *parent = nullptr);
+    ~CodeTextEdit();
 protected:
     void wheelEvent(QWheelEvent *e);
 };
