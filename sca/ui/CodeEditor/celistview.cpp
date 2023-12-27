@@ -25,6 +25,6 @@ CEOutputViewDelegate::~CEOutputViewDelegate()
 void CEOutputViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QVariant data = index.data();
-    qDebug() <<Q_FUNC_INFO <<"model data " <<data.toMap();
+    qDebug() <<Q_FUNC_INFO <<"model data " <<data;
     QStyledItemDelegate::paint(painter, option, index);
 }

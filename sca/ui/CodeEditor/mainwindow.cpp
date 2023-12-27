@@ -104,18 +104,14 @@ void MainWindow::onResultsAvailable(QVariantList results)
     qDebug()<< Q_FUNC_INFO<<results.size();
     QStandardItemModel* model = new QStandardItemModel(results.size(),0,this);
     CEOutputViewDelegate* delegate = new CEOutputViewDelegate(p_outputView);
-    QStringListModel* strModel = new QStringListModel(this);
-    QStringList m;
     for(int i=0; i<model->rowCount(); i++)
     {
         QVariantMap map = results[i].toMap();
-//        model->setData(model->index(i,0),results[i],Qt::DisplayRole);
         qDebug() <<map["errorMessage"].toString();
-        QStandardItem *item = new QStandardItem(QString("%0").arg(map["errorMessage"].toString()));
-//        m<<map["errorMessage"].toString();
+        QStandardItem *item = new QStandardItem();
+        item->setData(map["errorMessage"].toString(), Qt::DisplayRole);
         model->setItem(i, 0, item);
     }
-   // strModel->setStringList(m);
     p_outputView->setModel(model);
     p_outputView->setItemDelegate(delegate);
 }
