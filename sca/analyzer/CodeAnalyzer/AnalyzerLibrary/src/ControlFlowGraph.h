@@ -29,10 +29,11 @@ public:
     void print(ostream& os);
     void variableInitCheck(vector<Result>& results);
     void clear();
+    BasicBlock* getHead() { return p_head; }
     Status buildCFG(const Block* block);
     Status buildBlock(BasicBlock*& currBlock, const Block* block);
 private:
-    BasicBlock* head;
+    BasicBlock* p_head;
 };
 
 #endif /* SRC_CONTROLFLOWGRAPH_H_ */

@@ -21,6 +21,29 @@ Analyzer::~Analyzer() {
     // TODO Auto-generated destructor stub
 }
 
+Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead) {
+    InstrParser instrParser;
+    Status s = instrParser.parseFile(fileName);
+
+    if (s == FAILURE ) {
+        cout <<"Instructions file parsing failed " <<endl;
+        return s;
+    }
+    cout << "********************************** Instructions file parsing done ****************************************" <<endl;
+    ControlFlowGraph cfg;
+    s = cfg.buildCFG(instrParser.getBlock());
+
+    if (s == FAILURE ) {
+        cout <<"Building Control flow graph failed " <<endl;
+        return s;
+    }
+    cout <<"********************************** Build cfg done **********************************" <<endl;
+    cout <<cfg <<endl;
+    cout << "********************************** output cfg done ****************************************" <<endl;
+    cfgHead = cfg.getHead();
+    return s;
+}
+
 Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
     //char* fileName = "C:\\workspace\\my_repo\\sca\\test\\instructions.c";
     InstrParser instrParser;

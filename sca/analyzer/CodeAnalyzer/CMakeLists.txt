@@ -21,6 +21,8 @@ add_subdirectory(AnalyzerLibrary)
 add_executable(CodeAnalyzer
   main.cpp
   socketserver.h socketserver.cpp
+  jsonutils.h jsonutils.cpp
+  jsonvisitor.h jsonvisitor.cpp
 )
 
 target_link_libraries(CodeAnalyzer Qt${QT_VERSION_MAJOR}::Core)

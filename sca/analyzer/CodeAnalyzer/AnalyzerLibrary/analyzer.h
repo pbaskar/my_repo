@@ -10,6 +10,8 @@
 
 #include<vector>
 #include "src/Results.h"
+#include "src/BasicBlock.h"
+#include "src/Visitor.h"
 
 class Analyzer {
 public:
@@ -17,6 +19,7 @@ public:
 	virtual ~Analyzer();
 
     Status execute(const char* fileName, std::vector<Result>& results);
+    Status getCFG(const char* fileName, BasicBlock*& cfg);
 };
 
 #endif /* SRC_ANALYZER_H_ */

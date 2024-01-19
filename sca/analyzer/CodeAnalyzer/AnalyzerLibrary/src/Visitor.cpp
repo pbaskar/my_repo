@@ -164,8 +164,8 @@ void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
     }
     lastBlock->acceptVisitor(*this);
 
-    variableNodesEnd = p_variableNodes;
-    p_variableNodes = variableNodesBegin;
+    variableNodesEnd = std::move(p_variableNodes);
+    p_variableNodes = std::move(variableNodesBegin);
 
     block = ifElseBlock->getElseFirst();
     lastBlock = ifElseBlock->getElseLast();

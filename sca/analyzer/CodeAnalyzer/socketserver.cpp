@@ -1,6 +1,7 @@
 #include "socketserver.h"
 #include<QDebug>
 #include "AnalyzerLibrary/analyzer.h"
+#include "jsonutils.h"
 
 SocketServer::SocketServer()
 {
@@ -18,7 +19,7 @@ SocketServer::~SocketServer()
 void SocketServer::onNewConnection()
 {
     p_timer.start(30000);
-    qDebug() << "Incoming Connection";
+    qDebug() << Q_FUNC_INFO <<"Incoming Connection";
     if(hasPendingConnections())
     {
         p_clientSocket = nextPendingConnection();
@@ -27,58 +28,75 @@ void SocketServer::onNewConnection()
     connect(p_clientSocket, &QTcpSocket::readyRead, this, &SocketServer::readData);
 }
 
-QByteArray toJson(const std::vector<Result>& results) {
-    QJsonArray resultArray;
-    for(Result r : results) {
-        QJsonObject resultObject;
-        resultObject["errorMessage"] = r.errorMessage;
-        resultArray.append(resultObject);
-    }
-    QJsonDocument resultsDoc(resultArray);
-    return resultsDoc.toJson();
-}
-
-void fromJson(QByteArray resultsJson) {
-    QJsonDocument resultsDoc = QJsonDocument::fromJson(resultsJson);
-    QJsonArray resultsArray = resultsDoc.array();
-    for(const QJsonValue& value : resultsArray) {
-        QJsonObject obj = value.toObject();
-        qDebug() << "fromJson " <<obj["errorMessage"].toString();
-    }
-}
-
 void SocketServer::readData()
 {
     p_timer.start(30000);
-    qDebug() <<p_clientSocket->readAll();
 
-    Analyzer analyzer;
-    std::vector<Result> results;
-    Status s = analyzer.execute("C:\\workspace\\my_repo\\sca\\test\\instructions.c", results);
-    QByteArray resultsJson;
+    QByteArray command = p_clientSocket->readAll();
+    qDebug() <<Q_FUNC_INFO<<command;
+    if(command == "run") {
+        Analyzer analyzer;
+        std::vector<Result> results;
+        Status s = analyzer.execute("C:\\workspace\\my_repo\\sca\\test\\instructions.c", results);
+        QByteArray resultsJson;
 
-    if(s == SUCCESS) {
-        qDebug() <<"num of messages " <<results.size();
-        for(Result r: results) {
-            qDebug() <<"message " <<r.errorMessage;
+        if(s == SUCCESS) {
+            qDebug() <<Q_FUNC_INFO<<"num of messages " <<results.size();
+            for(Result r: results) {
+                qDebug() <<"message " <<r.errorMessage;
+            }
+            resultsJson = JsonUtils::toJson(results);
+            JsonUtils::fromJson(resultsJson);
         }
-        resultsJson = toJson(results);
-        fromJson(resultsJson);
+        else {
+            qDebug() <<Q_FUNC_INFO<<"Analysis failed";
+        }
+        p_clientSocket->write(resultsJson);
+    }
+    else if(command == "getCFG") {
+        Analyzer analyzer;
+        BasicBlock* cfgHead;
+        Status s = analyzer.getCFG("C:\\workspace\\my_repo\\sca\\test\\instructions.c", cfgHead);
+        QByteArray cfgJson;
+
+        if(s == SUCCESS) {
+            qDebug() <<Q_FUNC_INFO<<"CFG Head " <<cfgHead;
+            cfgJson = JsonUtils::toJson(cfgHead);
+            qDebug() << "CFG Json " << cfgJson;
+            //JsonUtils::fromJson(cfgJson);
+        }
+        else {
+            qDebug() <<Q_FUNC_INFO<<"Analysis failed";
+        }
+        p_clientSocket->write(cfgJson);
     }
     else {
-        qDebug() <<"Analysis failed";
+        qDebug() <<Q_FUNC_INFO <<"Invalid command" <<command;
     }
-    p_clientSocket->write(resultsJson);
+
 }
 
 void SocketServer::clientDisconnected()
 {
-    qDebug() <<Q_FUNC_INFO;
-    qDebug() << "Client Disconnected ";
+    qDebug() << Q_FUNC_INFO <<"Client Disconnected ";
 }
 
 void SocketServer::timerTriggered()
 {
-    qDebug() <<"Timer fired ";
+    qDebug() <<Q_FUNC_INFO <<"Timer fired ";
+    /*Analyzer analyzer;
+    BasicBlock* cfgHead;
+    Status s = analyzer.getCFG("C:\\workspace\\my_repo\\sca\\test\\instructions.c", cfgHead);
+    QByteArray cfgJson;
+
+    if(s == SUCCESS) {
+        qDebug() <<Q_FUNC_INFO<<"CFG Head " <<cfgHead;
+        cfgJson = JsonUtils::toJson(cfgHead);
+        qDebug() << "CFG Json " << cfgJson;
+        JsonUtils::fromCFGJson(cfgJson);
+    }
+    else {
+        qDebug() <<Q_FUNC_INFO<<"Analysis failed";
+    }*/
     qApp->quit();
 }

@@ -7,7 +7,7 @@
 
 #include "ControlFlowGraph.h"
 
-ControlFlowGraph::ControlFlowGraph(): head(0) {
+ControlFlowGraph::ControlFlowGraph(): p_head(0) {
 
 }
 
@@ -16,8 +16,8 @@ ControlFlowGraph::~ControlFlowGraph() {
 
 Status ControlFlowGraph::buildCFG(const Block* block) {
     Status status = SUCCESS;
-    head = new BasicBlock(block->getSymbolTable());
-    BasicBlock* currBlock = head;
+    p_head = new BasicBlock(block->getSymbolTable());
+    BasicBlock* currBlock = p_head;
     status = buildBlock(currBlock, block);
     return status;
 }
@@ -118,7 +118,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
                 functionDeclBlock->addFormalArgument(var);
             }
             cout << "Function Decl Block: " << functionDeclBlock->getName() << " " <<block->getSubStatements().size() <<endl;
-            head->addFnSymbol(functionDeclBlock);
+            p_head->addFnSymbol(functionDeclBlock);
             beginNewBlock = true;
         }
         break;
@@ -129,7 +129,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             FunctionCallStmt* functionCallStmt = static_cast<FunctionCallStmt*>(stmt);
             first = new BasicBlock(block->getSymbolTable());
 
-            fnDecl = head->fetchFunctionDeclBlock(functionCallStmt->getName());
+            fnDecl = p_head->fetchFunctionDeclBlock(functionCallStmt->getName());
 
             first->setNext(fnDecl);
             FunctionCallBlock* functionCallBlock = new FunctionCallBlock(0,functionCallStmt->getName(),first,fnDecl);
@@ -160,18 +160,18 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 void ControlFlowGraph::print(ostream& os) {
     PrintVisitor printVisitor;
     TraverserOne tOne(&printVisitor);
-    tOne.traverseCFG(this->head);
+    tOne.traverseCFG(this->p_head);
 }
 
 void ControlFlowGraph::variableInitCheck(vector<Result>& results) {
     VariableInitCheckVisitor variableInitCheckVisitor;
-    variableInitCheckVisitor.visitCFG(head);
+    variableInitCheckVisitor.visitCFG(p_head);
     results = variableInitCheckVisitor.getResults();
 }
 
 void ControlFlowGraph::clear() {
-    head->clearFnSymbolEntries();
+    p_head->clearFnSymbolEntries();
     DeleteVisitor deleteVisitor;
     TraverserOne tOne(&deleteVisitor, true);
-    tOne.traverseCFG(head);
+    tOne.traverseCFG(p_head);
 }
