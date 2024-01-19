@@ -1,7 +1,9 @@
 #include "cemodel.h"
-#include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QFile>
+#include "jsonutils.h"
+#include "visitor.h"
 
 CEModel::CEModel()
 {
@@ -15,30 +17,33 @@ CEModel::~CEModel()
 
 void CEModel::sendCommand(QString command)
 {
-    p_socketClient.writeToSocket("run");
-}
+    //p_socketClient.writeToSocket("run");
+    p_socketClient.writeToSocket("getCFG");
 
-QVariantList fromJson(QJsonDocument resultsDoc)
-{
-    QVariantList results;
-    if(resultsDoc.isArray())
-    {
-        QJsonArray resultsArray = resultsDoc.array();
-        for(const QJsonValue& value : resultsArray) {
-            QJsonObject obj = value.toObject();
-            qDebug() << Q_FUNC_INFO <<obj["errorMessage"].toString();
-            results.append(obj.toVariantMap());
-        }
-    }
-    else
-    {
-        qDebug() << "No message ";
-    }
-    return results;
+    /*QByteArray ba;
+    QFile file("C:\\workspace\\sca\\localStorage\\instructions.json");
+    if(!file.open(QIODevice::Text | QIODevice::ReadOnly))
+        return;
+    ba = file.readAll();
+    file.close();
+    qDebug() <<ba;
+
+    const QJsonDocument results = QJsonDocument::fromJson(ba);
+    BasicBlock* head = JsonUtils::fromCFGJson(results);
+    PrintVisitor printVisitor;
+    printVisitor.visitCFG(head);
+
+    delete head;*/
 }
 
 void CEModel::onResultsAvailable(QJsonDocument resultsDoc)
 {
-    QVariantList results = fromJson(resultsDoc);
-    emit resultsAvailable(results);
+    QFile file("C:\\workspace\\sca\\localStorage\\instructions.json");
+    if(!file.open(QIODevice::Text | QIODevice::WriteOnly))
+        return;
+    QTextStream ts(&file);
+    ts << resultsDoc.toJson();
+    file.close();
+    //QVariantList results = fromJson(resultsDoc);
+    //emit resultsAvailable(results);
 }

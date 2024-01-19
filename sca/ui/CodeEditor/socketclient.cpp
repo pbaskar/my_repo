@@ -23,7 +23,7 @@ void SocketClient::onConnectionError()
     qDebug() << Q_FUNC_INFO <<p_socket.errorString();
     QByteArray resultsJson = "[{\"errorMessage\" : \"Not initialized b\"}]";
     QJsonDocument results = QJsonDocument::fromJson(resultsJson);
-    emit resultsAvailable(results);
+    //emit resultsAvailable(results);
 }
 
 void SocketClient::readData()
