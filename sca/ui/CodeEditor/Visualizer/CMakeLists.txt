@@ -16,6 +16,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Quick)
 
 set(PROJECT_SOURCES
         main.cpp
+        model.h model.cpp
         qml.qrc
 )
 
@@ -41,6 +42,13 @@ else()
         )
     endif()
 endif()
+
+qt_add_qml_module(Visualizer
+    URI com.model.cfgModel
+    VERSION 1.0
+    SOURCES
+        model.cpp model.h
+)
 
 target_link_libraries(Visualizer
   PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick)
