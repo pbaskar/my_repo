@@ -6,28 +6,19 @@ JsonUtils::JsonUtils()
 
 }
 
-QVariantList JsonUtils::fromJson(const QJsonDocument resultsDoc)
+QVariantList JsonUtils::fromResultsJson(const QJsonArray resultsJson)
 {
     QVariantList results;
-    if(resultsDoc.isArray())
-    {
-        const QJsonArray resultsArray = resultsDoc.array();
-        for(const QJsonValue& value : resultsArray) {
-            QJsonObject obj = value.toObject();
-            qDebug() << Q_FUNC_INFO <<obj["errorMessage"].toString();
-            results.append(obj.toVariantMap());
-        }
-    }
-    else
-    {
-        qDebug() << "No message ";
+    for(const QJsonValue& value : resultsJson) {
+        QJsonObject obj = value.toObject();
+        qDebug() << Q_FUNC_INFO <<obj["errorMessage"].toString();
+        results.append(obj.toVariantMap());
     }
     return results;
 }
 
-BasicBlock* JsonUtils::fromCFGJson(const QJsonDocument cfgJson) {
-    QJsonArray cfgArray = cfgJson.array();
-    QList<BasicBlock*> cfg = fromJson(cfgArray);
+BasicBlock* JsonUtils::fromCFGJson(const QJsonArray cfgJson) {
+    QList<BasicBlock*> cfg = fromJson(cfgJson);
     qDebug() <<Q_FUNC_INFO << cfg.size();
     return cfg.at(1);
 }
@@ -57,13 +48,13 @@ BasicBlock* JsonUtils::fromJson(const QJsonObject jsonObject) {
        QList<BasicBlock*> ifBlocks;
        QList<BasicBlock*> elseBlocks;
        if(value.isArray()) {
-           ifBlocks = fromJson(value.toArray());
+           elseBlocks = fromJson(value.toArray());
        }
        it++;
        if(it.key() == "if") {
            const QJsonValue elseValue = it.value();
            if(elseValue.isArray()) {
-               elseBlocks = fromJson(elseValue.toArray());
+               ifBlocks = fromJson(elseValue.toArray());
            }
        }
        IfElseBlock* ifElseBlock  = new IfElseBlock(ifBlocks, elseBlocks);

@@ -1,11 +1,13 @@
 #ifndef VISITOR_H_
 #define VISITOR_H_
+#include <QList>
 
 class BasicBlock;
 class IfElseBlock;
 class WhileBlock;
 class FunctionDeclBlock;
 class FunctionCallBlock;
+class PositionBlock;
 class Visitor {
 public:
     Visitor();
@@ -34,12 +36,17 @@ class PositionVisitor : public Visitor {
 public:
     PositionVisitor();
     virtual ~PositionVisitor();
+    const QList<PositionBlock> getPositionBlocks();
 
     virtual void visitBasicBlock(const BasicBlock* basicBlock);
     virtual void visitIfElseBlock(const IfElseBlock* ifElseBlock);
     virtual void visitWhileBlock(const WhileBlock* whileBlock);
     virtual void visitFunctionDeclBlock(const FunctionDeclBlock* functionDeclBlock);
     virtual void visitFunctionCallBlock(const FunctionCallBlock* functionCallBlock);
+private:
+    int p_parentX;
+    int p_parentY;
+    QList<PositionBlock> p_positionBlocks;
 };
 
 #endif /* VISITOR_H_ */

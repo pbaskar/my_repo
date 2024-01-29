@@ -16,6 +16,7 @@ public:
     }
     virtual void acceptVisitor(Visitor& visitor) const;
     virtual ~BasicBlock() { qDebug() <<Q_FUNC_INFO;}
+    const QStringList& getStmts() const { return p_stmts; }
 private:
     QStringList p_stmts;
 };

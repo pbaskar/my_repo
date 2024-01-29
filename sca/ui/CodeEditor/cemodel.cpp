@@ -4,6 +4,7 @@
 #include <QFile>
 #include "jsonutils.h"
 #include "visitor.h"
+#include "positionblock.h"
 
 CEModel::CEModel()
 {
@@ -15,25 +16,34 @@ CEModel::~CEModel()
     qDebug() <<Q_FUNC_INFO;
 }
 
+CEModel* CEModel::getInstance()
+{
+    static CEModel instance;
+    return &instance;
+}
+
 void CEModel::sendCommand(QString command)
 {
-    //p_socketClient.writeToSocket("run");
-    p_socketClient.writeToSocket("getCFG");
-
-    /*QByteArray ba;
+    //p_socketClient.writeToSocket(command.toLocal8Bit());
+    qDebug() <<Q_FUNC_INFO <<command;
+    QByteArray ba;
     QFile file("C:\\workspace\\sca\\localStorage\\instructions.json");
     if(!file.open(QIODevice::Text | QIODevice::ReadOnly))
         return;
     ba = file.readAll();
     file.close();
     qDebug() <<ba;
-
-    const QJsonDocument results = QJsonDocument::fromJson(ba);
-    BasicBlock* head = JsonUtils::fromCFGJson(results);
+    const QJsonDocument resultsDoc = QJsonDocument::fromJson(ba);
+    QJsonObject jsonObject = resultsDoc.object();
+    BasicBlock* head = JsonUtils::fromCFGJson(jsonObject[command].toArray());
     PrintVisitor printVisitor;
     printVisitor.visitCFG(head);
 
-    delete head;*/
+    PositionVisitor positionVisitor;
+    positionVisitor.visitCFG(head);
+
+    //delete head;
+    emit CFGAvailable(positionVisitor.getPositionBlocks());
 }
 
 void CEModel::onResultsAvailable(QJsonDocument resultsDoc)
@@ -44,6 +54,24 @@ void CEModel::onResultsAvailable(QJsonDocument resultsDoc)
     QTextStream ts(&file);
     ts << resultsDoc.toJson();
     file.close();
-    //QVariantList results = fromJson(resultsDoc);
-    //emit resultsAvailable(results);
+
+    QJsonObject jsonObject = resultsDoc.object();
+    QString command = jsonObject.keys().at(0);
+    if(command == "run")
+    {
+        QVariantList results = JsonUtils::fromResultsJson(jsonObject[command].toArray());
+        emit resultsAvailable(results);
+    }
+    else if(command == "getCFG")
+    {
+        BasicBlock* head = JsonUtils::fromCFGJson(jsonObject[command].toArray());
+        PrintVisitor printVisitor;
+        printVisitor.visitCFG(head);
+
+        PositionVisitor positionVisitor;
+        positionVisitor.visitCFG(head);
+
+        delete head;
+        emit CFGAvailable(positionVisitor.getPositionBlocks());
+    }
 }

@@ -3,6 +3,7 @@
 #include <QVBoxLayout>
 #include <QTabWidget>
 #include <QQuickWidget>
+#include <QQuickView>
 #include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
@@ -13,7 +14,10 @@
 #include <QStandardItemModel>
 #include <QStringListModel>
 #include <QScreen>
+#include <QQmlEngine>
+#include <QQmlContext>
 #include "constants.h"
+#include "cemodel.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -25,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     int h = s.height();
     int w = s.width();
     setGeometry(w*0.25,h*0.25,w*0.5,h*0.5);
-    connect(&p_model, &CEModel::resultsAvailable, this, &MainWindow::onResultsAvailable);
+    connect(CEModel::getInstance(), &CEModel::resultsAvailable, this, &MainWindow::onResultsAvailable);
 }
 
 void MainWindow::createWidgets()
@@ -33,8 +37,10 @@ void MainWindow::createWidgets()
     QSplitter* mainWidget = new QSplitter;
     mainWidget->setChildrenCollapsible(false);
 
-    QQuickWidget* cfgQuickWidget = new QQuickWidget;
-    cfgQuickWidget->setSource(QUrl("qrc:/Visualizer/CFGView.qml"));
+    //QQuickWidget* cfgQuickWidget = new QQuickWidget;
+    QQuickView* cfgQuickView = new QQuickView;
+    cfgQuickView->setSource(QUrl("qrc:/Visualizer/CFGView.qml"));
+    QWidget *cfgQuickWidget = QWidget::createWindowContainer(cfgQuickView);
 
     QVBoxLayout* codeTextEditLayout  = new QVBoxLayout;
     QWidget* codeTextEditWidget = new QWidget;
@@ -57,9 +63,10 @@ void MainWindow::createWidgets()
     QTabWidget* codeVisual = new QTabWidget;
     codeVisual->addTab(codeTextEditWidget, tr("Text"));
     codeVisual->addTab(cfgQuickWidget, tr("Visual"));
+    codeVisual->setCurrentWidget(cfgQuickWidget);
 
     mainWidget->addWidget(codeVisual);
-    mainWidget->addWidget(outputViewWidget);
+    //mainWidget->addWidget(outputViewWidget);
 
     setCentralWidget(mainWidget);
 }
@@ -95,7 +102,7 @@ void MainWindow::openFile()
 
 void MainWindow::run()
 {
-    p_model.sendCommand("Run");
+    CEModel::getInstance()->sendCommand("Run");
     statusBar()->showMessage(tr("Run command"), 2000);
 }
 

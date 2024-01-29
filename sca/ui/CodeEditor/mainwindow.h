@@ -7,7 +7,7 @@
 #include "socketclient.h"
 #include "codetextedit.h"
 #include "celistview.h"
-#include "cemodel.h"
+#include "cfgmodel.h"
 
 class MainWindow : public QMainWindow
 {
@@ -29,7 +29,5 @@ private slots:
 private:
     CEListView* p_outputView;
     CodeTextEdit* p_codeEdit;
-
-    CEModel p_model;
 };
 #endif // MAINWINDOW_H

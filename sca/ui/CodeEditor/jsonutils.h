@@ -10,8 +10,8 @@ class JsonUtils
 public:
     JsonUtils();
 
-    static QVariantList fromJson(QJsonDocument resultsJson);
-    static BasicBlock* fromCFGJson(QJsonDocument cfgJson);
+    static QVariantList fromResultsJson(QJsonArray resultsJson);
+    static BasicBlock* fromCFGJson(QJsonArray cfgJson);
     static QList<BasicBlock*> fromJson(QJsonArray jsonArray);
     static BasicBlock* fromJson(QJsonObject jsonObject);
 };

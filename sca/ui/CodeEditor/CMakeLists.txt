@@ -29,6 +29,11 @@ set(PROJECT_SOURCES
         constants.h
         celistview.h celistview.cpp
         cemodel.h cemodel.cpp
+        jsonutils.h jsonutils.cpp
+        basicblock.h basicblock.cpp
+        visitor.h visitor.cpp
+        positionblock.h positionblock.cpp
+        cfgmodel.h cfgmodel.cpp
         qml.qrc
 )
 
@@ -54,6 +59,13 @@ else()
         )
     endif()
 endif()
+
+qt_add_qml_module(CodeEditor
+    URI com.model.cfgModel
+    VERSION 1.0
+    SOURCES
+        cfgmodel.cpp cfgmodel.h
+)
 
 target_link_libraries(CodeEditor PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(CodeEditor PRIVATE Qt${QT_VERSION_MAJOR}::Network)
