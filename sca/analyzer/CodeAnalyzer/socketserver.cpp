@@ -38,37 +38,41 @@ void SocketServer::readData()
         Analyzer analyzer;
         std::vector<Result> results;
         Status s = analyzer.execute("C:\\workspace\\my_repo\\sca\\test\\instructions.c", results);
-        QByteArray resultsJson;
 
+        QJsonObject jsonObject;
         if(s == SUCCESS) {
             qDebug() <<Q_FUNC_INFO<<"num of messages " <<results.size();
             for(Result r: results) {
                 qDebug() <<"message " <<r.errorMessage;
             }
-            resultsJson = JsonUtils::toJson(results);
-            JsonUtils::fromJson(resultsJson);
+            QJsonArray resultsJson = JsonUtils::toJson(results);
+            jsonObject[command] = resultsJson;
+            //JsonUtils::fromJson(resultsJson);
         }
         else {
             qDebug() <<Q_FUNC_INFO<<"Analysis failed";
         }
-        p_clientSocket->write(resultsJson);
+        QJsonDocument resultsDoc(jsonObject);
+        p_clientSocket->write(resultsDoc.toJson());
     }
     else if(command == "getCFG") {
         Analyzer analyzer;
         BasicBlock* cfgHead;
         Status s = analyzer.getCFG("C:\\workspace\\my_repo\\sca\\test\\instructions.c", cfgHead);
-        QByteArray cfgJson;
+        QJsonObject jsonObject;
 
         if(s == SUCCESS) {
             qDebug() <<Q_FUNC_INFO<<"CFG Head " <<cfgHead;
-            cfgJson = JsonUtils::toJson(cfgHead);
+            QJsonArray cfgJson = JsonUtils::toJson(cfgHead);
+            jsonObject[command] = cfgJson;
             qDebug() << "CFG Json " << cfgJson;
             //JsonUtils::fromJson(cfgJson);
         }
         else {
             qDebug() <<Q_FUNC_INFO<<"Analysis failed";
         }
-        p_clientSocket->write(cfgJson);
+        QJsonDocument cfgDoc(jsonObject);
+        p_clientSocket->write(cfgDoc.toJson());
     }
     else {
         qDebug() <<Q_FUNC_INFO <<"Invalid command" <<command;

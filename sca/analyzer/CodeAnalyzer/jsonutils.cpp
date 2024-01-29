@@ -9,18 +9,17 @@ JsonUtils::JsonUtils()
 
 }
 
-QByteArray JsonUtils::toJson(const std::vector<Result>& results) {
+QJsonArray JsonUtils::toJson(const std::vector<Result>& results) {
     QJsonArray resultArray;
     for(Result r : results) {
         QJsonObject resultObject;
         resultObject["errorMessage"] = r.errorMessage;
         resultArray.append(resultObject);
     }
-    QJsonDocument resultsDoc(resultArray);
-    return resultsDoc.toJson();
+    return resultArray;
 }
 
-QByteArray JsonUtils::toJson(BasicBlock* cfgHead) {
+QJsonArray JsonUtils::toJson(BasicBlock* cfgHead) {
     QJsonArray cfgArray;
     /*for(Result r : results) {
         QJsonObject resultObject;
@@ -30,8 +29,7 @@ QByteArray JsonUtils::toJson(BasicBlock* cfgHead) {
     JsonVisitor jsonVisitor;
     jsonVisitor.visitCFG(cfgHead);
     cfgArray = jsonVisitor.getBlocks();
-    QJsonDocument cfgDoc(cfgArray);
-    return cfgDoc.toJson();
+    return cfgArray;
 }
 
 void JsonUtils::fromJson(QByteArray resultsJson) {

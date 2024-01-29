@@ -9,8 +9,8 @@ class JsonUtils
 public:
     JsonUtils();
 
-    static QByteArray toJson(const std::vector<Result>& results);
-    static QByteArray toJson(BasicBlock* cfgHead);
+    static QJsonArray toJson(const std::vector<Result>& results);
+    static QJsonArray toJson(BasicBlock* cfgHead);
     static void fromJson(QByteArray resultsJson);
     static void fromCFGJson(QByteArray cfgJson);
     static void fromJson(QJsonArray jsonArray);
