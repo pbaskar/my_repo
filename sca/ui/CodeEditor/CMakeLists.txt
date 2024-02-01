@@ -34,7 +34,9 @@ set(PROJECT_SOURCES
         visitor.h visitor.cpp
         positionblock.h positionblock.cpp
         cfgmodel.h cfgmodel.cpp
+        cfgedge.h cfgedge.cpp
         qml.qrc
+        images.qrc
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -65,6 +67,7 @@ qt_add_qml_module(CodeEditor
     VERSION 1.0
     SOURCES
         cfgmodel.cpp cfgmodel.h
+        cfgedge.cpp cfgedge.h
 )
 
 target_link_libraries(CodeEditor PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
