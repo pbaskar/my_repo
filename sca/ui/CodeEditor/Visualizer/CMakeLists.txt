@@ -18,6 +18,7 @@ set(PROJECT_SOURCES
         main.cpp
         model.h model.cpp
         qml.qrc
+        images.qrc
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

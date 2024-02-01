@@ -7,6 +7,14 @@ Window {
     visible: true
     title: qsTr("Hello World")
 
-    CFGView {
-    }
+//    CFGView {
+//    }
+
+    Flickable {
+         width: 200; height: 200
+         contentWidth: image.width; contentHeight: image.height
+         clip: true
+
+         Image { id: image; source: "qrc:/bigImage.jpg" }
+     }
 }
