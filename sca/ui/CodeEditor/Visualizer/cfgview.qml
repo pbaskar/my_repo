@@ -91,25 +91,27 @@ Flickable {
         }
     }
 
-    CFGEdge {
-        height: 500
-        width: 500
-        anchors {left: parent.left; top: parent.top; }
+    EdgesModel {
+        id: edgesModel
     }
 
-//    Repeater {
-//        model: cfgModel
-//        delegate: CFGEdge {
-//            anchors.fill: parent
-////            Drag.active: edgeMouseArea.drag.active
-////            MouseArea {
-////                id: edgeMouseArea
-////                anchors.fill: parent
-////                drag.target: parent
-////                onClicked: {
-////                    console.log("row, column " , rowNum, colNum)
-////                }
-////            }
-//        }
-//    }
+    Repeater {
+        model: edgesModel
+        delegate: CFGEdge {
+            anchors.fill: parent
+            point1: model.display.point1
+            point2: model.display.point2
+            point3: model.display.point3
+            point4: model.display.point4
+//            Drag.active: edgeMouseArea.drag.active
+//            MouseArea {
+//                id: edgeMouseArea
+//                anchors.fill: parent
+//                drag.target: parent
+//                onClicked: {
+//                    console.log("row, column " , rowNum, colNum)
+//                }
+//            }
+        }
+    }
 }

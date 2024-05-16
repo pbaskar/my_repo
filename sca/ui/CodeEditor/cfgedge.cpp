@@ -1,45 +1,82 @@
 #include "cfgedge.h"
 #include <QSGGeometryNode>
 #include <QSGFlatColorMaterial>
+#include <QSurfaceFormat>
 
-static const int VERTEX_COUNT = 2;
+static const int SEGMENT_COUNT = 32;
+static const float SEGMENT_LEN = 1/SEGMENT_COUNT;
+static const int ARROW_COUNT = 5;
+static const int CIRCLE_COUNT = 36;
+static const int VERTICES_COUNT = CIRCLE_COUNT + SEGMENT_COUNT + ARROW_COUNT;
+static const int CIRCLE_RADIUS = 5;
 CFGEdge::CFGEdge()
 {
+    QSurfaceFormat format = QSurfaceFormat::defaultFormat();
+    format.setSamples(8);
+    QSurfaceFormat::setDefaultFormat(format);
     setFlag(QQuickItem::ItemHasContents, true);
-    p1 = QPoint(50, 50);
-    p2 = QPoint(100, 100);
 }
 
 QSGNode* CFGEdge::updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *updatePaintNodeData)
 {
-    QSGGeometryNode* node = nullptr;
-    QSGGeometry* geometry = nullptr;
+    QSGGeometryNode* lineNode = nullptr;
+    QSGGeometry* lineGeometry = nullptr;
+    QSGGeometryNode* arrowNode = nullptr;
+    QSGGeometry* arrowGeometry = nullptr;
     if(!oldNode)
     {
-        node = new QSGGeometryNode;
+        lineNode = new QSGGeometryNode;
 
-        geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), VERTEX_COUNT);
-        node->setGeometry(geometry);
-        node->setFlag(QSGNode::OwnsGeometry);
-        geometry->setDrawingMode(QSGGeometry::DrawLineStrip);
+        lineGeometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), VERTICES_COUNT);
+        lineNode->setGeometry(lineGeometry);
+        lineNode->setFlag(QSGNode::OwnsGeometry);
+        lineGeometry->setDrawingMode(QSGGeometry::DrawLineStrip);
 
-        auto *material = new QSGFlatColorMaterial;
-        material->setColor(QColor(255, 0, 0));
-        node->setMaterial(material);
-        node->setFlag(QSGNode::OwnsMaterial);
-
+        auto *lineMaterial = new QSGFlatColorMaterial;
+        lineMaterial->setColor(QColor(255, 0, 0));
+        lineNode->setMaterial(lineMaterial);
+        lineNode->setFlag(QSGNode::OwnsMaterial);
     }
     else
     {
-        node = static_cast<QSGGeometryNode*>(oldNode);
-        geometry = node->geometry();
-        geometry->allocate(VERTEX_COUNT);
+        lineNode = static_cast<QSGGeometryNode*>(oldNode->childAtIndex(0));
+        lineGeometry = lineNode->geometry();
+        lineGeometry->allocate(VERTICES_COUNT);
     }
 
-    QSGGeometry::Point2D* vertices = geometry->vertexDataAsPoint2D();
-    vertices[0].set(p1.x(), p1.x());
-    vertices[1].set(p2.x(), p2.y());
-    node->markDirty(QSGNode::DirtyGeometry);
-    node->markDirty(QSGNode::DirtyMaterial);
-    return node;
+    QSGGeometry::Point2D* lineVertices = lineGeometry->vertexDataAsPoint2D();
+    QPoint center = {p1.x(), p1.y()};
+    int next =0;
+    int degrees = 90;
+    lineVertices[next++].set(p1.x(), p1.y()+5);
+    for(int i=1; i<CIRCLE_COUNT; i++, degrees+= 10)
+    {
+        if(degrees ==360) degrees=0;
+        int radians = 3.14/180*degrees;
+        lineVertices[next++].set(p1.x()+CIRCLE_RADIUS*qCos(radians), p1.y()+CIRCLE_RADIUS*qSin(radians));
+    }
+    float t=0.03125;
+    float x=0, y=0;
+    lineVertices[next++].set(p1.x(), p1.y()+5);
+    for(int i=1; i<SEGMENT_COUNT; i++, t+=0.03125)
+    {
+        x = qPow(1-t,3) * p1.x() + 3*t*qPow(1-t,2) * p2.x() + 3*qPow(t,2) * (1-t) * p3.x() + qPow(t,3) * p4.x();
+        y = qPow(1-t,3) * p1.y() + 3*t*qPow(1-t,2) * p2.y() + 3*qPow(t,2) * (1-t) * p3.y() + qPow(t,3) * p4.y();
+        qDebug() <<Q_FUNC_INFO <<"i = " <<i << "t = " <<t <<"x = "<<x <<"y = " <<y;
+        lineVertices[next++].set(x,y);
+    }
+
+    t = 1-0.03125;
+    float dx = 3*qPow(1-t,2)* p1.x() + 3 * t * 2*(1-t) *p2.x() + 3 * qPow(1-t,2)* p2.x() +6*t*(1-t) +3*qPow(t,2) * -1 * p3.x() +3*qPow(t,2)* p4.x();
+    float dy = 3*qPow(1-t,2)* p1.y() + 3 * t * 2*(1-t) *p2.y() + 3 * qPow(1-t,2)* p2.y() +6*t*(1-t) +3*qPow(t,2) * -1 * p3.y() +3*qPow(t,2)* p4.y();
+
+    lineVertices[next++].set(p4.x(), p4.y());
+    lineVertices[next++].set(x+dy/10, y-dx/10);
+    lineVertices[next++].set(p4.x()+5, p4.y()+5);
+    lineVertices[next++].set(x-dy/10, y+dx/10);
+    lineVertices[next++].set(p4.x(), p4.y());
+
+    lineNode->markDirty(QSGNode::DirtyGeometry);
+    lineNode->markDirty(QSGNode::DirtyMaterial);
+    return lineNode;
 }

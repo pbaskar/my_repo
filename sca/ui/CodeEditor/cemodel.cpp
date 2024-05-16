@@ -5,6 +5,7 @@
 #include "jsonutils.h"
 #include "visitor.h"
 #include "positionblock.h"
+#include "edgevisitor.h"
 
 CEModel::CEModel()
 {
@@ -42,8 +43,14 @@ void CEModel::sendCommand(QString command)
     PositionVisitor positionVisitor;
     positionVisitor.visitCFG(head);
 
-    //delete head;
+    EdgeVisitor edgeVisitor;
+    edgeVisitor.setPositionBlocks(positionVisitor.getPositionBlocks());
+    edgeVisitor.visitCFG(head);
+
     emit CFGAvailable(positionVisitor.getPositionBlocks());
+    emit edgesAvailable(edgeVisitor.getEdges());
+
+    //delete head;
 }
 
 void CEModel::onResultsAvailable(QJsonDocument resultsDoc)

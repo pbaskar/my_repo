@@ -35,6 +35,9 @@ set(PROJECT_SOURCES
         positionblock.h positionblock.cpp
         cfgmodel.h cfgmodel.cpp
         cfgedge.h cfgedge.cpp
+        edgevisitor.h edgevisitor.cpp
+        edge.h edge.cpp
+        edgesmodel.h edgesmodel.cpp
         qml.qrc
         images.qrc
 )
@@ -68,6 +71,7 @@ qt_add_qml_module(CodeEditor
     SOURCES
         cfgmodel.cpp cfgmodel.h
         cfgedge.cpp cfgedge.h
+        edgesmodel.cpp edgesmodel.h
 )
 
 target_link_libraries(CodeEditor PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)

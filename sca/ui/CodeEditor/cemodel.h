@@ -3,6 +3,7 @@
 #include<QObject>
 #include "socketclient.h"
 #include "positionblock.h"
+#include "edge.h"
 
 class CEModel : public QObject
 {
@@ -15,6 +16,7 @@ public:
 signals:
     void resultsAvailable(QVariantList results);
     void CFGAvailable(const QList<PositionBlock> cfg);
+    void edgesAvailable(const QList<Edge> edges);
 public slots:
     void onResultsAvailable(QJsonDocument results);
 private:
