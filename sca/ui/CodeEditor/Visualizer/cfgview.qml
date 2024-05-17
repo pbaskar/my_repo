@@ -23,10 +23,6 @@ Flickable {
         nodes.insert(2,{xPos:50, yPos:100});
     }
 
-    CFGModel {
-        id: cfgModel
-    }
-
     ListModel {
         id: nodes
         ListElement {
@@ -45,10 +41,15 @@ Flickable {
 //    DropArea {
 //        anchors.fill: parent
 //    }
+
+    CFGModel {
+        id: cfgModel
+    }
+
     Repeater {
         id: nodesRepeat
-        implicitWidth: cfgModel.totalWidth + 25
-        implicitHeight: cfgModel.totalHeight + 25
+        //implicitWidth: cfgModel.totalWidth + 25
+        //implicitHeight: cfgModel.totalHeight + 25
         model: cfgModel
         delegate: Rectangle {
             border.color: "green"
@@ -95,7 +96,7 @@ Flickable {
         id: edgesModel
     }
 
-    Repeater {
+    /*Repeater {
         model: edgesModel
         delegate: CFGEdge {
             anchors.fill: parent
@@ -113,5 +114,5 @@ Flickable {
 //                }
 //            }
         }
-    }
+    }*/
 }

@@ -63,10 +63,10 @@ void MainWindow::createWidgets()
     QTabWidget* codeVisual = new QTabWidget;
     codeVisual->addTab(codeTextEditWidget, tr("Text"));
     codeVisual->addTab(cfgQuickWidget, tr("Visual"));
-    codeVisual->setCurrentWidget(cfgQuickWidget);
+    codeVisual->setCurrentWidget(codeTextEditWidget);
 
     mainWidget->addWidget(codeVisual);
-    //mainWidget->addWidget(outputViewWidget);
+    mainWidget->addWidget(outputViewWidget);
 
     setCentralWidget(mainWidget);
 }
@@ -102,7 +102,7 @@ void MainWindow::openFile()
 
 void MainWindow::run()
 {
-    CEModel::getInstance()->sendCommand("Run");
+    CEModel::getInstance()->sendCommand("run");
     statusBar()->showMessage(tr("Run command"), 2000);
 }
 

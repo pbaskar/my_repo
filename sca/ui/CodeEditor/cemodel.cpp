@@ -78,7 +78,12 @@ void CEModel::onResultsAvailable(QJsonDocument resultsDoc)
         PositionVisitor positionVisitor;
         positionVisitor.visitCFG(head);
 
-        delete head;
+        EdgeVisitor edgeVisitor;
+        edgeVisitor.setPositionBlocks(positionVisitor.getPositionBlocks());
+        edgeVisitor.visitCFG(head);
+
+        //delete head;
         emit CFGAvailable(positionVisitor.getPositionBlocks());
+        emit edgesAvailable(edgeVisitor.getEdges());
     }
 }
