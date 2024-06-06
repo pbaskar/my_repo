@@ -11,10 +11,10 @@ class Edge
 {
 public:
     Edge(const Side sourceSide, const Side destinationSide, const PositionBlock sourceBlock, const PositionBlock destinationBlock);
-    const QPoint getSource();
-    const QPoint getDestination();
-    const QPoint getIntermediatePoint1();
-    const QPoint getIntermediatePoint2();
+    const QPoint getSource() const;
+    const QPoint getDestination() const;
+    const QPoint getIntermediatePoint1() const;
+    const QPoint getIntermediatePoint2() const;
 private:
     const PositionBlock p_sourceBlock;
     const PositionBlock p_destinationBlock;

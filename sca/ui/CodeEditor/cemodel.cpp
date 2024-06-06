@@ -25,9 +25,9 @@ CEModel* CEModel::getInstance()
 
 void CEModel::sendCommand(QString command)
 {
-    //p_socketClient.writeToSocket(command.toLocal8Bit());
+    p_socketClient.writeToSocket(command.toLocal8Bit());
     qDebug() <<Q_FUNC_INFO <<command;
-    QByteArray ba;
+    /*QByteArray ba;
     QFile file("C:\\workspace\\sca\\localStorage\\instructions.json");
     if(!file.open(QIODevice::Text | QIODevice::ReadOnly))
         return;
@@ -48,7 +48,7 @@ void CEModel::sendCommand(QString command)
     edgeVisitor.visitCFG(head);
 
     emit CFGAvailable(positionVisitor.getPositionBlocks());
-    emit edgesAvailable(edgeVisitor.getEdges());
+    emit edgesAvailable(edgeVisitor.getEdges());*/
 
     //delete head;
 }
@@ -71,6 +71,7 @@ void CEModel::onResultsAvailable(QJsonDocument resultsDoc)
     }
     else if(command == "getCFG")
     {
+        //delete head;
         BasicBlock* head = JsonUtils::fromCFGJson(jsonObject[command].toArray());
         PrintVisitor printVisitor;
         printVisitor.visitCFG(head);
@@ -82,7 +83,6 @@ void CEModel::onResultsAvailable(QJsonDocument resultsDoc)
         edgeVisitor.setPositionBlocks(positionVisitor.getPositionBlocks());
         edgeVisitor.visitCFG(head);
 
-        //delete head;
         emit CFGAvailable(positionVisitor.getPositionBlocks());
         emit edgesAvailable(edgeVisitor.getEdges());
     }

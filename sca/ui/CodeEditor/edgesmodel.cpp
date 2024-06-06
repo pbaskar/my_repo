@@ -17,7 +17,7 @@ QVariant EdgesModel::data(const QModelIndex &index, int role) const
 {
     if(p_edgesList.empty())
         return QVariant();
-    auto edge = p_edgesList.at(index.row());
+    const auto edge = p_edgesList.at(index.row());
     qDebug() << index.row();
     QVariantMap dataMap;
     dataMap["point1"] = edge.getSource();

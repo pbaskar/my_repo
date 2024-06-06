@@ -7,21 +7,21 @@ Edge::Edge(const Side sourceSide, const Side destinationSide, const PositionBloc
 
 }
 
-const QPoint Edge::getSource()
+const QPoint Edge::getSource() const
 {
     if(p_sourceSide == Side::BOTTOM)
         return p_sourceBlock.getBottomConnection();
     return p_sourceBlock.getTopConnection();
 }
 
-const QPoint Edge::getDestination()
+const QPoint Edge::getDestination() const
 {
     if(p_destinationSide == Side::BOTTOM)
         return p_destinationBlock.getBottomConnection();
     return p_destinationBlock.getTopConnection();
 }
 
-const QPoint Edge::getIntermediatePoint1()
+const QPoint Edge::getIntermediatePoint1() const
 {
     QPoint source;
     if(p_sourceSide == Side::TOP)
@@ -36,7 +36,7 @@ const QPoint Edge::getIntermediatePoint1()
     return QPoint(source.x(), source.y()+25);
 }
 
-const QPoint Edge::getIntermediatePoint2()
+const QPoint Edge::getIntermediatePoint2() const
 {
     QPoint destination;
     if(p_destinationSide == Side::TOP)

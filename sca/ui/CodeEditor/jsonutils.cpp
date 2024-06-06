@@ -1,12 +1,7 @@
 #include "jsonutils.h"
 #include <QJsonDocument>
 
-JsonUtils::JsonUtils()
-{
-
-}
-
-QVariantList JsonUtils::fromResultsJson(const QJsonArray resultsJson)
+const QVariantList JsonUtils::fromResultsJson(const QJsonArray resultsJson)
 {
     QVariantList results;
     for(const QJsonValue& value : resultsJson) {
@@ -18,12 +13,12 @@ QVariantList JsonUtils::fromResultsJson(const QJsonArray resultsJson)
 }
 
 BasicBlock* JsonUtils::fromCFGJson(const QJsonArray cfgJson) {
-    QList<BasicBlock*> cfg = fromJson(cfgJson);
+    const QList<BasicBlock*> cfg = fromJson(cfgJson);
     qDebug() <<Q_FUNC_INFO << cfg.size();
     return cfg.at(1);
 }
 
-QList<BasicBlock*> JsonUtils::fromJson(const QJsonArray jsonArray) {
+const QList<BasicBlock*> JsonUtils::fromJson(const QJsonArray jsonArray) {
     QList<BasicBlock*> blocks;
     for(const QJsonValue& value : jsonArray) {
         if(value.isArray()) {

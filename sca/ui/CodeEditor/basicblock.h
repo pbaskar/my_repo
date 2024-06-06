@@ -11,7 +11,7 @@ public:
     BasicBlock();
     BasicBlock(QStringList stmts);
     virtual void print() const {
-        foreach(const QString& stmt , p_stmts)
+        for(const QString& stmt : p_stmts)
             qDebug() <<stmt;
     }
     virtual void acceptVisitor(Visitor& visitor) const;
@@ -54,7 +54,7 @@ class FunctionDeclBlock : public BasicBlock
 public:
     FunctionDeclBlock(QList<BasicBlock*> blocks);
     virtual void acceptVisitor(Visitor& visitor) const;
-    const QList<BasicBlock*> getBlocks() const { return p_blocks; }
+    const QList<BasicBlock*>& getBlocks() const { return p_blocks; }
     virtual ~FunctionDeclBlock() { qDeleteAll(p_blocks.begin(), p_blocks.end()); qDebug() <<Q_FUNC_INFO;}
 private:
     QString p_name;

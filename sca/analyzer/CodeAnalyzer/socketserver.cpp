@@ -55,7 +55,7 @@ void SocketServer::readData()
         QJsonDocument resultsDoc(jsonObject);
         p_clientSocket->write(resultsDoc.toJson());
     }
-    else if(command == "getCFG") {
+    else if(command.startsWith("getCFG")) {
         Analyzer analyzer;
         BasicBlock* cfgHead;
         Status s = analyzer.getCFG("C:\\workspace\\my_repo\\sca\\test\\instructions.c", cfgHead);
@@ -64,7 +64,7 @@ void SocketServer::readData()
         if(s == SUCCESS) {
             qDebug() <<Q_FUNC_INFO<<"CFG Head " <<cfgHead;
             QJsonArray cfgJson = JsonUtils::toJson(cfgHead);
-            jsonObject[command] = cfgJson;
+            jsonObject["getCFG"] = cfgJson;
             qDebug() << "CFG Json " << cfgJson;
             //JsonUtils::fromJson(cfgJson);
         }

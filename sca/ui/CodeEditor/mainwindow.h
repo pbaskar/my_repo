@@ -24,7 +24,7 @@ private slots:
     void openFile();
     void run();
     void closeWindow();
-    void onResultsAvailable(QVariantList results);
+    void onResultsAvailable(const QVariantList results);
 
 private:
     CEListView* p_outputView;

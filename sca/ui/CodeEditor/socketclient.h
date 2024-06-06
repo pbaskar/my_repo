@@ -12,7 +12,7 @@ public:
 
     void writeToSocket(QByteArray data);
 signals:
-    void resultsAvailable(QJsonDocument results);
+    void resultsAvailable(const QJsonDocument results);
 
 private slots:
     void readData();

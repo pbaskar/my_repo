@@ -14,11 +14,11 @@ public:
     static CEModel* getInstance();
     void sendCommand(QString command);
 signals:
-    void resultsAvailable(QVariantList results);
+    void resultsAvailable(const QVariantList results);
     void CFGAvailable(const QList<PositionBlock> cfg);
     void edgesAvailable(const QList<Edge> edges);
 public slots:
-    void onResultsAvailable(QJsonDocument results);
+    void onResultsAvailable(const QJsonDocument results);
 private:
     SocketClient p_socketClient;
 };
