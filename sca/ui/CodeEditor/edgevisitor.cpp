@@ -119,18 +119,19 @@ void EdgeVisitor::visitFunctionCallBlock(const FunctionCallBlock* functionCallBl
     }
     Side side = Side::TOP;
     const BasicBlock* args = functionCallBlock->getArgs();
-    if(auto it = std::find_if(p_positionBlocks.begin(), p_positionBlocks.end(),
-                    [args] (PositionBlock p) {return p.getBlock() == args;});
-                    it != p_positionBlocks.end()) {
-        positionBlock = *it;
+    if(args != nullptr) {
+        if(auto it = std::find_if(p_positionBlocks.begin(), p_positionBlocks.end(),
+                        [args] (PositionBlock p) {return p.getBlock() == args;});
+                        it != p_positionBlocks.end()) {
+            positionBlock = *it;
+        }
+        Edge e1(side, Side::TOP, lastPositionBlock, positionBlock);
+        qDebug() <<"Edge from to " <<lastPositionBlock.getBottomConnection() <<" " <<positionBlock.getTopConnection();
+        p_edges.append(e1);
+        args->acceptVisitor(*this);
+        lastPositionBlock = positionBlock;
+        side = Side::BOTTOM;
     }
-    Edge e1(side, Side::TOP, lastPositionBlock, positionBlock);
-    qDebug() <<"Edge from to " <<lastPositionBlock.getBottomConnection() <<" " <<positionBlock.getTopConnection();
-    p_edges.append(e1);
-    args->acceptVisitor(*this);
-    lastPositionBlock = positionBlock;
-    side = Side::BOTTOM;
-
     const FunctionDeclBlock* fnDecl = functionCallBlock->getFnDecl();
     if(auto it = std::find_if(p_positionBlocks.begin(), p_positionBlocks.end(),
                     [fnDecl] (PositionBlock p) {return p.getBlock() == fnDecl;});

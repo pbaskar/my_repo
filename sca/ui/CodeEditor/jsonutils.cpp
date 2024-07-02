@@ -25,7 +25,9 @@ const QList<BasicBlock*> JsonUtils::fromJson(const QJsonArray jsonArray) {
             blocks.append(fromJson(value.toArray()));
         }
         else if(value.isObject()) {
-            blocks.append(fromJson(value.toObject()));
+            BasicBlock* blockPtr = fromJson(value.toObject());
+            if(blockPtr != nullptr)
+                blocks.append(blockPtr);
         }
         else {
             qDebug() << "fromJson " <<value.toString();
@@ -35,6 +37,8 @@ const QList<BasicBlock*> JsonUtils::fromJson(const QJsonArray jsonArray) {
 }
 
 BasicBlock* JsonUtils::fromJson(const QJsonObject jsonObject) {
+    if(jsonObject.empty())
+        return nullptr;
     QJsonObject::const_iterator it = jsonObject.constBegin();
     QString key = it.key();
     const QJsonValue value = it.value();
@@ -46,7 +50,7 @@ BasicBlock* JsonUtils::fromJson(const QJsonObject jsonObject) {
            elseBlocks = fromJson(value.toArray());
        }
        it++;
-       if(it.key() == "if") {
+       if(it != jsonObject.end() && it.key() == "if") {
            const QJsonValue elseValue = it.value();
            if(elseValue.isArray()) {
                ifBlocks = fromJson(elseValue.toArray());
@@ -69,9 +73,12 @@ BasicBlock* JsonUtils::fromJson(const QJsonObject jsonObject) {
         BasicBlock* args(0);
         FunctionDeclBlock* functionDeclBlock(0);
         if(value.isArray()) {
-            args = fromJson(value[0].toObject());
-            QJsonObject jsonObject = value[1].toObject();
-            auto it = jsonObject.begin();
+            const QJsonArray fnCall = value.toArray();
+            if(fnCall.count() < 2)
+                return nullptr;
+            args = fromJson(fnCall[0].toObject());
+            QJsonObject jsonObject = fnCall[1].toObject();
+            auto it = jsonObject.constBegin();
             QString key = it.key();
             const QJsonValue fnDecl = it.value();
             if(key == "fnDecl") {
@@ -82,6 +89,11 @@ BasicBlock* JsonUtils::fromJson(const QJsonObject jsonObject) {
                 }
                 functionDeclBlock  = new FunctionDeclBlock(blocks);
             }
+        }
+        if(functionDeclBlock == nullptr) {
+            delete args;
+            delete functionDeclBlock;
+            return nullptr;
         }
         FunctionCallBlock* functionCallBlock  = new FunctionCallBlock(args, functionDeclBlock);
         return functionCallBlock;
@@ -98,5 +110,5 @@ BasicBlock* JsonUtils::fromJson(const QJsonObject jsonObject) {
         BasicBlock* basicBlock = new BasicBlock(stmts);
         return basicBlock;
     }
-    return 0;
+    return nullptr;
 }

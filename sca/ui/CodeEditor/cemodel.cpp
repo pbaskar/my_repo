@@ -36,7 +36,13 @@ void CEModel::sendCommand(QString command)
     qDebug() <<ba;
     const QJsonDocument resultsDoc = QJsonDocument::fromJson(ba);
     QJsonObject jsonObject = resultsDoc.object();
-    BasicBlock* head = JsonUtils::fromCFGJson(jsonObject[command].toArray());
+    QJsonValue jsonValue = jsonObject[command];
+    if(jsonValue == QJsonValue::Undefined || !jsonValue.isArray())
+        return;
+    const QJsonArray jsonArray = jsonValue.toArray();
+    BasicBlock* head = JsonUtils::fromCFGJson(jsonArray);
+    Q_ASSERT(head != nullptr);
+
     PrintVisitor printVisitor;
     printVisitor.visitCFG(head);
 
@@ -63,16 +69,28 @@ void CEModel::onResultsAvailable(QJsonDocument resultsDoc)
     file.close();
 
     QJsonObject jsonObject = resultsDoc.object();
+    if(jsonObject.empty())
+        return;
     QString command = jsonObject.keys().at(0);
     if(command == "run")
     {
-        QVariantList results = JsonUtils::fromResultsJson(jsonObject[command].toArray());
+        QJsonValue jsonValue = jsonObject[command];
+        if(jsonValue == QJsonValue::Undefined || !jsonValue.isArray())
+            return;
+        const QJsonArray jsonArray = jsonValue.toArray();
+        QVariantList results = JsonUtils::fromResultsJson(jsonArray);
         emit resultsAvailable(results);
     }
     else if(command == "getCFG")
     {
         //delete head;
-        BasicBlock* head = JsonUtils::fromCFGJson(jsonObject[command].toArray());
+        QJsonValue jsonValue = jsonObject[command];
+        if(jsonValue == QJsonValue::Undefined || !jsonValue.isArray())
+            return;
+        const QJsonArray jsonArray = jsonValue.toArray();
+        BasicBlock* head = JsonUtils::fromCFGJson(jsonArray);
+        Q_ASSERT(head != nullptr);
+
         PrintVisitor printVisitor;
         printVisitor.visitCFG(head);
 

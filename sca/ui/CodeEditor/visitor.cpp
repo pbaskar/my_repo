@@ -57,7 +57,8 @@ void PrintVisitor::visitFunctionDeclBlock(const FunctionDeclBlock* functionDeclB
 
 void PrintVisitor::visitFunctionCallBlock(const FunctionCallBlock* functionCallBlock) {
     const BasicBlock* args = functionCallBlock->getArgs();
-    args->acceptVisitor(*this);
+    if(args != nullptr)
+        args->acceptVisitor(*this);
     const FunctionDeclBlock* fnDecl = functionCallBlock->getFnDecl();
     fnDecl->acceptVisitor(*this);
 }
@@ -103,6 +104,7 @@ void PositionVisitor::visitIfElseBlock(const IfElseBlock* ifElseBlock) {
     p_parentX += padding; //left padding
     p_parentY += padding; //top padding
     lastParentY = p_parentY;
+    Q_ASSERT(!p_positionBlocks.empty());
     for(const BasicBlock* basicBlock : ifBlocks) {
         lastParentX = p_parentX;
         basicBlock->acceptVisitor(*this);
@@ -144,6 +146,7 @@ void PositionVisitor::visitWhileBlock(const WhileBlock* whileBlock) {
     p_parentX += padding; //left padding
     p_parentY += padding; //top padding
     lastParentY = p_parentY;
+    Q_ASSERT(!p_positionBlocks.empty());
     for(const BasicBlock* basicBlock : blocks) {
         basicBlock->acceptVisitor(*this);
         blockHeight += p_positionBlocks.constLast().getHeight() + padding; //padding between intermediate blocks
@@ -170,6 +173,7 @@ void PositionVisitor::visitFunctionDeclBlock(const FunctionDeclBlock* functionDe
     p_parentX += padding; //left padding
     p_parentY += padding; //top padding
     lastParentY = p_parentY;
+    Q_ASSERT(!p_positionBlocks.empty());
     for(const BasicBlock* basicBlock : blocks) {
         basicBlock->acceptVisitor(*this);
         blockHeight += p_positionBlocks.constLast().getHeight() + padding; //padding between intermediate blocks
@@ -194,12 +198,15 @@ void PositionVisitor::visitFunctionCallBlock(const FunctionCallBlock* functionCa
 
     p_parentX += padding; //left padding
     p_parentY += padding; //top padding
+    Q_ASSERT(!p_positionBlocks.empty());
     const BasicBlock* args = functionCallBlock->getArgs();
-    lastParentY = p_parentY;
-    args->acceptVisitor(*this);
-    blockHeight += p_positionBlocks.constLast().getHeight() + padding; //padding between intermediate blocks
-    blockWidth = qMax(blockWidth, p_positionBlocks.constLast().getWidth());
-    p_parentY = lastParentY + blockHeight;
+    if(args != nullptr) {
+        lastParentY = p_parentY;
+        args->acceptVisitor(*this);
+        blockHeight += p_positionBlocks.constLast().getHeight() + padding; //padding between intermediate blocks
+        blockWidth = qMax(blockWidth, p_positionBlocks.constLast().getWidth());
+        p_parentY = lastParentY + blockHeight;
+    }
 
     const FunctionDeclBlock* fnDecl = functionCallBlock->getFnDecl();
     lastParentY = p_parentY;
