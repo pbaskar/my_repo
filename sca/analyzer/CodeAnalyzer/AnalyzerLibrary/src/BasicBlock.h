@@ -118,31 +118,35 @@ public:
     }
     virtual void setNext(BasicBlock* next) {
         p_next = next;
+        next->addPredecessor(this);
     }
     BasicBlock* getNext() { return p_next; }
     void addNode(Node* newNode) {
         nodeList.push_back(newNode);
     }
     const vector<Node*>& getNodeList() { return nodeList; }
+    const vector<BasicBlock*>& getPredecessors() { return p_predecessors; }
     virtual void acceptVisitor(Visitor& visitor);
     virtual void acceptTraverser(Traverser& traverser);
+    virtual void addPredecessor(BasicBlock* predecessor) {
+        p_predecessors.push_back(predecessor);
+    }
 private:
     vector<Node*> nodeList;
     BasicBlock* p_next;
+    vector<BasicBlock*> p_predecessors;
     SymbolTable* p_symbolTable;
 };
 
 class IfElseBlock : public BasicBlock {
 public:
     IfElseBlock(BasicBlock* next, BasicBlock* ifFirst, BasicBlock* ifLast, BasicBlock* elseFirst, BasicBlock* elseLast)
-: BasicBlock(next,0), p_ifFirst(ifFirst), p_ifLast(ifLast), p_elseFirst(elseFirst), p_elseLast(elseLast) {}
-    virtual ~IfElseBlock() {
+: BasicBlock(next,0), p_ifFirst(ifFirst), p_ifLast(ifLast), p_elseFirst(elseFirst), p_elseLast(elseLast) {
+        p_last = new BasicBlock(nullptr);
+        p_ifLast->setNext(p_last);
+        p_elseLast->setNext(p_last);
     }
-    virtual void setNext(BasicBlock* next) {
-        p_ifLast->setNext(next);
-        if(p_elseLast)
-            p_elseLast->setNext(next);
-        BasicBlock::setNext(next);
+    virtual ~IfElseBlock() {
     }
     virtual void acceptVisitor(Visitor& visitor);
     virtual void acceptTraverser(Traverser& traverser);
@@ -150,11 +154,13 @@ public:
     BasicBlock* getIfLast() { return p_ifLast; }
     BasicBlock* getElseFirst() { return p_elseFirst; }
     BasicBlock* getElseLast() { return p_elseLast; }
+    BasicBlock* getLast() { return p_last; }
 private:
     BasicBlock* p_ifFirst;
     BasicBlock* p_ifLast;
     BasicBlock* p_elseFirst;
     BasicBlock* p_elseLast;
+    BasicBlock* p_last;
 };
 
 class WhileBlock : public BasicBlock {
@@ -163,11 +169,8 @@ public:
         BasicBlock(next, 0), p_first(first), p_last(last) {}
     virtual ~WhileBlock() {
     }
-    virtual void setNext(BasicBlock* next) {
-        BasicBlock::setNext(next);
-    }
     void setSelf() {
-        p_last->setNext(this);
+        p_last->setNext(p_first);
     }
     virtual void acceptVisitor(Visitor& visitor);
     virtual void acceptTraverser(Traverser& traverser);
@@ -183,9 +186,6 @@ public:
     FunctionDeclBlock(BasicBlock* next, const char* name, BasicBlock* first, BasicBlock* last):
         BasicBlock(next, 0), p_name(name), p_first(first), p_last(last) {}
     virtual ~FunctionDeclBlock();
-    virtual void setNext(BasicBlock* next) {
-        p_last->setNext(next);
-    }
     virtual void acceptVisitor(Visitor& visitor);
     virtual void acceptTraverser(Traverser& traverser);
     BasicBlock* getFirst() { return p_first; }
@@ -215,9 +215,6 @@ public:
     FunctionCallBlock(BasicBlock* next, const char* name, BasicBlock* first, FunctionDeclBlock* fnDecl):
         BasicBlock(next, 0), p_name(name), p_first(first), p_fnDecl(fnDecl){}
     virtual ~FunctionCallBlock(){}
-    virtual void setNext(BasicBlock* next) {
-        p_fnDecl->setNext(next);
-    }
     virtual void acceptVisitor(Visitor& visitor);
     virtual void acceptTraverser(Traverser& traverser);
     BasicBlock* getFnDecl() { return p_fnDecl; }

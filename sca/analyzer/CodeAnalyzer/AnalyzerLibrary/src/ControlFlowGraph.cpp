@@ -6,6 +6,7 @@
  */
 
 #include "ControlFlowGraph.h"
+#include "ComputeReachingDefsVisitor.h"
 
 ControlFlowGraph::ControlFlowGraph(): p_head(0) {
 
@@ -18,6 +19,7 @@ Status ControlFlowGraph::buildCFG(const Block* block) {
     Status status = SUCCESS;
     p_head = new BasicBlock(block->getSymbolTable());
     BasicBlock* currBlock = p_head;
+    cout <<"head " <<currBlock <<endl;
     status = buildBlock(currBlock, block);
     return status;
 }
@@ -94,7 +96,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             status = buildBlock(last, whileStmt->getBlock());
 
             WhileBlock* whileBlock = new WhileBlock(0,first,last);
-            //whileBlock->setSelf();
+            whileBlock->setSelf();
             currBlock->setNext(whileBlock);
             currBlock = whileBlock;
             beginNewBlock = true;
@@ -167,6 +169,11 @@ void ControlFlowGraph::variableInitCheck(vector<Result>& results) {
     VariableInitCheckVisitor variableInitCheckVisitor;
     variableInitCheckVisitor.visitCFG(p_head);
     results = variableInitCheckVisitor.getResults();
+}
+
+void ControlFlowGraph::computeReachingDefs() {
+    ComputeReachingDefsVisitor computeReachingDefsVisitor;
+    computeReachingDefsVisitor.visitCFG(p_head);
 }
 
 void ControlFlowGraph::clear() {
