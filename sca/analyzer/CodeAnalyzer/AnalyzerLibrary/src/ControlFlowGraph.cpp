@@ -166,14 +166,14 @@ void ControlFlowGraph::print(ostream& os) {
 }
 
 void ControlFlowGraph::variableInitCheck(vector<Result>& results) {
-    VariableInitCheckVisitor variableInitCheckVisitor;
-    variableInitCheckVisitor.visitCFG(p_head);
-    results = variableInitCheckVisitor.getResults();
-}
-
-void ControlFlowGraph::computeReachingDefs() {
     ComputeReachingDefsVisitor computeReachingDefsVisitor;
     computeReachingDefsVisitor.visitCFG(p_head);
+
+    map<BasicBlock*, vector<AssignmentNode*>> inVariableNodes = computeReachingDefsVisitor.getInVariableNodes();
+
+    VariableInitCheckVisitor variableInitCheckVisitor(inVariableNodes);
+    variableInitCheckVisitor.visitCFG(p_head);
+    results = variableInitCheckVisitor.getResults();
 }
 
 void ControlFlowGraph::clear() {

@@ -8,6 +8,7 @@
 #ifndef SRC_VISITOR_H_
 #define SRC_VISITOR_H_
 #include<vector>
+#include<map>
 #include "Results.h"
 using namespace std;
 
@@ -57,7 +58,7 @@ public:
 
 class VariableInitCheckVisitor : public Visitor {
 public:
-    VariableInitCheckVisitor();
+    VariableInitCheckVisitor(map<BasicBlock*, vector<AssignmentNode*>>& inVariableNodes);
     virtual ~VariableInitCheckVisitor();
 
     virtual void visitBasicBlock(BasicBlock* basicBlock);
@@ -70,7 +71,7 @@ public:
     void intersect(vector<AssignmentNode*>& dest, vector<AssignmentNode*>& source);
     const vector<Result>& getResults() { return p_results; }
 private:
-    vector<AssignmentNode*> p_variableNodes;
+    map<BasicBlock*, vector<AssignmentNode*>> p_inVariableNodes;
     vector<Result> p_results;
 };
 #endif /* SRC_VISITOR_H_ */

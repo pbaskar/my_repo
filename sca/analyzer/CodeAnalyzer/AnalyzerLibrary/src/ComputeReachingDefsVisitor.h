@@ -20,7 +20,7 @@ public:
     void detectChange(map<BasicBlock*, vector<AssignmentNode*>>& oldVariableNodes,
                       BasicBlock* basicBlock,
                       const vector<AssignmentNode*>& newVariableNodes);
-    //const vector<Result>& getResults() { return p_results; }
+    map<BasicBlock*, vector<AssignmentNode*>> getInVariableNodes() { return p_inVariableNodes; }
 private:
     map<BasicBlock*, vector<AssignmentNode*>> p_inVariableNodes;
     map<BasicBlock*, vector<AssignmentNode*>> p_outVariableNodes;

@@ -28,7 +28,6 @@ public:
     }
     void print(ostream& os);
     void variableInitCheck(vector<Result>& results);
-    void computeReachingDefs();
     void clear();
     BasicBlock* getHead() { return p_head; }
     Status buildCFG(const Block* block);

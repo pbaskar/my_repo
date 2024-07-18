@@ -76,8 +76,8 @@ void DeleteVisitor::visitFunctionCallBlock(FunctionCallBlock* functionCallBlock)
     delete functionCallBlock;
 }
 
-VariableInitCheckVisitor::VariableInitCheckVisitor() {
-
+VariableInitCheckVisitor::VariableInitCheckVisitor(map<BasicBlock*, vector<AssignmentNode*>>& inVariableNodes) {
+    p_inVariableNodes = std::move(inVariableNodes);
 }
 
 VariableInitCheckVisitor::~VariableInitCheckVisitor() {
@@ -85,7 +85,8 @@ VariableInitCheckVisitor::~VariableInitCheckVisitor() {
 }
 
 void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
-    cout <<"Beginning of Block: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    vector<AssignmentNode*> variableNodes = p_inVariableNodes.at(basicBlock);
+    cout <<"Beginning of Block: variableNodes size " <<variableNodes.size() <<endl <<endl;
     vector<const Expr*> variables;
     bool found = false;
     const vector<Node*>& nodeList = basicBlock->getNodeList();
@@ -102,7 +103,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
             const Variable* variable = static_cast<const Variable*>(*variableIt);
             if (!variable) cout <<"cast error " <<endl;
             found = false;
-            for(auto variableNodeIt=p_variableNodes.begin(); variableNodeIt != p_variableNodes.end(); variableNodeIt++ ) {
+            for(auto variableNodeIt=variableNodes.begin(); variableNodeIt != variableNodes.end(); variableNodeIt++ ) {
                 if(variable == (*variableNodeIt)->getVariable()) {
                     found = true;
                 }
@@ -119,16 +120,16 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                 p_results.push_back(r);
             }
         }
-        for(auto variableNodeIt=p_variableNodes.begin(); variableNodeIt != p_variableNodes.end(); ) {
+        for(auto variableNodeIt=variableNodes.begin(); variableNodeIt != variableNodes.end(); ) {
             if(*assignNode==*(*variableNodeIt)) {
-                variableNodeIt = p_variableNodes.erase(variableNodeIt);
+                variableNodeIt = variableNodes.erase(variableNodeIt);
             }
             else variableNodeIt++;
         }
-        p_variableNodes.push_back(assignNode);
+        variableNodes.push_back(assignNode);
         cout<<" added " <<*assignNode <<endl;
     }
-    cout <<"End of Block: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    cout <<"End of Block: variableNodes size " <<variableNodes.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::intersect(vector<AssignmentNode*>& dest, vector<AssignmentNode*>& source) {
@@ -151,9 +152,7 @@ void VariableInitCheckVisitor::intersect(vector<AssignmentNode*>& dest, vector<A
 }
 
 void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
-    cout <<"Beginning of IfElseBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
-    vector<AssignmentNode*> variableNodesBegin = p_variableNodes;
-    vector<AssignmentNode*> variableNodesEnd;
+    cout <<"Beginning of IfElseBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
     BasicBlock* block = ifElseBlock->getIfFirst();
     BasicBlock* lastBlock = ifElseBlock->getIfLast();
     BasicBlock* next(0);
@@ -163,9 +162,6 @@ void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
         block = next;
     }
     lastBlock->acceptVisitor(*this);
-
-    variableNodesEnd = std::move(p_variableNodes);
-    p_variableNodes = std::move(variableNodesBegin);
 
     block = ifElseBlock->getElseFirst();
     lastBlock = ifElseBlock->getElseLast();
@@ -177,12 +173,11 @@ void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
     if(block) {
         block->acceptVisitor(*this);
     }
-    intersect(p_variableNodes, variableNodesEnd);
-    cout <<"End of IfElseBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    cout <<"End of IfElseBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::visitWhileBlock(WhileBlock* whileBlock) {
-    cout <<"Beginning of WhileBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    cout <<"Beginning of WhileBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
     BasicBlock* block = whileBlock->getFirst();
     BasicBlock* lastBlock = whileBlock->getLast();
     BasicBlock* next(0);
@@ -193,11 +188,11 @@ void VariableInitCheckVisitor::visitWhileBlock(WhileBlock* whileBlock) {
         block = next;
     }
     block->acceptVisitor(*this);
-    cout <<"End of WhileBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    cout <<"End of WhileBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
-    cout <<"Beginning of FunctionDeclBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    cout <<"Beginning of FunctionDeclBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
     BasicBlock* block = functionDeclBlock->getFirst();
     BasicBlock* lastBlock = functionDeclBlock->getLast();
     BasicBlock* next(0);
@@ -208,26 +203,26 @@ void VariableInitCheckVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functio
         block = next;
     }
     block->acceptVisitor(*this);
-    cout <<"End of FunctionDeclBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    cout <<"End of FunctionDeclBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::visitFunctionCallBlock(FunctionCallBlock* functionCallBlock) {
-    cout <<"Beginning of FunctionCallBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    cout <<"Beginning of FunctionCallBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
     BasicBlock* block = functionCallBlock->getFirst();
     block->acceptVisitor(*this);
 
     block = functionCallBlock->getFnDecl();
     block->acceptVisitor(*this);
-    cout <<"End of FunctionCallBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    cout <<"End of FunctionCallBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::visitCFG(BasicBlock* block) {
-    cout <<"Beginning of CFG: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    cout <<"Beginning of CFG: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
     BasicBlock* next(0);
     while(block) {
         next = block->getNext();
         block->acceptVisitor(*this);
         block = next;
     }
-    cout <<"End of CFG: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    cout <<"End of CFG: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }
