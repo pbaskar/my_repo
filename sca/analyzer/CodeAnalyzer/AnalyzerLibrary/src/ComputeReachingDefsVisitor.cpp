@@ -12,16 +12,16 @@ ComputeReachingDefsVisitor::~ComputeReachingDefsVisitor() {
 }
 
 void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock) {
-    vector<AssignmentNode*> inVariableNodes;
+    map<const Variable*, vector<AssignmentNode*>> inVariableNodes;
     meet(basicBlock, inVariableNodes);
 }
 
-void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, vector<AssignmentNode*>& inVariableNodes) {
-    cout <<"Beginning of meet " <<endl;
-    const vector<BasicBlock*>& predecessors = basicBlock->getPredecessors();
+void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, map<const Variable*, vector<AssignmentNode*>>& inVariableNodes) {
 
+    const vector<BasicBlock*>& predecessors = basicBlock->getPredecessors();
+    cout <<"Beginning of meet :: predecessors count " <<predecessors.size() <<endl;
     if(!predecessors.empty()) {
-        vector<AssignmentNode*> intersectVariableNodes;
+        map<const Variable*, vector<AssignmentNode*>> intersectVariableNodes;
         auto predecessorIt = predecessors.begin();
         while(predecessorIt != predecessors.end()) {
             if(p_outVariableNodes.find(*predecessorIt) != p_outVariableNodes.end()) {
@@ -33,15 +33,15 @@ void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, vector<AssignmentN
         for(;predecessorIt != predecessors.end(); predecessorIt++) {
             if(p_outVariableNodes.find(*predecessorIt) == p_outVariableNodes.end())
                 continue;
-            vector<AssignmentNode*> variableNodes = p_outVariableNodes.at(*predecessorIt);
+            const map<const Variable*, vector<AssignmentNode*>>& variableNodes = p_outVariableNodes.at(*predecessorIt);
             for(auto intersectVariableIt = intersectVariableNodes.begin(); intersectVariableIt != intersectVariableNodes.end(); intersectVariableIt++) {
-                auto match = [=](AssignmentNode* variableNode) { return (**intersectVariableIt) == (*variableNode); };
+                auto match = [=](auto variableNode) { return intersectVariableIt->first == variableNode.first; };
                 if(find_if(variableNodes.begin(), variableNodes.end(), match) != variableNodes.end())
                     continue;
                 intersectVariableIt = intersectVariableNodes.erase(intersectVariableIt);
             }
         }
-
+        cout << "Meet11 :: Intersected nodes " <<intersectVariableNodes.size() <<endl;
         predecessorIt = predecessors.begin();
         while(predecessorIt != predecessors.end()) {
             if(p_outVariableNodes.find(*predecessorIt) != p_outVariableNodes.end())
@@ -51,40 +51,72 @@ void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, vector<AssignmentN
         for(;predecessorIt != predecessors.end(); predecessorIt++) {
             if(p_outVariableNodes.find(*predecessorIt) == p_outVariableNodes.end())
                 continue;
-            vector<AssignmentNode*> variableNodes = p_outVariableNodes.at(*predecessorIt);
+            const map<const Variable*, vector<AssignmentNode*>>& variableNodes = p_outVariableNodes.at(*predecessorIt);
             for(auto variableNodeIt = variableNodes.begin(); variableNodeIt != variableNodes.end(); variableNodeIt++) {
-                auto match = [=](AssignmentNode* intersectVariableNode) { return (**variableNodeIt) == (*intersectVariableNode); };
+                cout << "Meet1 :: Variable " <<variableNodeIt->first->getName() <<endl;
+                auto match = [=](auto intersectVariableNode) { return variableNodeIt->first == intersectVariableNode.first; };
                 if(find_if(intersectVariableNodes.begin(), intersectVariableNodes.end(), match) != intersectVariableNodes.end()) {
-                    if(find(inVariableNodes.begin(), inVariableNodes.end(), *variableNodeIt) != inVariableNodes.end())
-                        continue;
-                    inVariableNodes.push_back(*variableNodeIt);
+                    auto inVariableNodesIt = inVariableNodes.find(variableNodeIt->first);
+                    if(inVariableNodesIt != inVariableNodes.end()) {
+                        auto& inVariableNodes_r = inVariableNodesIt->second;
+                        inVariableNodes_r.insert(inVariableNodes_r.end(),variableNodeIt->second.begin(),
+                                                         variableNodeIt->second.end());
+                        sort(inVariableNodes_r.begin(), inVariableNodes_r.end());
+                        auto it = unique(inVariableNodes_r.begin(), inVariableNodes_r.end());
+                        inVariableNodes_r.resize(distance(inVariableNodes_r.begin(), it));
+                        for(auto assign : inVariableNodes_r) { cout <<"assign node " <<assign <<endl; }
+                        cout << "Meet :: Variable appended " <<variableNodeIt->first->getName() << " count " <<distance(inVariableNodes_r.begin(), it) <<" size " <<inVariableNodes_r.size()<<endl;
+                    }
+                    else {
+                        cout << "Meet :: Variable added " <<variableNodeIt->first->getName()<<endl;
+                        inVariableNodes[variableNodeIt->first] = variableNodeIt->second;
+                    }
                 }
             }
         }
     }
     detectChange(p_inVariableNodes, basicBlock, inVariableNodes);
-    p_inVariableNodes.insert_or_assign(basicBlock, inVariableNodes);
+    p_inVariableNodes.erase(basicBlock);
+    p_inVariableNodes[basicBlock] = inVariableNodes;
     cout <<"End of meet " <<inVariableNodes.size() <<endl;
 }
 
-void ComputeReachingDefsVisitor::detectChange(map<BasicBlock*, vector<AssignmentNode*>>& variableNodesAllBlocks,
+void ComputeReachingDefsVisitor::detectChange(map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>>& variableNodesAllBlocks,
                                               BasicBlock* basicBlock,
-                                              const vector<AssignmentNode*>& newVariableNodes)
+                                              const map<const Variable*, vector<AssignmentNode*>>& newAllVariableNodes)
 {
     cout <<"Beginning of detectChange " <<endl;
     if(variableNodesAllBlocks.find(basicBlock) != variableNodesAllBlocks.end()) {
-        vector<AssignmentNode*> oldVariableNodes = variableNodesAllBlocks.at(basicBlock);
-        for(AssignmentNode* assignmentNode : newVariableNodes) {
-            auto assignNodeIt = find(oldVariableNodes.begin(), oldVariableNodes.end(), assignmentNode);
-            if( assignNodeIt != oldVariableNodes.end()) {
-                oldVariableNodes.erase(assignNodeIt);
-            }
-            else {
+        map<const Variable*, vector<AssignmentNode*>>& oldAllVariableNodes = variableNodesAllBlocks.at(basicBlock);
+        for(const auto& newAllVariableNode : newAllVariableNodes) {
+            const Variable* variable = newAllVariableNode.first;
+            const vector<AssignmentNode*>& newVariableNodes = newAllVariableNode.second;
+            if(oldAllVariableNodes.find(variable) == oldAllVariableNodes.end()) {
                 p_variableNodesChanged = true;
-                break;
+                cout <<"end of detectchange " <<variable->getName() <<endl;
+                return;
             }
+            vector<AssignmentNode*>& oldVariableNodes = oldAllVariableNodes.at(variable);
+            for(const AssignmentNode* assignmentNode : newVariableNodes) {
+                auto assignNodeIt = find(oldVariableNodes.begin(), oldVariableNodes.end(), assignmentNode);
+                if( assignNodeIt != oldVariableNodes.end()) {
+                    oldVariableNodes.erase(assignNodeIt);
+                }
+                else {
+                    p_variableNodesChanged = true;
+                    cout <<"end of detectchange " <<variable->getName() <<endl;
+                    return;
+                }
+            }
+            if(!oldVariableNodes.empty()) {
+                p_variableNodesChanged = true;
+                cout <<"end of detectchange " <<variable->getName() <<endl;
+                return;
+            }
+            else
+                oldAllVariableNodes.erase(variable);
         }
-        if(!oldVariableNodes.empty())
+        if(!oldAllVariableNodes.empty())
             p_variableNodesChanged = true;
     }
     else
@@ -93,7 +125,7 @@ void ComputeReachingDefsVisitor::detectChange(map<BasicBlock*, vector<Assignment
 }
 
 void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
-    vector<AssignmentNode*> outVariableNodes = p_inVariableNodes.at(basicBlock);
+    map<const Variable*, vector<AssignmentNode*>> outVariableNodes = p_inVariableNodes.at(basicBlock);
     cout <<"Beginning of Block: variableNodes size " <<outVariableNodes.size() <<endl <<endl;
     vector<const Expr*> variables;
     const vector<Node*>& nodeList = basicBlock->getNodeList();
@@ -106,17 +138,24 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
         }
         else continue;
         cout <<"RHS value " << *value <<endl;
-        for(auto variableNodeIt=outVariableNodes.begin(); variableNodeIt != outVariableNodes.end(); ) {
-            if(*assignNode==*(*variableNodeIt)) {
-                variableNodeIt = outVariableNodes.erase(variableNodeIt);
-            }
-            else variableNodeIt++;
+        const Variable* var = assignNode->getVariable();
+        auto variableNodeIt = outVariableNodes.find(var);
+        if(variableNodeIt != outVariableNodes.end()) {
+            auto& nodes = outVariableNodes.at(var);
+            nodes.clear();
+            nodes.push_back(assignNode);
+            cout<<" replaced " <<*assignNode << " " <<assignNode <<endl;
         }
-        outVariableNodes.push_back(assignNode);
-        cout<<" added " <<*assignNode << " " <<assignNode <<endl;
+        else {
+            vector<AssignmentNode*> v;
+            v.push_back(assignNode);
+            cout<<" added " <<*assignNode << " " <<assignNode <<endl;
+            outVariableNodes.insert_or_assign(var, v);
+        }
     }
     detectChange(p_outVariableNodes, basicBlock, outVariableNodes);
-    p_outVariableNodes.insert_or_assign(basicBlock, outVariableNodes);
+    p_outVariableNodes.erase(basicBlock);
+    p_outVariableNodes[basicBlock] = outVariableNodes;
     cout <<"End of Block: variableNodes size " <<outVariableNodes.size() <<" " <<basicBlock <<endl <<endl;
 }
 
@@ -125,7 +164,7 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
     BasicBlock* lastBlock = ifElseBlock->getIfLast();
     BasicBlock* next(0);
 
-    vector<AssignmentNode*> variableNodes = p_inVariableNodes.at(ifElseBlock);
+    map<const Variable*, vector<AssignmentNode*>> variableNodes = p_inVariableNodes.at(ifElseBlock);
     cout <<"Beginning of IfElseBlock: variableNodes size " <<variableNodes.size() <<endl <<endl;
     meet(ifElseBlock->getIfFirst(), variableNodes);
     meet(ifElseBlock->getElseFirst(), variableNodes);
@@ -154,9 +193,10 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
 
     meet(ifElseBlock->getLast());
     ifElseBlock->getLast()->acceptVisitor(*this);
-    vector<AssignmentNode*> outVariableNodes = p_outVariableNodes.at(ifElseBlock->getLast());
+    const map<const Variable*, vector<AssignmentNode*>>& outVariableNodes = p_outVariableNodes.at(ifElseBlock->getLast());
     detectChange(p_outVariableNodes, ifElseBlock, outVariableNodes);
-    p_outVariableNodes.insert_or_assign(ifElseBlock, outVariableNodes);
+    p_outVariableNodes.erase(ifElseBlock);
+    p_outVariableNodes[ifElseBlock] = outVariableNodes;
 
     cout <<"End of IfElseBlock: variableNodes size " <<outVariableNodes.size() <<endl <<endl;
 }
@@ -166,7 +206,7 @@ void ComputeReachingDefsVisitor::visitWhileBlock(WhileBlock* whileBlock) {
     BasicBlock* lastBlock = whileBlock->getLast();
     BasicBlock* next(0);
 
-    vector<AssignmentNode*> variableNodes = p_inVariableNodes.at(whileBlock);
+    map<const Variable*, vector<AssignmentNode*>> variableNodes = p_inVariableNodes.at(whileBlock);
     cout <<"Beginning of WhileBlock: variableNodes size " <<variableNodes.size() <<endl <<endl;
     meet(block, variableNodes);
 
@@ -179,9 +219,10 @@ void ComputeReachingDefsVisitor::visitWhileBlock(WhileBlock* whileBlock) {
     }
     block->acceptVisitor(*this);
 
-    vector<AssignmentNode*> outVariableNodes = p_outVariableNodes.at(whileBlock->getLast());
+    const map<const Variable*, vector<AssignmentNode*>>& outVariableNodes = p_outVariableNodes.at(whileBlock->getLast());
     detectChange(p_outVariableNodes, whileBlock, outVariableNodes);
-    p_outVariableNodes.insert_or_assign(whileBlock, outVariableNodes);
+    p_outVariableNodes.erase(whileBlock);
+    p_outVariableNodes[whileBlock] = outVariableNodes;
 
     cout <<"End of WhileBlock: variableNodes size " <<outVariableNodes.size() <<endl <<endl;
 }
@@ -191,7 +232,7 @@ void ComputeReachingDefsVisitor::visitFunctionDeclBlock(FunctionDeclBlock* funct
     BasicBlock* lastBlock = functionDeclBlock->getLast();
     BasicBlock* next(0);
 
-    vector<AssignmentNode*> variableNodes = p_inVariableNodes.at(functionDeclBlock);
+    map<const Variable*, vector<AssignmentNode*>> variableNodes = p_inVariableNodes.at(functionDeclBlock);
     cout <<"Beginning of FunctionDeclBlock: variableNodes size " <<variableNodes.size() <<endl <<endl;
     meet(functionDeclBlock->getFirst(), variableNodes);
 
@@ -204,15 +245,16 @@ void ComputeReachingDefsVisitor::visitFunctionDeclBlock(FunctionDeclBlock* funct
     }
     block->acceptVisitor(*this);
 
-    vector<AssignmentNode*> outVariableNodes = p_outVariableNodes.at(functionDeclBlock->getLast());
+    map<const Variable*, vector<AssignmentNode*>> outVariableNodes = p_outVariableNodes.at(functionDeclBlock->getLast());
     detectChange(p_outVariableNodes, functionDeclBlock, outVariableNodes);
-    p_outVariableNodes.insert_or_assign(functionDeclBlock, outVariableNodes);
+    p_outVariableNodes.erase(functionDeclBlock);
+    p_outVariableNodes[functionDeclBlock] = outVariableNodes;
 
     cout <<"End of FunctionDeclBlock: variableNodes size " <<outVariableNodes.size() <<endl <<endl;
 }
 
 void ComputeReachingDefsVisitor::visitFunctionCallBlock(FunctionCallBlock* functionCallBlock) {
-    vector<AssignmentNode*> variableNodes = p_inVariableNodes.at(functionCallBlock);
+    map<const Variable*, vector<AssignmentNode*>> variableNodes = p_inVariableNodes.at(functionCallBlock);
     cout <<"Beginning of FunctionCallBlock: variableNodes size " <<variableNodes.size() <<endl <<endl;
     meet(functionCallBlock->getFirst(), variableNodes);
 
@@ -223,9 +265,10 @@ void ComputeReachingDefsVisitor::visitFunctionCallBlock(FunctionCallBlock* funct
     meet(block);
     block->acceptVisitor(*this);
 
-    vector<AssignmentNode*> outVariableNodes = p_outVariableNodes.at(block);
+    map<const Variable*, vector<AssignmentNode*>> outVariableNodes = p_outVariableNodes.at(block);
     detectChange(p_outVariableNodes, functionCallBlock, outVariableNodes);
-    p_outVariableNodes.insert_or_assign(functionCallBlock, outVariableNodes);
+    p_outVariableNodes.erase(functionCallBlock);
+    p_outVariableNodes[functionCallBlock] = outVariableNodes;
 
     cout <<"End of FunctionCallBlock: variableNodes size " <<outVariableNodes.size() <<endl <<endl;
 }
@@ -246,6 +289,7 @@ void ComputeReachingDefsVisitor::visitCFG(BasicBlock* block) {
             curr = next;
         }
         cout <<"variable changed " <<p_variableNodesChanged <<endl;
+        if(numIt >=3 ) break;
     }
     cout <<"End of CFG: variableNodes size " <<p_outVariableNodes.size() <<" Iterations " << numIt <<endl <<endl;
 }

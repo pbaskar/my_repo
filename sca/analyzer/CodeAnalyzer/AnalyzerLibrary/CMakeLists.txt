@@ -22,6 +22,7 @@ add_library(AnalyzerLibrary SHARED
   src/Tokenizer.cpp
   src/Traverser.cpp
   src/Visitor.cpp
+  src/ComputeReachingDefsVisitor.cpp
   src/Utils.cpp
   src/Expr.h
   src/BasicBlock.h
@@ -36,6 +37,7 @@ add_library(AnalyzerLibrary SHARED
   src/Tokenizer.h
   src/Traverser.h
   src/Visitor.h
+  src/ComputeReachingDefsVisitor.h
   src/Utils.h
   src/Results.h
 )

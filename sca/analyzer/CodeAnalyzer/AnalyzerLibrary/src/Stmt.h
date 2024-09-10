@@ -63,8 +63,8 @@ public:
     void addStatement(Stmt* stmt) {
         p_subStatements.push_back(stmt);
     }
-    Variable* addSymbol(char* name) {
-        return p_symbolTable->addSymbol(name);
+    Variable* addSymbol(char* name, VarType varType) {
+        return p_symbolTable->addSymbol(name, varType);
     }
     Variable* fetchVariable(char* name) {
         return p_symbolTable->fetchVariable(name);

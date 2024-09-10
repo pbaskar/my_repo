@@ -19,6 +19,11 @@ enum ExprType {
     INVALID
 };
 
+enum VarType {
+    VALUE,
+    POINTER
+};
+
 class Expr {
 public:
     Expr() {}
@@ -62,7 +67,7 @@ private:
 
 class Variable : public Expr {
 public:
-    Variable(const char* n): p_name(n) {}
+    Variable(const char* n, VarType type): p_name(n), p_type(type) {}
     virtual ~Variable() { /*delete p_name;*/ }
     virtual ExprType getExprType() { return VARIABLE; }
     void setName(const char* name) { p_name = name; }
@@ -79,6 +84,7 @@ public:
     }
 private:
     const char* p_name;
+    VarType p_type;
 };
 
 class Constant : public Expr {

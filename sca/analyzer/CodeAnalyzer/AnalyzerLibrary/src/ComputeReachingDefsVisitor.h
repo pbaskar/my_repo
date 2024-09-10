@@ -3,6 +3,8 @@
 
 #include "Visitor.h"
 #include <map>
+
+class Variable;
 class ComputeReachingDefsVisitor : public Visitor {
 public:
     ComputeReachingDefsVisitor();
@@ -16,14 +18,14 @@ public:
     virtual void visitCFG(BasicBlock* block);
 
     void meet(BasicBlock* basicBlock);
-    void meet(BasicBlock* basicBlock, vector<AssignmentNode*>& inVariableNodes);
-    void detectChange(map<BasicBlock*, vector<AssignmentNode*>>& oldVariableNodes,
+    void meet(BasicBlock* basicBlock, map<const Variable*, vector<AssignmentNode*>>& inVariableNodes);
+    void detectChange(map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>>& oldVariableNodes,
                       BasicBlock* basicBlock,
-                      const vector<AssignmentNode*>& newVariableNodes);
-    map<BasicBlock*, vector<AssignmentNode*>> getInVariableNodes() { return p_inVariableNodes; }
+                      const map<const Variable*, vector<AssignmentNode*>>& newVariableNodes);
+    map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>> getInVariableNodes() { return p_inVariableNodes; }
 private:
-    map<BasicBlock*, vector<AssignmentNode*>> p_inVariableNodes;
-    map<BasicBlock*, vector<AssignmentNode*>> p_outVariableNodes;
+    map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>> p_inVariableNodes;
+    map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>> p_outVariableNodes;
     bool p_variableNodesChanged = true;
 };
 

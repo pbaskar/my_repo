@@ -76,7 +76,7 @@ void DeleteVisitor::visitFunctionCallBlock(FunctionCallBlock* functionCallBlock)
     delete functionCallBlock;
 }
 
-VariableInitCheckVisitor::VariableInitCheckVisitor(map<BasicBlock*, vector<AssignmentNode*>>& inVariableNodes) {
+VariableInitCheckVisitor::VariableInitCheckVisitor(map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>>& inVariableNodes) {
     p_inVariableNodes = std::move(inVariableNodes);
 }
 
@@ -85,7 +85,7 @@ VariableInitCheckVisitor::~VariableInitCheckVisitor() {
 }
 
 void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
-    vector<AssignmentNode*> variableNodes = p_inVariableNodes.at(basicBlock);
+    map<const Variable*, vector<AssignmentNode*>> variableNodes = p_inVariableNodes.at(basicBlock);
     cout <<"Beginning of Block: variableNodes size " <<variableNodes.size() <<endl <<endl;
     vector<const Expr*> variables;
     bool found = false;
@@ -103,10 +103,8 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
             const Variable* variable = static_cast<const Variable*>(*variableIt);
             if (!variable) cout <<"cast error " <<endl;
             found = false;
-            for(auto variableNodeIt=variableNodes.begin(); variableNodeIt != variableNodes.end(); variableNodeIt++ ) {
-                if(variable == (*variableNodeIt)->getVariable()) {
-                    found = true;
-                }
+            if(variableNodes.find(variable) == variableNodes.end()) {
+                found = true;
             }
             if(!found) {
                 const char* m = "Not initialized ";
@@ -120,14 +118,13 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                 p_results.push_back(r);
             }
         }
-        for(auto variableNodeIt=variableNodes.begin(); variableNodeIt != variableNodes.end(); ) {
-            if(*assignNode==*(*variableNodeIt)) {
-                variableNodeIt = variableNodes.erase(variableNodeIt);
-            }
-            else variableNodeIt++;
+        auto variableNodeIt = variableNodes.find(assignNode->getVariable());
+        if(variableNodeIt != variableNodes.end()) {
+            auto& nodes = variableNodes.at(assignNode->getVariable());
+            nodes.clear();
+            nodes.push_back(assignNode);
+            cout<<" added " <<*assignNode << " " <<assignNode <<endl;
         }
-        variableNodes.push_back(assignNode);
-        cout<<" added " <<*assignNode <<endl;
     }
     cout <<"End of Block: variableNodes size " <<variableNodes.size() <<endl <<endl;
 }

@@ -101,9 +101,9 @@ public:
         }
         cout<<endl;
     }
-    Variable* addSymbol(const char* name) {
+    /*Variable* addSymbol(const char* name) {
         return p_symbolTable->addSymbol(name);
-    }
+    }*/
     Variable* fetchVariable(const char* name) {
         return p_symbolTable->fetchVariable(name);
     }

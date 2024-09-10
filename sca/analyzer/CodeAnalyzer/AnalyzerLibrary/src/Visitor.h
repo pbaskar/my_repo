@@ -18,6 +18,7 @@ class WhileBlock;
 class FunctionDeclBlock;
 class FunctionCallBlock;
 class AssignmentNode;
+class Variable;
 class Visitor {
 public:
     Visitor();
@@ -58,7 +59,7 @@ public:
 
 class VariableInitCheckVisitor : public Visitor {
 public:
-    VariableInitCheckVisitor(map<BasicBlock*, vector<AssignmentNode*>>& inVariableNodes);
+    VariableInitCheckVisitor(map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>>& inVariableNodes);
     virtual ~VariableInitCheckVisitor();
 
     virtual void visitBasicBlock(BasicBlock* basicBlock);
@@ -71,7 +72,7 @@ public:
     void intersect(vector<AssignmentNode*>& dest, vector<AssignmentNode*>& source);
     const vector<Result>& getResults() { return p_results; }
 private:
-    map<BasicBlock*, vector<AssignmentNode*>> p_inVariableNodes;
+    map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>> p_inVariableNodes;
     vector<Result> p_results;
 };
 #endif /* SRC_VISITOR_H_ */

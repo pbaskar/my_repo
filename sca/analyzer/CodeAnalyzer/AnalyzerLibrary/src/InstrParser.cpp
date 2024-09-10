@@ -85,9 +85,13 @@ Status InstrParser::parseDecl(Block* block) {
     Status status = SUCCESS;
     AssignStmt* stmt = new AssignStmt(DECL);
     block->addStatement(stmt);
+
+    VarType varType = VarType::VALUE;
+    char pointer = p_tokenizer.lookAhead(1);
+    if(pointer == '*') { p_tokenizer.nextChar(); varType = VarType::POINTER; }
     char* name = p_tokenizer.nextWord();
     if(name == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseDecl:", "name"); return FAILURE; }
-    stmt->setVar(block->addSymbol(name));
+    stmt->setVar(block->addSymbol(name, varType));
 
     char equal = p_tokenizer.nextChar();
     if(equal == ';') { 	p_tokenizer.nextLine(); return status; }
@@ -230,10 +234,13 @@ Status InstrParser::parseFunctionDecl(Block* block) {
     if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "argument declaration"); return FAILURE; }
     delete next;
 
+    VarType varType = VarType::VALUE;
+    char pointer = p_tokenizer.lookAhead(1);
+    if(pointer == '*') { p_tokenizer.nextChar(); varType = VarType::POINTER; }
     next = p_tokenizer.nextWord();
     if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "argument name"); return FAILURE; }
 
-    Variable* argument = block->addSymbol(next); // add to the current symbol table
+    Variable* argument = block->addSymbol(next, varType); // add to the current symbol table
     stmt->addFormalArgument(argument);
 
     p_tokenizer.nextLine();

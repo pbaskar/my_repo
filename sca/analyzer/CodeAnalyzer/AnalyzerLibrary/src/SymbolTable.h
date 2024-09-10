@@ -9,9 +9,9 @@
 #define SRC_SYMBOLTABLE_H_
 #include<vector>
 #include<cstring>
+#include "Expr.h"
 
 class FunctionDeclBlock;
-class Variable;
 using namespace std;
 
 enum DataType {
@@ -54,7 +54,7 @@ public:
     SymbolTable();
     SymbolTable(SymbolTable* outerScope);
     virtual ~SymbolTable();
-    Variable* addSymbol(const char* name);
+    Variable* addSymbol(const char* name, VarType varType);
     Variable* fetchVariable(const char* name) const;
     FunctionDeclBlock* addFnSymbol(FunctionDeclBlock* fnDeclBlock);
     FunctionDeclBlock* fetchFunctionDeclBlock(const char* name) const;

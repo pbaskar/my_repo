@@ -29,7 +29,7 @@ SymbolTable::~SymbolTable() {
     }
 }
 
-Variable* SymbolTable::addSymbol(const char* name) {
+Variable* SymbolTable::addSymbol(const char* name, VarType varType) {
     Variable* var(0);
 
     for(auto symbol : p_symbolEntries) {
@@ -38,7 +38,7 @@ Variable* SymbolTable::addSymbol(const char* name) {
     }
     if(var) { //error
     }
-    var = new Variable(name);
+    var = new Variable(name, varType);
     SymbolTableEntry* symbolTableEntry = new SymbolTableEntry(var, INT, 0);
     p_symbolEntries.push_back(symbolTableEntry);
     return var;
