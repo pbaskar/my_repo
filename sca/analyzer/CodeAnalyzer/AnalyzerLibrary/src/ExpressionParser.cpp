@@ -45,11 +45,20 @@ Expr* ExpressionParser::makeNewLeaf(char* token, ExprType type) {
 
 Expr* ExpressionParser::parseFactor() {
     ExprType type = CONSTANT;
-    char* token = p_exprTokenizer.nextWord(type);
-    //cout <<"Factor: first token " <<token << type <<endl;
-    Expr* leftOp = makeNewLeaf(token, type);
-
     char o = p_exprTokenizer.nextChar(true);
+    bool isPrefix = false;
+    //cout <<"Factor: first token " <<token << type <<endl;
+    if(o == '*') {
+        p_exprTokenizer.nextWord(type);
+        isPrefix = true;
+    }
+    char* token = p_exprTokenizer.nextWord(type);
+    Expr* leftOp = makeNewLeaf(token, type);
+    if(isPrefix) {
+        leftOp = new UnaryOperator(o, leftOp);
+    }
+
+    o = p_exprTokenizer.nextChar(true);
     //cout <<"Factor: op " <<o <<endl;
 
     if(o == '\0' || o == '+') return leftOp;

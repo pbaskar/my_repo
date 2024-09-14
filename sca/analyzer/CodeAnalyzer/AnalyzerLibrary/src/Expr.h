@@ -16,6 +16,7 @@ enum ExprType {
     CONSTANT,
     VARIABLE,
     OPERATOR,
+    UNARYOPERATOR,
     INVALID
 };
 
@@ -61,6 +62,27 @@ public:
     }
 private:
     Expr* p_left;
+    char p_op;
+    Expr* p_right;
+};
+
+class UnaryOperator : public Expr {
+public:
+    UnaryOperator(char o, Expr* r): p_op(o), p_right(r) {}
+    virtual ~UnaryOperator() {
+        if(p_right->getExprType() != VARIABLE)
+            delete p_right;
+    }
+    virtual ExprType getExprType() { return UNARYOPERATOR; }
+    void setRightOp(Expr* right) { p_right = right; }
+    void setOp(char op) { p_op = op; }
+    virtual void print(ostream& os) const{
+        os<< p_op <<*p_right;
+    }
+    virtual void getVariables(vector<const Expr*>& variables) const {
+        p_right->getVariables(variables);
+    }
+private:
     char p_op;
     Expr* p_right;
 };

@@ -87,23 +87,23 @@ VariableInitCheckVisitor::~VariableInitCheckVisitor() {
 void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
     map<const Variable*, vector<AssignmentNode*>> variableNodes = p_inVariableNodes.at(basicBlock);
     cout <<"Beginning of Block: variableNodes size " <<variableNodes.size() <<endl <<endl;
-    vector<const Expr*> variables;
     bool found = false;
     const vector<Node*>& nodeList = basicBlock->getNodeList();
     for(Node* node: nodeList) {
         if(node->type() != ASSIGNMENT) continue;
         AssignmentNode* assignNode = static_cast<AssignmentNode*>(node);
         const Expr* value=assignNode->getValue();
+        vector<const Expr*> variables;
         if(value) {
             value->getVariables(variables);
         }
         else continue;
-        cout <<"RHS value " << *value <<endl;
+        cout <<"RHS value " << *value <<" variables count " <<variables.size() <<endl;
         for(auto variableIt = variables.begin(); variableIt != variables.end(); variableIt++) {
             const Variable* variable = static_cast<const Variable*>(*variableIt);
             if (!variable) cout <<"cast error " <<endl;
             found = false;
-            if(variableNodes.find(variable) == variableNodes.end()) {
+            if(variableNodes.find(variable) != variableNodes.end()) {
                 found = true;
             }
             if(!found) {
@@ -115,15 +115,23 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                 strncat(r.errorMessage,m,strlen(m));
                 strncat(r.errorMessage,name,strlen(name));
                 r.errorMessage[strlen(m)+strlen(name)] = '\0';
+                cout << "Error message " <<r.errorMessage <<endl;
                 p_results.push_back(r);
             }
         }
-        auto variableNodeIt = variableNodes.find(assignNode->getVariable());
+        const Variable* var = assignNode->getVariable();
+        auto variableNodeIt = variableNodes.find(var);
         if(variableNodeIt != variableNodes.end()) {
-            auto& nodes = variableNodes.at(assignNode->getVariable());
+            auto& nodes = variableNodes.at(var);
             nodes.clear();
             nodes.push_back(assignNode);
             cout<<" added " <<*assignNode << " " <<assignNode <<endl;
+        }
+        else {
+            vector<AssignmentNode*> v;
+            v.push_back(assignNode);
+            cout<<" added " <<*assignNode << " " <<assignNode <<endl;
+            variableNodes.insert_or_assign(var, v);
         }
     }
     cout <<"End of Block: variableNodes size " <<variableNodes.size() <<endl <<endl;
