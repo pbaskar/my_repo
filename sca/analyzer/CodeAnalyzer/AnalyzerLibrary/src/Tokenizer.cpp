@@ -35,6 +35,10 @@ Status Tokenizer::nextLine() {
     p_pos = 0;
     fr.getLine(p_line);
     if(p_line[0] == '\0') return FAILURE;
+    if(p_line[0] == '/' && p_line[1] == '/') {
+        memset(p_line, 0, 256);
+        fr.getLine(p_line);
+    }
     return status;
 }
 
