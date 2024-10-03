@@ -3,12 +3,13 @@
 #include "AnalyzerLibrary/analyzer.h"
 #include "jsonutils.h"
 
+extern char* gFileName;
 SocketServer::SocketServer()
 {
     connect(&p_timer, &QTimer::timeout, this, &SocketServer::timerTriggered);
     connect(this, &SocketServer::newConnection, this, &SocketServer::onNewConnection);
     listen(QHostAddress::LocalHost, 1234);
-    p_timer.start(30000);
+    p_timer.start(3000);
 }
 
 SocketServer::~SocketServer()
@@ -37,7 +38,7 @@ void SocketServer::readData()
     if(command == "run") {
         Analyzer analyzer;
         std::vector<Result> results;
-        Status s = analyzer.execute("C:\\workspace\\my_repo\\sca\\test\\instructions.c", results);
+        Status s = analyzer.execute(gFileName, results);
 
         QJsonObject jsonObject;
         if(s == SUCCESS) {
@@ -58,7 +59,7 @@ void SocketServer::readData()
     else if(command.startsWith("getCFG")) {
         Analyzer analyzer;
         BasicBlock* cfgHead;
-        Status s = analyzer.getCFG("C:\\workspace\\my_repo\\sca\\test\\instructions.c", cfgHead);
+        Status s = analyzer.getCFG(gFileName, cfgHead);
         QJsonObject jsonObject;
 
         if(s == SUCCESS) {
@@ -66,7 +67,7 @@ void SocketServer::readData()
             QJsonArray cfgJson = JsonUtils::toJson(cfgHead);
             jsonObject["getCFG"] = cfgJson;
             qDebug() << "CFG Json " << cfgJson;
-            //JsonUtils::fromJson(cfgJson);
+            //JsonUtils::fromCFGJson(cfgJson);
         }
         else {
             qDebug() <<Q_FUNC_INFO<<"Analysis failed";
@@ -88,19 +89,16 @@ void SocketServer::clientDisconnected()
 void SocketServer::timerTriggered()
 {
     qDebug() <<Q_FUNC_INFO <<"Timer fired ";
-    /*Analyzer analyzer;
-    BasicBlock* cfgHead;
-    Status s = analyzer.getCFG("C:\\workspace\\my_repo\\sca\\test\\instructions.c", cfgHead);
-    QByteArray cfgJson;
+    Analyzer analyzer;
+    std::vector<Result> results;
+    Status s = analyzer.execute(gFileName, results);
 
+    QJsonObject jsonObject;
     if(s == SUCCESS) {
-        qDebug() <<Q_FUNC_INFO<<"CFG Head " <<cfgHead;
-        cfgJson = JsonUtils::toJson(cfgHead);
-        qDebug() << "CFG Json " << cfgJson;
-        JsonUtils::fromCFGJson(cfgJson);
+        qDebug() <<Q_FUNC_INFO<<"num of messages " <<results.size();
     }
     else {
         qDebug() <<Q_FUNC_INFO<<"Analysis failed";
-    }*/
+    }
     qApp->quit();
 }
