@@ -167,7 +167,6 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
     map<const Variable*, vector<AssignmentNode*>> variableNodes = p_inVariableNodes.at(ifElseBlock);
     cout <<"Beginning of IfElseBlock: variableNodes size " <<variableNodes.size() <<endl <<endl;
     meet(ifElseBlock->getIfFirst(), variableNodes);
-    meet(ifElseBlock->getElseFirst(), variableNodes);
 
     while(block != lastBlock) {
         next = block->getNext();
@@ -178,17 +177,20 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
     }
     lastBlock->acceptVisitor(*this);
 
-    block = ifElseBlock->getElseFirst();
-    lastBlock = ifElseBlock->getElseLast();
-    while(block != lastBlock) {
-        next = block->getNext();
-        block->acceptVisitor(*this);
-        block = next;
-        assert(block != nullptr);
-        meet(block);
-    }
-    if(block) {
-        block->acceptVisitor(*this);
+    if(ifElseBlock->getElseFirst()) {
+        meet(ifElseBlock->getElseFirst(), variableNodes);
+        block = ifElseBlock->getElseFirst();
+        lastBlock = ifElseBlock->getElseLast();
+        while(block != lastBlock) {
+            next = block->getNext();
+            block->acceptVisitor(*this);
+            block = next;
+            assert(block != nullptr);
+            meet(block);
+        }
+        if(block) {
+            block->acceptVisitor(*this);
+        }
     }
 
     meet(ifElseBlock->getLast());

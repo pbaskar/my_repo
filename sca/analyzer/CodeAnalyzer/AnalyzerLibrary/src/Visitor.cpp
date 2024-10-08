@@ -90,9 +90,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
     bool found = false;
     const vector<Node*>& nodeList = basicBlock->getNodeList();
     for(Node* node: nodeList) {
-        if(node->type() != ASSIGNMENT) continue;
-        AssignmentNode* assignNode = static_cast<AssignmentNode*>(node);
-        const Expr* value=assignNode->getValue();
+        const Expr* value=node->getValue();
         vector<const Expr*> variables;
         if(value) {
             value->getVariables(variables);
@@ -119,6 +117,8 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                 p_results.push_back(r);
             }
         }
+        if(node->type() != ASSIGNMENT) continue;
+        AssignmentNode* assignNode = static_cast<AssignmentNode*>(node);
         const Variable* var = assignNode->getVariable();
         auto variableNodeIt = variableNodes.find(var);
         if(variableNodeIt != variableNodes.end()) {
@@ -168,15 +168,17 @@ void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
     }
     lastBlock->acceptVisitor(*this);
 
-    block = ifElseBlock->getElseFirst();
-    lastBlock = ifElseBlock->getElseLast();
-    while(block != lastBlock) {
-        next = block->getNext();
-        block->acceptVisitor(*this);
-        block = next;
-    }
-    if(block) {
-        block->acceptVisitor(*this);
+    if(ifElseBlock->getElseFirst()) {
+        block = ifElseBlock->getElseFirst();
+        lastBlock = ifElseBlock->getElseLast();
+        while(block != lastBlock) {
+            next = block->getNext();
+            block->acceptVisitor(*this);
+            block = next;
+        }
+        if(block) {
+            block->acceptVisitor(*this);
+        }
     }
     cout <<"End of IfElseBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }

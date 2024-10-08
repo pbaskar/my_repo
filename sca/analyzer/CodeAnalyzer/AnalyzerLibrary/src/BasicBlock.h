@@ -26,6 +26,7 @@ public:
     }
     virtual NodeType type()=0;
     virtual void print(ostream& os) const=0;
+    virtual const Expr* getValue() const =0;
     friend ostream& operator<<(ostream& os, const Node& node) {
         node.print(os);
         return os;
@@ -56,8 +57,8 @@ public:
     bool operator==(const AssignmentNode& other) {
         return p_var == other.p_var;
     }
-    const Variable* getVariable() { return p_var; }
-    const Expr* getValue() { return p_value; }
+    const Variable* getVariable() const { return p_var; }
+    virtual const Expr* getValue() const { return p_value; }
 
 private:
     const Variable* p_var;
@@ -81,6 +82,7 @@ public:
             os <<*p_condition <<" ";
     }
     void setCondition(Expr* condition) { p_condition = condition; }
+    virtual const Expr* getValue() const { return p_condition; };
 private:
     const Expr* p_condition;
 };
@@ -144,7 +146,9 @@ public:
 : BasicBlock(next,0), p_ifFirst(ifFirst), p_ifLast(ifLast), p_elseFirst(elseFirst), p_elseLast(elseLast) {
         p_last = new BasicBlock(nullptr);
         p_ifLast->setNext(p_last);
-        p_elseLast->setNext(p_last);
+        if(p_elseLast) {
+            p_elseLast->setNext(p_last);
+        }
     }
     virtual ~IfElseBlock() {
     }
