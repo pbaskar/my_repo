@@ -127,30 +127,39 @@ void ComputeReachingDefsVisitor::detectChange(map<BasicBlock*, map<const Variabl
 void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
     map<const Variable*, vector<AssignmentNode*>> outVariableNodes = p_inVariableNodes.at(basicBlock);
     cout <<"Beginning of Block: variableNodes size " <<outVariableNodes.size() <<endl <<endl;
-    vector<const Expr*> variables;
+    vector<const Expr*> RHSVariables;
     const vector<Node*>& nodeList = basicBlock->getNodeList();
     for(Node* node: nodeList) {
         if(node->type() != ASSIGNMENT) continue;
         AssignmentNode* assignNode = static_cast<AssignmentNode*>(node);
         const Expr* value=assignNode->getValue();
         if(value) {
-            value->getVariables(variables);
+            value->getRHSVariables(RHSVariables);
         }
         else continue;
         cout <<"RHS value " << *value <<endl;
-        const Variable* var = assignNode->getVariable();
-        auto variableNodeIt = outVariableNodes.find(var);
-        if(variableNodeIt != outVariableNodes.end()) {
-            auto& nodes = outVariableNodes.at(var);
-            nodes.clear();
-            nodes.push_back(assignNode);
-            cout<<" replaced " <<*assignNode << " " <<assignNode <<endl;
-        }
-        else {
-            vector<AssignmentNode*> v;
-            v.push_back(assignNode);
-            cout<<" added " <<*assignNode << " " <<assignNode <<endl;
-            outVariableNodes.insert_or_assign(var, v);
+        //Save variables in assignNode both LHS and RHSVariables
+        vector<const Expr*> LHSVariables;
+        const Expr* var = assignNode->getVariable();
+        if(var) var->getRHSVariables(LHSVariables);
+        value->getLHS(LHSVariables);
+
+        for(auto variableIt = LHSVariables.begin(); variableIt != LHSVariables.end(); variableIt++) {
+            const Variable* var = static_cast<const Variable*>(*variableIt);
+            if (!var) cout <<"cast error " <<endl;
+            auto variableNodeIt = outVariableNodes.find(var);
+            if(variableNodeIt != outVariableNodes.end()) {
+                auto& nodes = outVariableNodes.at(var);
+                nodes.clear();
+                nodes.push_back(assignNode);
+                cout<<" replaced " <<*assignNode << " " <<assignNode <<endl;
+            }
+            else {
+                vector<AssignmentNode*> v;
+                v.push_back(assignNode);
+                cout<<" added " <<*assignNode << " " <<assignNode <<endl;
+                outVariableNodes.insert_or_assign(var, v);
+            }
         }
     }
     detectChange(p_outVariableNodes, basicBlock, outVariableNodes);
@@ -280,7 +289,7 @@ void ComputeReachingDefsVisitor::visitCFG(BasicBlock* block) {
     BasicBlock* next(0);
     BasicBlock* curr(block);
     int numIt = 0;
-    while(p_variableNodesChanged) {
+    //while(p_variableNodesChanged) {
         p_variableNodesChanged = false;
         curr = block;
         numIt++;
@@ -291,7 +300,7 @@ void ComputeReachingDefsVisitor::visitCFG(BasicBlock* block) {
             curr = next;
         }
         cout <<"variable changed " <<p_variableNodesChanged <<endl;
-        if(numIt >=3 ) break;
-    }
+        //if(numIt >=3 ) break;
+    //}
     cout <<"End of CFG: variableNodes size " <<p_outVariableNodes.size() <<" Iterations " << numIt <<endl <<endl;
 }

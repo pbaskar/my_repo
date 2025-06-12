@@ -17,6 +17,7 @@ public:
     int readNextWordLen(int& begin);
     void consumeWord();
     char* nextWord(bool peek=false);
+    char* nextWordUntil(char delim[], int numDelim);
     char lookAhead(int num);
     char nextChar(bool peek=false);
     Status nextLine();

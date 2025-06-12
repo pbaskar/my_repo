@@ -22,6 +22,8 @@ public:
     char nextChar(bool peek=false);
     char* nextWord(ExprType& type,bool peek=false);
     void setExpressionStr(char* expressionStr);
+    void setPos(int pos);
+    int getPos() const;
 
 private:
     char* p_expressionStr;

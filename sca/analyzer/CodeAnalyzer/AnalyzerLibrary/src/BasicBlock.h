@@ -39,7 +39,7 @@ private:
 class AssignmentNode : public Node {
 public:
     AssignmentNode() : p_var(0), p_value(0) { }
-    AssignmentNode(Variable* var, Expr* value) : p_var(var), p_value(value) { }
+    AssignmentNode(Expr* var, Expr* value) : p_var(var), p_value(value) { }
     AssignmentNode(AssignStmt& stmt) {
         p_var = stmt.getVar();
         p_value = stmt.getValue();
@@ -50,18 +50,18 @@ public:
         //delete p_value;
     }
     virtual void print(ostream& os) const {
-        os << "name " << *p_var;
+        //os << "name " << *p_var;
         if(p_value)
             os <<" value " <<*p_value <<" ";
     }
     bool operator==(const AssignmentNode& other) {
         return p_var == other.p_var;
     }
-    const Variable* getVariable() const { return p_var; }
+    const Expr* getVariable() const { return p_var; }
     virtual const Expr* getValue() const { return p_value; }
 
 private:
-    const Variable* p_var;
+    const Expr* p_var;
     const Expr* p_value;
 };
 

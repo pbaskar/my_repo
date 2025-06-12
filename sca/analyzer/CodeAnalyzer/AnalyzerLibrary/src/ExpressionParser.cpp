@@ -9,7 +9,7 @@
 
 using namespace std;
 
-static const char operators[] = { '+', '-', '*', '/' };
+static const char operators[] = { '+', '-', '*', '/', '=' };
 ExpressionParser::ExpressionParser(): p_symbolTable(0) {
     // TODO Auto-generated constructor stub
 
@@ -34,8 +34,8 @@ Expr* ExpressionParser::makeNewLeaf(char* token, ExprType type) {
         expr = new Constant(number);
     }
     break;
-    case VARIABLE: {
-        expr = p_symbolTable->fetchVariable(token);
+    case IDENTIFIER: {
+        expr = new Identifier(token);
     }
     break;
     default: return nullptr; //failure
@@ -43,49 +43,163 @@ Expr* ExpressionParser::makeNewLeaf(char* token, ExprType type) {
     return expr;
 }
 
-Expr* ExpressionParser::parseFactor() {
-    ExprType type = CONSTANT;
+Expr* ExpressionParser::parseExpression() {
+    Expr* expr = parseAssignmentExpression();
+    return expr;
+}
+
+Expr* ExpressionParser::parseAdditiveExpression() {
+    Expr* oper = nullptr;
+    Expr* leftOp = parseMultiplicativeExpression();
     char o = p_exprTokenizer.nextChar(true);
-    bool isPrefix = false;
-    //cout <<"Factor: first token " <<token << type <<endl;
-    if(o == '*') {
-        p_exprTokenizer.nextWord(type);
-        isPrefix = true;
+
+    cout <<"AdditiveExpr: op " <<o <<endl;
+    //if(o == '\0' || o == '=') { cout <<"return leftop " <<leftOp <<endl; return leftOp; }
+    if( o == '+' || o == '-') {
+        p_exprTokenizer.nextChar();
+        Expr* rightOp = parseAdditiveExpression();
+        if(leftOp == nullptr || rightOp == nullptr) {
+            delete leftOp;
+            delete rightOp;
+        }
+        else {
+            oper = new Operator(leftOp,o,rightOp);
+        }
+    } else {
+        cout << "AdditiveExpression " <<leftOp <<endl;
+        return leftOp;
     }
-    char* token = p_exprTokenizer.nextWord(type);
-    Expr* leftOp = makeNewLeaf(token, type);
-    if(isPrefix) {
-        leftOp = new UnaryOperator(o, leftOp);
-    }
-
-    o = p_exprTokenizer.nextChar(true);
-    //cout <<"Factor: op " <<o <<endl;
-
-    if(o == '\0' || o == '+') return leftOp;
-
-    char* op = p_exprTokenizer.nextWord(type);
-    Expr* rightOp = parseFactor();
-
-    Expr* oper = new Operator(leftOp,op[0],rightOp);
-    delete op;
+    cout << "AdditiveExpression " <<oper <<endl;
     return oper;
 }
 
-Expr* ExpressionParser::parseExpression() {
-    ExprType type = CONSTANT;
-    Expr* leftOp = parseFactor();
+Expr* ExpressionParser::parseMultiplicativeExpression() {
+    Expr* oper = nullptr;
+    Expr* leftOp = parseUnaryExpression();
+    char o = p_exprTokenizer.nextChar(true);
+    cout <<"MultiplicativeExpr: op " <<o <<endl;
 
-    if(!leftOp) return leftOp;
+    //if(o == '\0' || o == '=') { cout <<"return leftop " <<leftOp <<endl; return leftOp; }
+    if(o == '*' || o == '/') {
+        p_exprTokenizer.nextChar();
 
-    char* op = p_exprTokenizer.nextWord(type);
-    //if(op) cout <<"op " <<op <<endl;
-
-    if(!op) return leftOp;
-
-    Expr* rightOp = parseExpression();
-
-    Expr* oper = new Operator(leftOp,op[0],rightOp);
-    delete op;
+        Expr* rightOp = parseMultiplicativeExpression();
+        if(leftOp == nullptr || rightOp == nullptr) {
+            delete leftOp;
+            delete rightOp;
+        }
+        else {
+            oper = new Operator(leftOp,o,rightOp);
+        }
+    } else {
+        return leftOp;
+    }
+    cout << "MultiplicativeExpression " <<oper <<endl;
     return oper;
+}
+
+vector<Expr*> ExpressionParser::parseArgumentExpressionList() {
+    parseAdditiveExpression();
+    //parseArgumentExpressionList();
+    vector<Expr*> argumentExprList;
+    return argumentExprList;
+}
+
+Expr* ExpressionParser::parsePrimaryExpression() {
+    Expr* primaryExpr = nullptr;
+    char o = p_exprTokenizer.nextChar(true);
+    if(o == '(') {
+        p_exprTokenizer.nextChar(); //consume '('
+        primaryExpr = parseExpression();
+        p_exprTokenizer.nextChar(); //consume ')'
+    } else {
+        ExprType type = CONSTANT;
+        char* token = p_exprTokenizer.nextWord(type);
+        if(token != nullptr) {
+            primaryExpr = makeNewLeaf(token, type);
+        }
+    }
+    return primaryExpr;
+}
+
+vector<Expr*> ExpressionParser::parsePostFixExpressionPrime(ExprType& type) {
+    vector<Expr*> postFixExprPrime;
+    char o = p_exprTokenizer.nextChar(true);
+    if(o == '(') {
+        type = FUNCTIONCALL;
+        p_exprTokenizer.nextChar(); //consume '('
+        std::vector<Expr*> postFixExprPrime = parseArgumentExpressionList();
+        p_exprTokenizer.nextChar(); //consume ')'
+    }
+    //parsePostFixExpressionPrime();
+    return postFixExprPrime;
+}
+
+Expr* ExpressionParser::parsePostFixExpression() {
+    Expr* primaryExpr = parsePrimaryExpression();
+    Expr* postFixExpr = nullptr;
+
+    if(!primaryExpr)
+        return nullptr;
+    ExprType type;
+    vector<Expr*> postFixExprPrime = parsePostFixExpressionPrime(type);
+    switch(type) {
+        case FUNCTIONCALL:
+            postFixExpr = new FunctionCall(primaryExpr, postFixExprPrime);
+        break;
+        default:
+            postFixExpr = primaryExpr;
+    }
+    return postFixExpr;
+}
+
+Expr* ExpressionParser::parseUnaryExpression() {
+    char o = p_exprTokenizer.nextChar(true);
+    Expr* unaryExpr = nullptr;
+    Expr* operand = nullptr;
+    switch(o) {
+        case '*':
+        case '&':
+            p_exprTokenizer.nextChar();
+            operand = parsePostFixExpression();
+            if(operand)
+                unaryExpr = new UnaryOperator(o, operand);
+        break;
+        default:
+            unaryExpr = parsePostFixExpression();
+    }
+    return unaryExpr;
+}
+
+Expr* ExpressionParser::parseAssignmentExpression() {
+    Expr* assignExpr = nullptr;
+    const int pos = p_exprTokenizer.getPos();
+
+    Expr* leftOp = parseUnaryExpression();
+    char op = p_exprTokenizer.nextChar(true);
+    if(op == '\0') return leftOp;
+
+    if(op == '=') {
+        p_exprTokenizer.nextChar();
+        Expr* rightOp = parseAssignmentExpression();
+
+        if(leftOp == nullptr || rightOp == nullptr) {
+            delete leftOp;
+            delete rightOp;
+        }
+        else {
+            assignExpr = new Operator(leftOp,op,rightOp);
+        }
+        cout <<"parseAssignmentExpression assignment " << assignExpr <<endl;
+
+    } else {
+        //backtrack:reset state
+        //delete leftOp; - TODO: deleting the variable
+        p_exprTokenizer.setPos(pos);
+
+        assignExpr = parseAdditiveExpression();
+        cout <<"parseAssignmentExpression expression " << assignExpr <<endl;
+    }
+    return assignExpr;
 }
 

@@ -8,7 +8,7 @@
 #include<cstdlib>
 #include "ExpressionTokenizer.h"
 
-static const char delimiters[] = { '+', '-', '*', '/' };
+static const char delimiters[] = { '+', '-', '*', '/', '=', '(', ')' };
 
 ExpressionTokenizer::ExpressionTokenizer(): p_expressionStr(nullptr), p_pos(0) {
     // TODO Auto-generated constructor stub
@@ -17,6 +17,14 @@ ExpressionTokenizer::ExpressionTokenizer(): p_expressionStr(nullptr), p_pos(0) {
 
 ExpressionTokenizer::~ExpressionTokenizer() {
     // TODO Auto-generated destructor stub
+}
+
+int ExpressionTokenizer::getPos() const {
+    return p_pos;
+}
+
+void ExpressionTokenizer::setPos(int pos) {
+    p_pos = pos;
 }
 
 static bool isDelimiter(char c) {
@@ -28,9 +36,13 @@ static bool isDelimiter(char c) {
 }
 
 char ExpressionTokenizer::nextChar(bool peek) {
+    while(p_expressionStr[p_pos] == ' ') {
+        p_pos++;
+    }
     char next = p_expressionStr[p_pos];
     if(!peek && next != '\0')
         p_pos++;
+    cout << "nextchar " << p_pos;
     return next;
 }
 
@@ -44,13 +56,16 @@ char* ExpressionTokenizer::nextWord(ExprType& type, bool peek) {
         p++;
         p_pos++;
     }
+    if(p_expressionStr[p] == '\0') {
+        return 0;
+    }
     if(isDelimiter(p_expressionStr[p])) {
         type = OPERATOR;
         p++;
     }
     else {
         if((p_expressionStr[p] >= 'A' && p_expressionStr[p] <= 'Z') || (p_expressionStr[p] >= 'a' && p_expressionStr[p] <= 'z') )
-            type = VARIABLE;
+            type = IDENTIFIER;
         else
             type = CONSTANT;
         while( p_expressionStr[p] != ' ' && p_expressionStr[p] != '\0' && !isDelimiter(p_expressionStr[p])) {
@@ -67,6 +82,7 @@ char* ExpressionTokenizer::nextWord(ExprType& type, bool peek) {
     }
     if(!peek)
         p_pos = p ;
+    cout <<"next word " <<p <<endl;
     return token;
 }
 

@@ -30,22 +30,24 @@ public:
 class AssignStmt : public Stmt {
 public:
     AssignStmt(StmtType type): Stmt(type), p_var(0), p_value(0), p_dataType(INT) {}
-    AssignStmt(StmtType type, Variable* var, Expr* value) : Stmt(type), p_var(var), p_value(value), p_dataType(INT){
+    AssignStmt(StmtType type, Expr* var, Expr* value) : Stmt(type), p_var(var), p_value(value), p_dataType(INT){
     }
     virtual ~AssignStmt() {
+        if(p_var && p_var->getExprType() != VARIABLE)
+            delete p_var;
         if(p_value && p_value->getExprType() != VARIABLE)
             delete p_value;
     }
     virtual void print(ostream& os) {
-        os << "Assign statement: name " <<*p_var << " type " << p_type;
+        //os << "Assign statement: name " <<*p_var << " type " << p_type;
         if(p_value) os << " value " << *p_value << " ";
     }
-    void setVar(Variable* var) { p_var = var; }
+    void setVar(Expr* var) { p_var = var; }
     void setValue(Expr* value) { p_value = value; }
-    const Variable* getVar() const { return p_var; }
+    const Expr* getVar() const { return p_var; }
     const Expr* getValue() const { return p_value; }
 private:
-    Variable* p_var;
+    Expr* p_var;
     Expr* p_value;
     DataType p_dataType;
 };

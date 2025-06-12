@@ -91,13 +91,13 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
     const vector<Node*>& nodeList = basicBlock->getNodeList();
     for(Node* node: nodeList) {
         const Expr* value=node->getValue();
-        vector<const Expr*> variables;
+        vector<const Expr*> RHSVariables;
         if(value) {
-            value->getVariables(variables);
+            value->getRHSVariables(RHSVariables);
         }
         else continue;
-        cout <<"RHS value " << *value <<" variables count " <<variables.size() <<endl;
-        for(auto variableIt = variables.begin(); variableIt != variables.end(); variableIt++) {
+        cout <<"RHS value " << *value <<" variables count " <<RHSVariables.size() <<endl;
+        for(auto variableIt = RHSVariables.begin(); variableIt != RHSVariables.end(); variableIt++) {
             const Variable* variable = static_cast<const Variable*>(*variableIt);
             if (!variable) cout <<"cast error " <<endl;
             found = false;
@@ -119,19 +119,27 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
         }
         if(node->type() != ASSIGNMENT) continue;
         AssignmentNode* assignNode = static_cast<AssignmentNode*>(node);
-        const Variable* var = assignNode->getVariable();
-        auto variableNodeIt = variableNodes.find(var);
-        if(variableNodeIt != variableNodes.end()) {
-            auto& nodes = variableNodes.at(var);
-            nodes.clear();
-            nodes.push_back(assignNode);
-            cout<<" added " <<*assignNode << " " <<assignNode <<endl;
-        }
-        else {
-            vector<AssignmentNode*> v;
-            v.push_back(assignNode);
-            cout<<" added " <<*assignNode << " " <<assignNode <<endl;
-            variableNodes.insert_or_assign(var, v);
+        vector<const Expr*> LHSVariables;
+        const Expr* var = assignNode->getVariable();
+        if(var) var->getRHSVariables(LHSVariables);
+        value->getLHS(LHSVariables);
+
+        for(auto variableIt = LHSVariables.begin(); variableIt != LHSVariables.end(); variableIt++) {
+            const Variable* var = static_cast<const Variable*>(*variableIt);
+            if (!var) cout <<"cast error " <<endl;
+            auto variableNodeIt = variableNodes.find(var);
+            if(variableNodeIt != variableNodes.end()) {
+                auto& nodes = variableNodes.at(var);
+                nodes.clear();
+                nodes.push_back(assignNode);
+                cout<<" added " <<*assignNode << " " <<assignNode <<endl;
+            }
+            else {
+                vector<AssignmentNode*> v;
+                v.push_back(assignNode);
+                cout<<" added " <<*assignNode << " " <<assignNode <<endl;
+                variableNodes.insert_or_assign(var, v);
+            }
         }
     }
     cout <<"End of Block: variableNodes size " <<variableNodes.size() <<endl <<endl;

@@ -18,7 +18,14 @@ public:
 
     Expr* parseExpressionStr(char* expressionStr);
     Expr* parseExpression();
-    Expr* parseFactor();
+    Expr* parseAssignmentExpression();
+    Expr* parseUnaryExpression();
+    Expr* parsePostFixExpression();
+    vector<Expr*> parsePostFixExpressionPrime(ExprType& type);
+    Expr* parsePrimaryExpression();
+    vector<Expr*> parseArgumentExpressionList();
+    Expr* parseMultiplicativeExpression();
+    Expr* parseAdditiveExpression();
     Expr* makeNewLeaf(char* token, ExprType type);
     void setSymbolTable(const SymbolTable* symbolTable) { p_symbolTable = symbolTable; }
 private:

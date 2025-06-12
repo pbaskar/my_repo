@@ -67,7 +67,8 @@ Status InstrParser::parseStmt(Block* block) {
         status = parseWhile(block);
     }
     else {
-        char c = p_tokenizer.lookAhead(2);
+        status = parseAssign(block);
+        /*char c = p_tokenizer.lookAhead(2);
         if(c == '=')
             status = parseAssign(block);
         else if(c == '(')
@@ -75,7 +76,7 @@ Status InstrParser::parseStmt(Block* block) {
         else {
             Logger::logMessage(ErrorCode::STMT_INVALID,  1, "InstrParser::parseStmt:");
             status = FAILURE;
-        }
+        }*/
     }
     delete next;
     return status;
@@ -113,22 +114,35 @@ Status InstrParser::parseAssign(Block* block) {
     AssignStmt* stmt = new AssignStmt(ASSIGN);
     block->addStatement(stmt);
 
-    char* name = p_tokenizer.nextWord();
+    /*char delim[] = {'='};
+    char* name = p_tokenizer.nextWordUntil(delim, sizeof(delim));
     if(name == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "name"); return FAILURE; }
-    Variable* var = block->fetchVariable(name);
-    if(var == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "name declaration"); return FAILURE; }
+    cout <<" name " << name <<endl;
+    Expr* var = p_exprParser.parseExpressionStr(name);
+    delete name;
+    if(var == nullptr) { Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseAssign:", "value"); return FAILURE; }
     stmt->setVar(var);
 
     char equal = p_tokenizer.nextChar();
     if ( equal != '=' ) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "="); return FAILURE; }
-
-    char* next = p_tokenizer.nextWord();
+*/
+    char endDelim[] = {';',','};
+    char* next = p_tokenizer.nextWordUntil(endDelim, sizeof(endDelim));
+    cout <<" next word " << next <<endl;
     if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "value"); return FAILURE; }
     Expr* value = p_exprParser.parseExpressionStr(next);
     delete next;
     if(value == nullptr) { Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseAssign:", "value"); return FAILURE; }
     stmt->setValue(value);
-    p_tokenizer.nextLine();
+    char comma = p_tokenizer.lookAhead(1);
+    cout << "comma " <<comma <<endl;
+    if(comma == ',') {
+        p_tokenizer.nextChar();
+        parseAssign(block);
+    }
+    else {
+        p_tokenizer.nextLine();
+    }
     cout <<"Assignment stmt: size = " << block->getSubStatements().size()  <<" " <<*stmt <<endl;
     return status;
 }

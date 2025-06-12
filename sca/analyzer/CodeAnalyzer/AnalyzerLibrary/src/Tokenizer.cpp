@@ -10,7 +10,7 @@
 #include "Tokenizer.h"
 using namespace std;
 
-static const char delimiters[] = { '=', ';', '(', ')', '{', '}' };
+static const char delimiters[] = { '=', ';', '(', ')', '{', '}', ','};
 Tokenizer::Tokenizer() : p_pos(0) {
     // TODO Auto-generated constructor stub
 
@@ -42,9 +42,9 @@ Status Tokenizer::nextLine() {
     return status;
 }
 
-static bool isDelimiter(char c) {
-    for(size_t i=0; i<sizeof(delimiters); i++) {
-        if(c == delimiters[i])
+static bool isDelimiter(char c, const char delim[], int numDelim) {
+    for(size_t i=0; i<numDelim; i++) {
+        if(c == delim[i])
             return true;
     }
     return false;
@@ -71,11 +71,11 @@ int Tokenizer::readNextWordLen(int& begin) {
         begin++;
         p++;
     }
-    if(isDelimiter(p_line[p])) {
+    if(isDelimiter(p_line[p], delimiters, sizeof(delimiters))) {
         wordLen++;
     }
     else {
-        while( p_line[p] != ' ' && p_line[p] != '\0' && !isDelimiter(p_line[p])) {
+        while( p_line[p] != ' ' && p_line[p] != '\0' && !isDelimiter(p_line[p], delimiters, sizeof(delimiters))) {
             wordLen++;
             p++;
         }
@@ -100,8 +100,27 @@ char* Tokenizer::nextWord(bool peek) {
 
     if(!peek) {
         p_pos = begin + wordLen;
-        //cout<<"token " <<token <<" p_pos " <<p_pos<<" wordLen " <<wordLen <<endl;
+        cout<<"token " <<token <<" p_pos " <<p_pos<<" wordLen " <<wordLen <<endl;
     }
+    return token;
+}
+
+char* Tokenizer::nextWordUntil(char delim[], int numDelim) {
+    int p = p_pos;
+    int wordLen = 0;
+    while(p_line[p] == ' ') {
+        p++;
+        p_pos++;
+    }
+    while( p_line[p] != '\0' && !isDelimiter(p_line[p], delim, numDelim)) {
+        wordLen++;
+        p++;
+    }
+    if(wordLen == 0) return nullptr;
+    char* token = new char[wordLen+1];
+    strncpy(token, p_line + p_pos, wordLen);
+    token[wordLen] = '\0';
+    p_pos += wordLen;
     return token;
 }
 
