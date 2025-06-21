@@ -16,14 +16,38 @@
 
 using namespace std;
 
+enum DeclType {
+    FUNCTIONDECL,
+    VARDECL
+};
+
 class InstrParser {
 public:
     InstrParser();
     virtual ~InstrParser();
 
-    Status parseFile(const char* fileName);
+    vector<DataType> parseTypeSpecifiers();
+    vector<DataType> parseDeclarationSpecifiers();
+    IdentifierName* parseParameterDecl();
+    Status parseParameterList(vector<IdentifierName*>& identifierList);
+    Status parsePointer(vector<PointerIdentifierName*>& identifierList);
+    vector<IdentifierName*> parseDirectDeclaratorPrime(DeclType& declType);
+    IdentifierName* parseDirectDeclarator();
+    IdentifierName* parseDeclarator();
+    Expr* parseInitializer();
+    vector<Expr*> parseInitializerList();
+    AssignStmt* parseInitDeclarator();
+    Status parseInitDeclaratorList(vector<AssignStmt*>& initDeclaratorList);
+    Status parseDeclaration(vector<AssignStmt*>& declaration);
+    Status parseDeclarationList(vector<AssignStmt*>& declarationList);
+
+    Status parseLabeledStmt(Block* block);
+    Status parseSelectionStmt(Block* block);
+    Status parseIterationStmt(Block* block);
+    Status parseJumpStmt(Block* block);
     Status parseStmt(Block* block);
-    Status parseDecl(Block* block);
+    Status parseStmtList(Block* block);
+    //Status parseDecl(Block* block);
     Status parseAssign(Block* block);
     Status parseIf(IfStmt* stmt);
     Status parseElse(IfStmt* stmt);
@@ -31,7 +55,8 @@ public:
     Status parseWhile(Block* block);
     Status parseBlock(Block* block);
     Status parseFunctionDecl(Block* block);
-    Status parseFunctionCall(Block* block);
+    //Status parseFunctionCall(Block* block);
+    Status parseFile(const char* fileName);
     Block* getBlock() const;
     void clear();
 

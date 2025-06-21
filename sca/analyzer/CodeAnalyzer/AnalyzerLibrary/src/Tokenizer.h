@@ -23,6 +23,8 @@ public:
     Status nextLine();
     Status openFile(const char* fileName);
     void closeFile();
+    void setPos(int pos);
+    int getPos() const;
 
 private:
     char p_line[256];

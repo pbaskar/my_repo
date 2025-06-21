@@ -99,9 +99,11 @@ Expr* ExpressionParser::parseMultiplicativeExpression() {
 }
 
 vector<Expr*> ExpressionParser::parseArgumentExpressionList() {
-    parseAdditiveExpression();
+    Expr* argumentExpr = parseAdditiveExpression();
     //parseArgumentExpressionList();
     vector<Expr*> argumentExprList;
+    if(argumentExpr != nullptr)
+        argumentExprList.push_back(argumentExpr);
     return argumentExprList;
 }
 
@@ -128,7 +130,7 @@ vector<Expr*> ExpressionParser::parsePostFixExpressionPrime(ExprType& type) {
     if(o == '(') {
         type = FUNCTIONCALL;
         p_exprTokenizer.nextChar(); //consume '('
-        std::vector<Expr*> postFixExprPrime = parseArgumentExpressionList();
+        postFixExprPrime = parseArgumentExpressionList();
         p_exprTokenizer.nextChar(); //consume ')'
     }
     //parsePostFixExpressionPrime();

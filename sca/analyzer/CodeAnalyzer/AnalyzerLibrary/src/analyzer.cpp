@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include "InstrParser.h"
+#include "ExprSimplifier.h"
 #include "ControlFlowGraph.h"
 using namespace std;
 #include "analyzer.h"
@@ -54,6 +55,12 @@ Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
         return s;
     }
     cout << "********************************** Instructions file parsing done ****************************************" <<endl;
+
+    ExprSimplifier exprSimplifier;
+    exprSimplifier.simplify(instrParser.getBlock());
+
+    cout << "********************************** Expression Simplification done ****************************************" <<endl;
+
     ControlFlowGraph cfg;
     s = cfg.buildCFG(instrParser.getBlock());
 

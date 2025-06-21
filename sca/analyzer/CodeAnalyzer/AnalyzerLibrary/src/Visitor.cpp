@@ -99,7 +99,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
         cout <<"RHS value " << *value <<" variables count " <<RHSVariables.size() <<endl;
         for(auto variableIt = RHSVariables.begin(); variableIt != RHSVariables.end(); variableIt++) {
             const Variable* variable = static_cast<const Variable*>(*variableIt);
-            if (!variable) cout <<"cast error " <<endl;
+            if (!variable) { cout <<"cast error " <<endl; continue; }
             found = false;
             if(variableNodes.find(variable) != variableNodes.end()) {
                 found = true;
@@ -126,7 +126,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
 
         for(auto variableIt = LHSVariables.begin(); variableIt != LHSVariables.end(); variableIt++) {
             const Variable* var = static_cast<const Variable*>(*variableIt);
-            if (!var) cout <<"cast error " <<endl;
+            if (!var) { cout <<"cast error " <<endl; continue; }
             auto variableNodeIt = variableNodes.find(var);
             if(variableNodeIt != variableNodes.end()) {
                 auto& nodes = variableNodes.at(var);

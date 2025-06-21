@@ -20,6 +20,14 @@ Tokenizer::~Tokenizer() {
     // TODO Auto-generated destructor stub
 }
 
+int Tokenizer::getPos() const {
+    return p_pos;
+}
+
+void Tokenizer::setPos(int pos) {
+    p_pos = pos;
+}
+
 Status Tokenizer::openFile(const char* fileName) {
     fr.setFile(fileName);
     return fr.openFile();

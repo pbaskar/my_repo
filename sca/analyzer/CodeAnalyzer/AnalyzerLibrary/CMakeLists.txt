@@ -10,10 +10,12 @@ add_library(AnalyzerLibrary SHARED
   analyzer.h
   analyzer_global.h
   src/analyzer.cpp
+  src/Expr.cpp
   src/BasicBlock.cpp
   src/ControlFlowGraph.cpp
   src/ExpressionParser.cpp
   src/ExpressionTokenizer.cpp
+  src/ExprSimplifier.cpp
   src/FileReader.cpp
   src/InstrParser.cpp
   src/Logger.cpp
@@ -29,6 +31,7 @@ add_library(AnalyzerLibrary SHARED
   src/ControlFlowGraph.h
   src/ExpressionParser.h
   src/ExpressionTokenizer.h
+  src/ExprSimplifier.h
   src/FileReader.h
   src/InstrParser.h
   src/Logger.h

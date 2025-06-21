@@ -39,6 +39,7 @@ Variable* SymbolTable::addSymbol(const char* name, VarType varType) {
     if(var) { //error
     }
     var = new Variable(name, varType);
+    cout <<"Variable symbol added " <<name <<endl;
     SymbolTableEntry* symbolTableEntry = new SymbolTableEntry(var, INT, 0);
     p_symbolEntries.push_back(symbolTableEntry);
     return var;
@@ -62,12 +63,20 @@ Variable* SymbolTable::fetchVariable(const char* name) const {
     return 0;
 }
 
-FunctionDeclBlock* SymbolTable::addFnSymbol(FunctionDeclBlock* fnDeclBlock) {
+void SymbolTable::addFnSymbol(const char* name) {
+    FnSymbolTableEntry* symbolTableEntry = new FnSymbolTableEntry(name, 0, INT, 0);
+    p_fnSymbolEntries.push_back(symbolTableEntry);
+}
+
+void SymbolTable::setFunctionDeclBlock(FunctionDeclBlock* fnDeclBlock) {
     if(!fnDeclBlock) { //error
     }
-    FnSymbolTableEntry* symbolTableEntry = new FnSymbolTableEntry(fnDeclBlock, INT, 0);
-    p_fnSymbolEntries.push_back(symbolTableEntry);
-    return fnDeclBlock;
+    const char* name = fnDeclBlock->getName();
+    for(auto symbol : p_fnSymbolEntries) {
+        if(strcmp(symbol->getName(), name) == 0 ) {
+            symbol->setFunctionDeclBlock(fnDeclBlock);
+        }
+    }
 }
 
 FunctionDeclBlock* SymbolTable::fetchFunctionDeclBlock(const char* name) const {
@@ -106,12 +115,12 @@ Variable* SymbolTableEntry::fetchVariable(const char* name) {
     return 0;
 }
 
-FnSymbolTableEntry::FnSymbolTableEntry() : p_functionDeclBlock(0), p_dataType(INT), p_lineNum(0){
+FnSymbolTableEntry::FnSymbolTableEntry() : p_name(0), p_functionDeclBlock(0), p_dataType(INT), p_lineNum(0){
 
 }
 
-FnSymbolTableEntry::FnSymbolTableEntry(FunctionDeclBlock* fnDeclBlock, DataType dataType, int lineNum) :
-                                p_functionDeclBlock(fnDeclBlock), p_dataType(dataType), p_lineNum(lineNum){
+FnSymbolTableEntry::FnSymbolTableEntry(const char* name, FunctionDeclBlock* fnDeclBlock, DataType dataType, int lineNum) :
+                                p_name(name), p_functionDeclBlock(fnDeclBlock), p_dataType(dataType), p_lineNum(lineNum){
 
 }
 

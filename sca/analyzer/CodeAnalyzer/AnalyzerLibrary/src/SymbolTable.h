@@ -37,13 +37,16 @@ private:
 class FnSymbolTableEntry {
 public:
     FnSymbolTableEntry();
-    FnSymbolTableEntry(FunctionDeclBlock* functionDeclBlock, DataType dataType, int lineNum);
+    FnSymbolTableEntry(const char* name, FunctionDeclBlock* functionDeclBlock, DataType dataType, int lineNum);
     virtual ~FnSymbolTableEntry();
     bool operator==(const FnSymbolTableEntry& other) {
         return p_functionDeclBlock==other.p_functionDeclBlock;
     }
+    const char* getName() { return p_name; }
+    void setFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) { p_functionDeclBlock = functionDeclBlock; }
     FunctionDeclBlock* fetchFunctionDeclBlock(const char* name);
 private:
+    const char* p_name;
     FunctionDeclBlock* p_functionDeclBlock;
     DataType p_dataType;
     int p_lineNum;
@@ -56,9 +59,10 @@ public:
     virtual ~SymbolTable();
     Variable* addSymbol(const char* name, VarType varType);
     Variable* fetchVariable(const char* name) const;
-    FunctionDeclBlock* addFnSymbol(FunctionDeclBlock* fnDeclBlock);
+    void addFnSymbol(const char* name);
     FunctionDeclBlock* fetchFunctionDeclBlock(const char* name) const;
-void clearFnSymbolEntries();
+    void setFunctionDeclBlock(FunctionDeclBlock* fnDeclBlock);
+    void clearFnSymbolEntries();
     const SymbolTable* getOuterScope() const { return p_outerScope; }
 private:
     vector<SymbolTableEntry*> p_symbolEntries;

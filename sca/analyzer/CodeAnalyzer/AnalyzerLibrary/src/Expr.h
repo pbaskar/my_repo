@@ -11,6 +11,7 @@
 #include<iostream>
 #include<vector>
 
+class SymbolTable;
 using namespace std;
 enum ExprType {
     CONSTANT,
@@ -19,6 +20,7 @@ enum ExprType {
     OPERATOR,
     UNARYOPERATOR,
     FUNCTIONCALL,
+    ASSIGNOPERATOR,
     INVALID
 };
 
@@ -27,6 +29,7 @@ enum VarType {
     POINTER
 };
 
+class FunctionCall;
 class Expr {
 public:
     Expr() {}
@@ -35,6 +38,8 @@ public:
     virtual void print(ostream& os) const=0;
     virtual void getRHSVariables(vector<const Expr*>& variables) const =0;
     virtual void getLHS(vector<const Expr*>& variables) const =0;
+    virtual void getFunctionCalls(vector<const FunctionCall*>& functionCalls) const =0;
+    virtual void populateVariable(SymbolTable* symbolTable)=0;
 
     friend ostream& operator<<(ostream& os, const Expr& expr) {
         //os <<expr.getExprType() <<" " ;
@@ -47,10 +52,8 @@ class Operator : public Expr {
 public:
     Operator(Expr* l, char o, Expr* r): p_left(l), p_op(o), p_right(r) {}
     virtual ~Operator() {
-        if(p_left->getExprType() != VARIABLE)
-            delete p_left;
-        if(p_right->getExprType() != VARIABLE)
-            delete p_right;
+        delete p_left;
+        delete p_right;
     }
     virtual ExprType getExprType() { return OPERATOR; }
     void setLeftOp(Expr* left) { p_left = left; }
@@ -60,19 +63,54 @@ public:
         os<< *p_left <<p_op << " " <<*p_right;
     }
     virtual void getRHSVariables(vector<const Expr*>& variables) const {
-        if(p_op != '=') {
-            p_left->getRHSVariables(variables);
-        }
+        p_left->getRHSVariables(variables);
         p_right->getRHSVariables(variables);
     }
     virtual void getLHS(vector<const Expr*>& variables) const {
-        if(p_op != '=') {
-            p_left->getLHS(variables);
-        }
-        else {
-            variables.push_back(p_left);
-        }
+        p_left->getLHS(variables);
         p_right->getLHS(variables);
+    }
+    virtual void getFunctionCalls(vector<const FunctionCall*>& functionCalls) const {
+        p_left->getFunctionCalls(functionCalls);
+        p_right->getFunctionCalls(functionCalls);
+    }
+    virtual void populateVariable(SymbolTable* symbolTable) {
+        p_left->populateVariable(symbolTable);
+        p_right->populateVariable(symbolTable);
+    }
+private:
+    Expr* p_left;
+    char p_op;
+    Expr* p_right;
+};
+
+class AssignOperator : public Expr {
+public:
+    AssignOperator(Expr* l, char o, Expr* r): p_left(l), p_op(o), p_right(r) {}
+    virtual ~AssignOperator() {
+        delete p_left;
+        delete p_right;
+    }
+    virtual ExprType getExprType() { return ASSIGNOPERATOR; }
+    void setLeftOp(Expr* left) { p_left = left; }
+    void setRightOp(Expr* right) { p_right = right; }
+    void setOp(char op) { p_op = op; }
+    virtual void print(ostream& os) const{
+        os<< *p_left <<p_op << " " <<*p_right;
+    }
+    virtual void getRHSVariables(vector<const Expr*>& variables) const {
+        p_right->getRHSVariables(variables);
+    }
+    virtual void getLHS(vector<const Expr*>& variables) const {
+        p_left->getLHS(variables);
+    }
+    virtual void getFunctionCalls(vector<const FunctionCall*>& functionCalls) const {
+        p_left->getFunctionCalls(functionCalls);
+        p_right->getFunctionCalls(functionCalls);
+    }
+    virtual void populateVariable(SymbolTable* symbolTable) {
+        p_left->populateVariable(symbolTable);
+        p_right->populateVariable(symbolTable);
     }
 private:
     Expr* p_left;
@@ -84,8 +122,7 @@ class UnaryOperator : public Expr {
 public:
     UnaryOperator(char o, Expr* r): p_op(o), p_right(r) {}
     virtual ~UnaryOperator() {
-        if(p_right->getExprType() != VARIABLE)
-            delete p_right;
+        delete p_right;
     }
     virtual ExprType getExprType() { return UNARYOPERATOR; }
     void setRightOp(Expr* right) { p_right = right; }
@@ -98,6 +135,12 @@ public:
     }
     virtual void getLHS(vector<const Expr*>& variables) const {
         p_right->getLHS(variables);
+    }
+    virtual void getFunctionCalls(vector<const FunctionCall*>& functionCalls) const {
+        p_right->getFunctionCalls(functionCalls);
+    }
+    virtual void populateVariable(SymbolTable* symbolTable) {
+        p_right->populateVariable(symbolTable);
     }
 private:
     char p_op;
@@ -115,7 +158,9 @@ public:
         os <<p_name << " ";
     }
     virtual void getRHSVariables(vector<const Expr*>& variables) const { variables.push_back(this); }
-    virtual void getLHS(vector<const Expr*>& variables) const {}
+    virtual void getLHS(vector<const Expr*>& variables) const { variables.push_back(this); }
+    virtual void getFunctionCalls(vector<const FunctionCall*>& functionCalls) const {}
+    virtual void populateVariable(SymbolTable* symbolTable) {}
     bool match(const char* name) {
         return strcmp(p_name, name) ==0;
     }
@@ -134,11 +179,14 @@ public:
     virtual ExprType getExprType() { return IDENTIFIER; }
     void setName(const char* name) { p_name = name; }
     const char* getName() const { return p_name; }
+    void setVariable(Variable* variable) { p_variable = variable; }
     virtual void print(ostream& os) const{
         os <<p_name << " ";
     }
-    virtual void getRHSVariables(vector<const Expr*>& variables) const {}
-    virtual void getLHS(vector<const Expr*>& variables) const {}
+    virtual void getRHSVariables(vector<const Expr*>& variables) const { variables.push_back(p_variable); }
+    virtual void getLHS(vector<const Expr*>& variables) const { variables.push_back( p_variable); }
+    virtual void getFunctionCalls(vector<const FunctionCall*>& functionCalls) const {}
+    virtual void populateVariable(SymbolTable* symbolTable);
     bool match(const char* name) {
         return strcmp(p_name, name) ==0;
     }
@@ -147,6 +195,7 @@ public:
     }
 private:
     const char* p_name;
+    Variable* p_variable;
 };
 
 class Constant : public Expr {
@@ -156,6 +205,8 @@ public:
     virtual ExprType getExprType() { return CONSTANT; }
     virtual void getRHSVariables(vector<const Expr*>& variables) const {}
     virtual void getLHS(vector<const Expr*>& variables) const {}
+    virtual void getFunctionCalls(vector<const FunctionCall*>& functionCalls) const {}
+    virtual void populateVariable(SymbolTable* symbolTable) {}
     void setNumber(int num) { p_number = num; }
     virtual void print(ostream& os) const {
         os <<p_number <<" ";
@@ -168,14 +219,16 @@ class FunctionCall : public Expr {
 public:
     FunctionCall(Expr* identifier, vector<Expr*> arguments): p_functionName(identifier), p_arguments(arguments) {}
     virtual ~FunctionCall() {
-        //if(p_right->getExprType() != VARIABLE)
-            //delete p_right;
+        delete p_functionName;
+        for(Expr* expr : p_arguments) {
+            delete expr;
+        }
     }
     virtual ExprType getExprType() { return FUNCTIONCALL; }
     virtual void print(ostream& os) const{
-        os<<p_functionName << " ";
+        os<<*p_functionName << " ";
         for(Expr* expr : p_arguments) {
-            os <<expr << " ";
+            os <<*expr << " ";
         }
     }
     virtual void getRHSVariables(vector<const Expr*>& variables) const {
@@ -185,6 +238,16 @@ public:
     }
     virtual void getLHS(vector<const Expr*>& variables) const {
     }
+    virtual void getFunctionCalls(vector<const FunctionCall*>& functionCalls) const {
+        functionCalls.push_back(this);
+    }
+    virtual void populateVariable(SymbolTable* symbolTable) {
+        for(Expr* expr : p_arguments) {
+            expr->populateVariable(symbolTable);
+        }
+    }
+    const Expr* getName() const { return p_functionName; }
+    const vector<Expr*> getArguments() const { return p_arguments; }
 private:
     Expr* p_functionName;
     vector<Expr*> p_arguments;

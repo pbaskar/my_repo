@@ -145,8 +145,8 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
         value->getLHS(LHSVariables);
 
         for(auto variableIt = LHSVariables.begin(); variableIt != LHSVariables.end(); variableIt++) {
-            const Variable* var = static_cast<const Variable*>(*variableIt);
-            if (!var) cout <<"cast error " <<endl;
+            const Variable* var = dynamic_cast<const Variable*>(*variableIt);
+            if (var==nullptr) { cout <<"cast error " <<endl; continue; }
             auto variableNodeIt = outVariableNodes.find(var);
             if(variableNodeIt != outVariableNodes.end()) {
                 auto& nodes = outVariableNodes.at(var);

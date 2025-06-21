@@ -34,7 +34,12 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
         case DECL:
         case ASSIGN: {
             AssignStmt* assignStmt = static_cast<AssignStmt*>(stmt);
-            AssignmentNode* newNode = new AssignmentNode(*assignStmt);
+            Variable* var = nullptr;
+            const IdentifierName* identifierName = assignStmt->getVar();
+            if(identifierName)
+                var = block->getSymbolTable()->fetchVariable(identifierName->getName());
+            const Expr* value = assignStmt->getValue();
+            AssignmentNode* newNode = new AssignmentNode(var, value);
             cout << "Assignment Node: " << *newNode << " " <<block->getSubStatements().size() <<endl;
 
             if(beginNewBlock) {
@@ -112,15 +117,18 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 
             last = first;
             status = buildBlock(last, functionDeclStmt->getBlock());
-            FunctionDeclBlock* functionDeclBlock = new FunctionDeclBlock(0,functionDeclStmt->getName(),first,last);
 
-            auto formalArguments = functionDeclStmt->getFormalArguments();
+            FunctionIdentifierName* functionIdentifierName = static_cast<FunctionIdentifierName*>(functionDeclStmt->getName());
+            FunctionDeclBlock* functionDeclBlock = new FunctionDeclBlock(0,functionIdentifierName->getName(),first,last);
 
-            for(Variable* var : formalArguments) {
+            vector<IdentifierName*> formalArguments = functionIdentifierName->getParameterList();
+
+            for(IdentifierName* identifierName : formalArguments) {
+                Variable* var = functionDeclStmt->getBlock()->getSymbolTable()->fetchVariable(identifierName->getName());
                 functionDeclBlock->addFormalArgument(var);
             }
             cout << "Function Decl Block: " << functionDeclBlock->getName() << " " <<block->getSubStatements().size() <<endl;
-            p_head->addFnSymbol(functionDeclBlock);
+            block->getSymbolTable()->setFunctionDeclBlock(functionDeclBlock);
             beginNewBlock = true;
         }
         break;
@@ -131,10 +139,11 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             FunctionCallStmt* functionCallStmt = static_cast<FunctionCallStmt*>(stmt);
             first = new BasicBlock(block->getSymbolTable());
 
-            fnDecl = p_head->fetchFunctionDeclBlock(functionCallStmt->getName());
+            const Identifier* identifier = static_cast<const Identifier*>(functionCallStmt->getName());
+            fnDecl = p_head->fetchFunctionDeclBlock(identifier->getName());
 
             first->setNext(fnDecl);
-            FunctionCallBlock* functionCallBlock = new FunctionCallBlock(0,functionCallStmt->getName(),first,fnDecl);
+            FunctionCallBlock* functionCallBlock = new FunctionCallBlock(0,identifier,first,fnDecl);
             auto formalArguments = fnDecl->getFormalArguments();
             auto actualArguments = functionCallStmt->getActualArguments();
             int i=0;

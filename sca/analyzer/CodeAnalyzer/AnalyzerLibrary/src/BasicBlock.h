@@ -39,29 +39,25 @@ private:
 class AssignmentNode : public Node {
 public:
     AssignmentNode() : p_var(0), p_value(0) { }
-    AssignmentNode(Expr* var, Expr* value) : p_var(var), p_value(value) { }
-    AssignmentNode(AssignStmt& stmt) {
-        p_var = stmt.getVar();
-        p_value = stmt.getValue();
-    }
+    AssignmentNode(Variable* var, const Expr* value) : p_var(var), p_value(value) { }
     virtual NodeType type() { return ASSIGNMENT; }
     virtual ~AssignmentNode() {
         //delete p_var;
         //delete p_value;
     }
     virtual void print(ostream& os) const {
-        //os << "name " << *p_var;
+        if(p_var) os << "name " << *p_var;
         if(p_value)
             os <<" value " <<*p_value <<" ";
     }
     bool operator==(const AssignmentNode& other) {
         return p_var == other.p_var;
     }
-    const Expr* getVariable() const { return p_var; }
+    const Variable* getVariable() const { return p_var; }
     virtual const Expr* getValue() const { return p_value; }
 
 private:
-    const Expr* p_var;
+    const Variable* p_var;
     const Expr* p_value;
 };
 
@@ -109,8 +105,8 @@ public:
     Variable* fetchVariable(const char* name) {
         return p_symbolTable->fetchVariable(name);
     }
-    FunctionDeclBlock* addFnSymbol(FunctionDeclBlock* functionDeclBlock) {
-        return p_symbolTable->addFnSymbol(functionDeclBlock);
+    void addFnSymbol(const char* name) {
+        return p_symbolTable->addFnSymbol(name);
     }
     FunctionDeclBlock* fetchFunctionDeclBlock(const char* name) {
         return p_symbolTable->fetchFunctionDeclBlock(name);
@@ -216,17 +212,17 @@ private:
 
 class FunctionCallBlock : public BasicBlock {
 public:
-    FunctionCallBlock(BasicBlock* next, const char* name, BasicBlock* first, FunctionDeclBlock* fnDecl):
+    FunctionCallBlock(BasicBlock* next, const Expr* name, BasicBlock* first, FunctionDeclBlock* fnDecl):
         BasicBlock(next, 0), p_name(name), p_first(first), p_fnDecl(fnDecl){}
     virtual ~FunctionCallBlock(){}
     virtual void acceptVisitor(Visitor& visitor);
     virtual void acceptTraverser(Traverser& traverser);
     BasicBlock* getFnDecl() { return p_fnDecl; }
     BasicBlock* getFirst() { return p_first; }
-    const char* getName() { return p_name; }
-    bool match(const char* name) {
+    const Expr* getName() { return p_name; }
+    /*bool match(const Expr* name) {
         return strcmp(p_name, name) ==0;
-    }
+    }*/
     void addActualArgument(Expr* expr) { p_actualArguments.push_back(expr); }
     virtual void print() {
         cout << "Function name " << p_name << " actual arguments ";
@@ -236,7 +232,7 @@ public:
         cout <<endl;
     }
 private:
-    const char* p_name;
+    const Expr* p_name;
     BasicBlock* p_first;
     FunctionDeclBlock* p_fnDecl;
     vector<Expr*> p_actualArguments;

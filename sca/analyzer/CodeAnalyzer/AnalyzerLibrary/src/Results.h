@@ -3,7 +3,8 @@
 
 enum Status{
     SUCCESS,
-    FAILURE
+    FAILURE,
+    FIRST_MISMATCH
 };
 
 struct Result {
