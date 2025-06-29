@@ -179,7 +179,7 @@ void ControlFlowGraph::variableInitCheck(vector<Result>& results) {
     computeReachingDefsVisitor.visitCFG(p_head);
 
     map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>> inVariableNodes = computeReachingDefsVisitor.getInVariableNodes();
-
+    cout << "********************************** Compute Reaching Defs done ****************************************" <<endl;
     VariableInitCheckVisitor variableInitCheckVisitor(inVariableNodes);
     variableInitCheckVisitor.visitCFG(p_head);
     results = variableInitCheckVisitor.getResults();

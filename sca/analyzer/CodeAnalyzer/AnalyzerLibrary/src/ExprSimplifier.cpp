@@ -26,10 +26,15 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
             Expr* value = assignStmt->toSimplify();
             if(value) {
                 value->populateVariable(block->getSymbolTable());
-                vector<const FunctionCall*> functionCalls;
+                vector<Expr*> DerefIdentifiers;
+                value->getDerefIdentifiers(DerefIdentifiers);
+                for(int i=0; i<DerefIdentifiers.size(); i++) {
+                    DerefIdentifiers[i]->populateDerefVariable(block->getSymbolTable());
+                }
+                vector<const Expr*> functionCalls;
                 value->getFunctionCalls(functionCalls);
                 for(int i=0; i<functionCalls.size(); i++) {
-                    const FunctionCall* functionCallExpr = functionCalls[i];
+                    const FunctionCall* functionCallExpr = static_cast<const FunctionCall*>(functionCalls[i]);
                     FunctionCallStmt* functionCallStmt = new FunctionCallStmt(FUNC_CALL, functionCallExpr->getName(),
                                                                               functionCallExpr->getArguments());
                     it = stmtList.insert(it, functionCallStmt);

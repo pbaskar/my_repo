@@ -45,6 +45,22 @@ Variable* SymbolTable::addSymbol(const char* name, VarType varType) {
     return var;
 }
 
+Variable* SymbolTable::addSymbol(Variable* newVar) {
+    Variable* var(0);
+    for(vector<SymbolTableEntry*>::iterator it = p_symbolEntries.begin(); it != p_symbolEntries.end(); it++) {
+        var = (*it)->fetchVariable(newVar->getName());
+        if(var) {
+            break;
+        }
+    }
+    if(var) { //error
+    }
+    cout <<"Variable symbol added " <<newVar->getName() <<endl;
+    SymbolTableEntry* symbolTableEntry = new SymbolTableEntry(newVar, INT, 0);
+    p_symbolEntries.push_back(symbolTableEntry);
+    return var;
+}
+
 Variable* SymbolTable::fetchVariable(const char* name) const {
     Variable* var(0);
     for(auto symbol : p_symbolEntries) {

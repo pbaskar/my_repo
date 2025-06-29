@@ -161,6 +161,11 @@ Expr* ExpressionParser::parseUnaryExpression() {
     Expr* operand = nullptr;
     switch(o) {
         case '*':
+            p_exprTokenizer.nextChar();
+            operand = parsePostFixExpression();
+            if(operand)
+                unaryExpr = new DereferenceOperator("Deref",operand);
+            break;
         case '&':
             p_exprTokenizer.nextChar();
             operand = parsePostFixExpression();
@@ -190,7 +195,7 @@ Expr* ExpressionParser::parseAssignmentExpression() {
             delete rightOp;
         }
         else {
-            assignExpr = new Operator(leftOp,op,rightOp);
+            assignExpr = new AssignOperator(leftOp,op,rightOp);
         }
         cout <<"parseAssignmentExpression assignment " << assignExpr <<endl;
 

@@ -77,6 +77,9 @@ public:
     void setPointsTo(IdentifierName* pointsTo) {
         p_pointsTo = pointsTo;
     }
+    const IdentifierName* getPointsTo() const {
+        return p_pointsTo;
+    }
 private:
     IdentifierName* p_pointsTo;
 };

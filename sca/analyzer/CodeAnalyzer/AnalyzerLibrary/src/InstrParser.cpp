@@ -29,12 +29,24 @@ Status InstrParser::parseFile(const char* fileName) {
         if(status == FAILURE) { p_tokenizer.closeFile(); return status; }
         nextChar = p_tokenizer.nextChar(true);
     }
-    //release identifier memory
+    //Todo: release identifier memory
     FunctionCallStmt* stmt = new FunctionCallStmt(FUNC_CALL, new Identifier("main"), vector<Expr*>());
     p_mainBlock->addStatement(stmt);
 
     p_tokenizer.closeFile();
     return status;
+}
+
+Variable* makeVariable(Block* block, const IdentifierName* identifierName) {
+    Variable*  variable = nullptr;
+    const PointerIdentifierName* pointerIdentifierName = dynamic_cast<const PointerIdentifierName*>(identifierName);
+    if(pointerIdentifierName != nullptr) {
+        Variable* pointsTo = makeVariable(block, pointerIdentifierName->getPointsTo());
+        variable = new PointerVariable(pointsTo->getName(), VarType::POINTER, pointsTo);
+    } else {
+        variable = new Variable(identifierName->getName(), VarType::VALUE);
+    }
+    return variable;
 }
 
 Status InstrParser::parseBlock(Block* block) {
@@ -49,14 +61,17 @@ Status InstrParser::parseBlock(Block* block) {
     status = parseDeclarationList(declList);
 
     for(AssignStmt* assignStmt : declList) {
-        block->addSymbol(assignStmt->getVar()->getName(), VarType::VALUE);
+        Variable* var = makeVariable(block, assignStmt->getVar());
+        block->getSymbolTable()->addSymbol(var);
         block->addStatement(assignStmt);
     }
 
     vector<AssignStmt*> stmtList;
     status = parseStmtList(block);
 
+    char closeParen =  p_tokenizer.nextChar(true);
     p_tokenizer.nextChar(); //consume '}'
+    cout <<"consuming } "<<closeParen <<endl;
     /*char closeBrace = p_tokenizer.nextChar(true);
     while(closeBrace != '}' && closeBrace != '\0') {
         Status status = parseStmt(block);
@@ -166,6 +181,7 @@ Status InstrParser::parseStmtList(Block* block) {
     Status status = SUCCESS;
     status = parseStmt(block);
     char c = p_tokenizer.lookAhead(1);
+    cout <<"stmt list look for closing brace " << c <<endl;
     if(status == SUCCESS && c != '}') {
         status = parseStmtList(block);
     }
@@ -505,7 +521,8 @@ Status InstrParser::parseFunctionDecl(Block* block) {
     if(functionIdentifierName == nullptr) return FAILURE;
     vector<IdentifierName*> parameterList = functionIdentifierName->getParameterList();
     for(IdentifierName* identifierName : parameterList) {
-        declBlock->addSymbol(identifierName->getName(), VarType::VALUE);
+        Variable* var = makeVariable(block, identifierName);
+        block->getSymbolTable()->addSymbol(var);
     }
     stmt->setName(identifier);
 

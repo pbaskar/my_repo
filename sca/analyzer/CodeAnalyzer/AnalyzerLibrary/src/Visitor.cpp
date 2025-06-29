@@ -98,8 +98,9 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
         else continue;
         cout <<"RHS value " << *value <<" variables count " <<RHSVariables.size() <<endl;
         for(auto variableIt = RHSVariables.begin(); variableIt != RHSVariables.end(); variableIt++) {
-            const Variable* variable = static_cast<const Variable*>(*variableIt);
-            if (!variable) { cout <<"cast error " <<endl; continue; }
+            cout <<"variable ptr " << *variableIt <<endl;
+            const Variable* variable = dynamic_cast<const Variable*>(*variableIt);
+            if (!variable) { cout <<"RHS cast error " <<variable <<endl; continue; }
             found = false;
             if(variableNodes.find(variable) != variableNodes.end()) {
                 found = true;
@@ -119,14 +120,24 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
         }
         if(node->type() != ASSIGNMENT) continue;
         AssignmentNode* assignNode = static_cast<AssignmentNode*>(node);
+        vector<const Expr*> LHSIdentifiers;
         vector<const Expr*> LHSVariables;
-        const Expr* var = assignNode->getVariable();
-        if(var) var->getRHSVariables(LHSVariables);
-        value->getLHS(LHSVariables);
+        value->getLHS(LHSIdentifiers);
+        for(int i=0; i<LHSIdentifiers.size(); i++) {
+            const Identifier* identifier = static_cast<const Identifier*>(LHSIdentifiers[i]);
+            identifier->getLHSOnLeft(LHSVariables);
+        }
+        for(int i=0; i<LHSIdentifiers.size(); i++) {
+            const Identifier* identifier = static_cast<const Identifier*>(LHSIdentifiers[i]);
+            identifier->getRHSOnLeft(RHSVariables);
+        }
+        const Variable* var = assignNode->getVariable();
+        if(var) LHSVariables.push_back(var);
 
         for(auto variableIt = LHSVariables.begin(); variableIt != LHSVariables.end(); variableIt++) {
-            const Variable* var = static_cast<const Variable*>(*variableIt);
-            if (!var) { cout <<"cast error " <<endl; continue; }
+            cout <<"LHS variable ptr " <<*variableIt << " " <<LHSVariables.size() <<endl;
+            const Variable* var = dynamic_cast<const Variable*>(*variableIt);
+            if (!var) { cout <<"LHS cast error " << var <<endl; continue; }
             auto variableNodeIt = variableNodes.find(var);
             if(variableNodeIt != variableNodes.end()) {
                 auto& nodes = variableNodes.at(var);

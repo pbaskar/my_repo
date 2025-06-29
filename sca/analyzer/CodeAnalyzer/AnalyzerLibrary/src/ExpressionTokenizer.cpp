@@ -82,7 +82,7 @@ char* ExpressionTokenizer::nextWord(ExprType& type, bool peek) {
     }
     if(!peek)
         p_pos = p ;
-    //cout <<"next word " <<p <<endl;
+    cout <<"Expression Tokenizer:: next word " <<p <<"  " <<token <<endl;
     return token;
 }
 

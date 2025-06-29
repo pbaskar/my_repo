@@ -58,6 +58,7 @@ public:
     SymbolTable(SymbolTable* outerScope);
     virtual ~SymbolTable();
     Variable* addSymbol(const char* name, VarType varType);
+    Variable* addSymbol(Variable* var);
     Variable* fetchVariable(const char* name) const;
     void addFnSymbol(const char* name);
     FunctionDeclBlock* fetchFunctionDeclBlock(const char* name) const;
