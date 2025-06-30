@@ -96,7 +96,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
             value->getRHSVariables(RHSVariables);
         }
         else continue;
-        cout <<"RHS value " << *value <<" variables count " <<RHSVariables.size() <<endl;
+        //cout <<"RHS value " << *value <<" variables count " <<RHSVariables.size() <<endl;
         for(auto variableIt = RHSVariables.begin(); variableIt != RHSVariables.end(); variableIt++) {
             cout <<"variable ptr " << *variableIt <<endl;
             const Variable* variable = dynamic_cast<const Variable*>(*variableIt);
@@ -114,7 +114,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                 strncat(r.errorMessage,m,strlen(m));
                 strncat(r.errorMessage,name,strlen(name));
                 r.errorMessage[strlen(m)+strlen(name)] = '\0';
-                cout << "Error message " <<r.errorMessage <<endl;
+                cout << "Error message " <<r.errorMessage << " " <<*variable <<endl;
                 p_results.push_back(r);
             }
         }
@@ -135,7 +135,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
         if(var) LHSVariables.push_back(var);
 
         for(auto variableIt = LHSVariables.begin(); variableIt != LHSVariables.end(); variableIt++) {
-            cout <<"LHS variable ptr " <<*variableIt << " " <<LHSVariables.size() <<endl;
+            //cout <<"LHS variable ptr " <<*variableIt << " " <<LHSVariables.size() <<endl;
             const Variable* var = dynamic_cast<const Variable*>(*variableIt);
             if (!var) { cout <<"LHS cast error " << var <<endl; continue; }
             auto variableNodeIt = variableNodes.find(var);

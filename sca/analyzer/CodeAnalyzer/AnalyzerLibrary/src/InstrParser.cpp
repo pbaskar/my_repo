@@ -43,8 +43,10 @@ Variable* makeVariable(Block* block, const IdentifierName* identifierName) {
     if(pointerIdentifierName != nullptr) {
         Variable* pointsTo = makeVariable(block, pointerIdentifierName->getPointsTo());
         variable = new PointerVariable(pointsTo->getName(), VarType::POINTER, pointsTo);
+        cout <<"Pointer Variable created " <<pointsTo->getName();
     } else {
         variable = new Variable(identifierName->getName(), VarType::VALUE);
+        cout << "Variable created " <<identifierName->getName();
     }
     return variable;
 }

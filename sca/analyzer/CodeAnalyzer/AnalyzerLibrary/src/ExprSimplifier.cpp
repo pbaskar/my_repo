@@ -22,7 +22,7 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
         case DECL:
         case ASSIGN: {
             AssignStmt* assignStmt = static_cast<AssignStmt*>(stmt);
-            cout << "Assign Node: " <<*stmt << " " <<block->getSubStatements().size() <<endl;
+            cout << "Assign Stmt: " <<*stmt << " " <<block->getSubStatements().size() <<endl;
             Expr* value = assignStmt->toSimplify();
             if(value) {
                 value->populateVariable(block->getSymbolTable());
@@ -46,7 +46,7 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
         case IF:
         case ELSE: {
             IfStmt* ifStmt = static_cast<IfStmt*>(stmt);
-            cout << "If Node: " <<block->getSubStatements().size() <<endl;
+            cout << "If Stmt: " <<block->getSubStatements().size() <<endl;
             Expr* condition = ifStmt->toSimplifyCondition();
             if(condition) {
                 condition->populateVariable(block->getSymbolTable());
@@ -55,14 +55,14 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
 
             const IfStmt* elseStmt = ifStmt->getElse();
             if(elseStmt) {
-                cout << "Else Node: " << " " <<block->getSubStatements().size() <<endl;
+                cout << "Else Stmt: " << " " <<block->getSubStatements().size() <<endl;
                 status = simplifyBlock(elseStmt->getBlock());
             }
         }
         break;
         case WHILE: {
             WhileStmt* whileStmt = static_cast<WhileStmt*>(stmt);
-            cout << "While Node: " <<block->getSubStatements().size() <<endl;
+            cout << "While Stmt: " <<block->getSubStatements().size() <<endl;
             Expr* condition = whileStmt->toSimplifyCondition();
             if(condition) {
                 condition->populateVariable(block->getSymbolTable());
@@ -72,7 +72,7 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
         break;
         case FUNC_DECL: {
             FunctionDeclStmt* functionDeclStmt = static_cast<FunctionDeclStmt*>(stmt);
-            cout << "Func Decl Node: " <<block->getSubStatements().size() <<endl;
+            cout << "Func Decl Stmt: " <<block->getSubStatements().size() <<endl;
             status = simplifyBlock(functionDeclStmt->getBlock());
         }
         break;

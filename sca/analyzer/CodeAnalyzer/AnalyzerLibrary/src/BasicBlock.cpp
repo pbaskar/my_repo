@@ -48,5 +48,4 @@ void FunctionCallBlock::acceptVisitor(Visitor& visitor) {
 }
 
 FunctionDeclBlock::~FunctionDeclBlock() {
-    delete p_name;
 }

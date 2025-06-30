@@ -198,8 +198,7 @@ public:
     virtual ExprType getExprType() const { return POINTERVARIABLE; }
     virtual const Variable* getPointsTo() const { return p_pointsTo; }
     virtual void print(ostream& os) const{
-        Variable::print(os);
-        os <<*p_pointsTo << " ";
+        os <<"*"<<*p_pointsTo;
     }
     virtual void getRHSVariables(vector<const Expr*>& variables) const { variables.push_back(this); }
     virtual void getLHS(vector<const Expr*>& variables) const {}
@@ -213,7 +212,7 @@ private:
 class Identifier : public Expr {
 public:
     Identifier(const char* n): p_name(n) {}
-    virtual ~Identifier() { delete p_name; }
+    virtual ~Identifier() { /*delete p_name;*/ }
     virtual ExprType getExprType() const { return IDENTIFIER; }
     void setName(const char* name) { p_name = name; }
     const char* getName() const { return p_name; }
