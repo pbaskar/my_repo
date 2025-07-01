@@ -159,6 +159,7 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
             //cout <<"LHS variable ptr " <<*variableIt <<" " << LHSVariables.size() << " "<<RHSVariables.size() <<endl;
             const Variable* var = dynamic_cast<const Variable*>(*variableIt);
             if (var==nullptr) { cout <<"cast error " <<endl; continue; }
+
             auto variableNodeIt = outVariableNodes.find(var);
             if(variableNodeIt != outVariableNodes.end()) {
                 auto& nodes = outVariableNodes.at(var);
@@ -171,6 +172,46 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                 v.push_back(assignNode);
                 cout<<" added var " <<*var << " " << *assignNode << " " <<assignNode <<endl;
                 outVariableNodes.insert_or_assign(var, v);
+            }
+           if(var->getExprType() == ExprType::POINTERVARIABLE) {
+                const Variable* rhs = dynamic_cast<const Variable*>(RHSVariables[0]);
+                if(rhs==nullptr) { cout << "pointer assignment rhs null error " <<endl; break;}
+                const Variable* pointsToLHS = var;
+                const Variable* pointsToRHS = rhs;
+
+                while(true) {
+                    const PointerVariable* lhsPointer=dynamic_cast<const PointerVariable*>(pointsToLHS);
+                    if(lhsPointer == nullptr) break;
+                    const PointerVariable* rhsPointer=dynamic_cast<const PointerVariable*>(pointsToRHS);
+                    if(rhsPointer == nullptr) break;
+                    pointsToLHS = lhsPointer->getPointsTo();
+                    pointsToRHS = rhsPointer->getPointsTo();
+                    assert(pointsToLHS != nullptr);
+                    assert(pointsToRHS != nullptr);
+
+                    vector<AssignmentNode*> rhsNodes;
+                    auto pointsToRHSVariableNodeIt = outVariableNodes.find(pointsToRHS);
+                    if(pointsToRHSVariableNodeIt != outVariableNodes.end()) {
+                        rhsNodes = outVariableNodes.at(pointsToRHS);
+                        cout<<" added pointsto var " <<*pointsToLHS << " " << *assignNode << " " <<assignNode << rhsNodes.size()<<endl;
+                    }
+                    else {
+                        cout <<"pointsTo var not changed " <<*pointsToLHS << " " << *assignNode << " " <<assignNode <<endl;
+                    }
+
+                    //copy assignment nodes from pointsToRHS to pointsToLHS
+                    auto pointsToVariableNodeIt = outVariableNodes.find(pointsToLHS);
+                    if(pointsToVariableNodeIt != outVariableNodes.end()) {
+                        auto& nodes = outVariableNodes.at(pointsToLHS);
+                        nodes.clear();
+                        nodes = /*std::move*/(rhsNodes);
+                        cout<<" replaced pointsto var " <<* pointsToLHS << " " <<*assignNode << " " <<assignNode <<endl;
+                    }
+                    else {
+                        cout<<" added pointsto var " <<*pointsToLHS << " " << *assignNode << " " <<assignNode << rhsNodes.size()<<endl;
+                        outVariableNodes.insert_or_assign(pointsToLHS, rhsNodes);
+                    }
+                }
             }
         }
     }

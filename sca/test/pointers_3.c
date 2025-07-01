@@ -33,5 +33,6 @@ void fun(int **i) {
 }
 int main(int argc) {
     int **m;
+    *m = argc;
     fun(m) ;
 }

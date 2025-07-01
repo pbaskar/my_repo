@@ -102,8 +102,11 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
             const Variable* variable = dynamic_cast<const Variable*>(*variableIt);
             if (!variable) { cout <<"RHS cast error " <<variable <<endl; continue; }
             found = false;
-            if(variableNodes.find(variable) != variableNodes.end()) {
-                found = true;
+            map<const Variable*, vector<AssignmentNode*>>::iterator nodesIt = variableNodes.find(variable);
+            if(nodesIt != variableNodes.end()) {
+                const vector<AssignmentNode*>& nodes= nodesIt->second;
+                if(!nodes.empty())
+                    found = true;
             }
             if(!found) {
                 const char* m = "Not initialized ";
