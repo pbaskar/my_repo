@@ -90,6 +90,9 @@ void TraverserOne::traverseFunctionCallBlock(FunctionCallBlock* functionCallBloc
         block = functionCallBlock->getFnDecl();
         block->acceptTraverser(*this);
     }
+
+    block = functionCallBlock->getLast();
+    block->acceptTraverser(*this);
     functionCallBlock->acceptVisitor(*p_visitor);
 }
 

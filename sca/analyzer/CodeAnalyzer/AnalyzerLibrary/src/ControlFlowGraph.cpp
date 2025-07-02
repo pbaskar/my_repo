@@ -135,6 +135,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
         case FUNC_CALL: {
             BasicBlock* first(0);
             FunctionDeclBlock* fnDecl(0);
+            BasicBlock* last(0);
 
             FunctionCallStmt* functionCallStmt = static_cast<FunctionCallStmt*>(stmt);
             first = new BasicBlock(block->getSymbolTable());
@@ -143,7 +144,10 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             fnDecl = p_head->fetchFunctionDeclBlock(identifier->getName());
 
             first->setNext(fnDecl);
-            FunctionCallBlock* functionCallBlock = new FunctionCallBlock(0,identifier,first,fnDecl);
+            last = new BasicBlock(block->getSymbolTable());
+            fnDecl->setNext(last);
+
+            FunctionCallBlock* functionCallBlock = new FunctionCallBlock(0,identifier,first,fnDecl,last);
             auto formalArguments = fnDecl->getFormalArguments();
             auto actualArguments = functionCallStmt->getActualArguments();
             int i=0;
@@ -152,6 +156,16 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
                 first->addNode(functionDeclNode);
                 functionCallBlock->addActualArgument(expr);
                 i++;
+            }
+            i=0;
+            for(Expr* expr : actualArguments) {
+                if(formalArguments[i]->getExprType() == ExprType::POINTERVARIABLE &&
+                        (expr->getExprType() == ExprType::IDENTIFIER || expr->getExprType() == ExprType::DEREFERENCEOPERATOR)) {
+                    const Variable* var = static_cast<Identifier*>(expr)->getVariable();
+                    AssignmentNode* functionDeclNode = new AssignmentNode(var, formalArguments[i]);
+                    last->addNode(functionDeclNode);
+                    i++;
+                }
             }
             cout <<"Function Call Block: "  <<functionCallBlock->getName() << " " <<block->getSubStatements().size()<<endl;
             currBlock->setNext(functionCallBlock);

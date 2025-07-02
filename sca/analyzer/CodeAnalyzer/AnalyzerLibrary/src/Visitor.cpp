@@ -102,6 +102,9 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
             const Variable* variable = dynamic_cast<const Variable*>(*variableIt);
             if (!variable) { cout <<"RHS cast error " <<variable <<endl; continue; }
             found = false;
+//            if(variableNodes.find(variable) != variableNodes.end()) {
+//                found = true;
+//            }
             map<const Variable*, vector<AssignmentNode*>>::iterator nodesIt = variableNodes.find(variable);
             if(nodesIt != variableNodes.end()) {
                 const vector<AssignmentNode*>& nodes= nodesIt->second;
@@ -241,6 +244,9 @@ void VariableInitCheckVisitor::visitFunctionCallBlock(FunctionCallBlock* functio
     block->acceptVisitor(*this);
 
     block = functionCallBlock->getFnDecl();
+    block->acceptVisitor(*this);
+
+    block = functionCallBlock->getLast();
     block->acceptVisitor(*this);
     cout <<"End of FunctionCallBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }

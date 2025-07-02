@@ -39,7 +39,7 @@ private:
 class AssignmentNode : public Node {
 public:
     AssignmentNode() : p_var(0), p_value(0) { }
-    AssignmentNode(Variable* var, const Expr* value) : p_var(var), p_value(value) { }
+    AssignmentNode(const Variable* var, const Expr* value) : p_var(var), p_value(value) { }
     virtual NodeType type() { return ASSIGNMENT; }
     virtual ~AssignmentNode() {
         //delete p_var;
@@ -212,13 +212,14 @@ private:
 
 class FunctionCallBlock : public BasicBlock {
 public:
-    FunctionCallBlock(BasicBlock* next, const Expr* name, BasicBlock* first, FunctionDeclBlock* fnDecl):
-        BasicBlock(next, 0), p_name(name), p_first(first), p_fnDecl(fnDecl){}
+    FunctionCallBlock(BasicBlock* next, const Expr* name, BasicBlock* first, FunctionDeclBlock* fnDecl, BasicBlock* last):
+        BasicBlock(next, 0), p_name(name), p_first(first), p_fnDecl(fnDecl), p_last(last){}
     virtual ~FunctionCallBlock(){}
     virtual void acceptVisitor(Visitor& visitor);
     virtual void acceptTraverser(Traverser& traverser);
     BasicBlock* getFnDecl() { return p_fnDecl; }
     BasicBlock* getFirst() { return p_first; }
+    BasicBlock* getLast() { return p_last; }
     const Expr* getName() { return p_name; }
     /*bool match(const Expr* name) {
         return strcmp(p_name, name) ==0;
@@ -235,6 +236,7 @@ private:
     const Expr* p_name;
     BasicBlock* p_first;
     FunctionDeclBlock* p_fnDecl;
+    BasicBlock* p_last;
     vector<Expr*> p_actualArguments;
 };
 

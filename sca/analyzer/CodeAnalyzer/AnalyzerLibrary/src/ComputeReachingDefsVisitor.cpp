@@ -193,10 +193,10 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                     auto pointsToRHSVariableNodeIt = outVariableNodes.find(pointsToRHS);
                     if(pointsToRHSVariableNodeIt != outVariableNodes.end()) {
                         rhsNodes = outVariableNodes.at(pointsToRHS);
-                        cout<<" added pointsto var " <<*pointsToLHS << " " << *assignNode << " " <<assignNode << rhsNodes.size()<<endl;
+                        cout<<" found rhsNodes " <<*pointsToLHS << " " << *assignNode << " " <<assignNode << rhsNodes.size()<<endl;
                     }
                     else {
-                        cout <<"pointsTo var not changed " <<*pointsToLHS << " " << *assignNode << " " <<assignNode <<endl;
+                        cout <<"not found rhsNodes " <<*pointsToLHS << " " << *assignNode << " " <<assignNode <<endl;
                     }
 
                     //copy assignment nodes from pointsToRHS to pointsToLHS
@@ -329,6 +329,10 @@ void ComputeReachingDefsVisitor::visitFunctionCallBlock(FunctionCallBlock* funct
     meet(block);
     block->acceptVisitor(*this);
 
+    block = functionCallBlock->getLast();
+    meet(block);
+    block->acceptVisitor(*this);
+
     map<const Variable*, vector<AssignmentNode*>> outVariableNodes = p_outVariableNodes.at(block);
     detectChange(p_outVariableNodes, functionCallBlock, outVariableNodes);
     p_outVariableNodes.erase(functionCallBlock);
@@ -342,7 +346,7 @@ void ComputeReachingDefsVisitor::visitCFG(BasicBlock* block) {
     BasicBlock* next(0);
     BasicBlock* curr(block);
     int numIt = 0;
-    while(p_variableNodesChanged) {
+    //while(p_variableNodesChanged) {
         p_variableNodesChanged = false;
         curr = block;
         numIt++;
@@ -354,6 +358,6 @@ void ComputeReachingDefsVisitor::visitCFG(BasicBlock* block) {
         }
         cout <<"variable changed " <<p_variableNodesChanged <<endl;
         //if(numIt >=2 ) break;
-    }
+    //}
     cout <<"End of CFG: variableNodes size " <<p_outVariableNodes.size() <<" Iterations " << numIt <<endl <<endl;
 }
