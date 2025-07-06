@@ -15,6 +15,7 @@ class SymbolTable;
 class Variable;
 using namespace std;
 enum ExprType {
+    DEFINITION,
     CONSTANT,
     VARIABLE,
     POINTERVARIABLE,
@@ -23,6 +24,8 @@ enum ExprType {
     UNARYOPERATOR,
     DEREFERENCEOPERATOR,
     FUNCTIONCALL,
+    MALLOCFNCALL,
+    DELETEFNCALL,
     ASSIGNOPERATOR,
     INVALID
 };
@@ -168,7 +171,7 @@ private:
 class Variable : public Expr {
 public:
     Variable(const char* n, VarType type): p_name(n), p_type(type) {}
-    virtual ~Variable() { /*delete p_name;*/ }
+    virtual ~Variable() { /*delete p_name;*/ } //Todo: release memory shared by ptr_ptr_p, ptr_p and p
     virtual ExprType getExprType() const { return VARIABLE; }
     void setName(const char* name) { p_name = name; }
     const char* getName() const { return p_name; }
@@ -212,7 +215,7 @@ private:
 class Identifier : public Expr {
 public:
     Identifier(const char* n): p_name(n) {}
-    virtual ~Identifier() { /*delete p_name;*/ }
+    virtual ~Identifier() { /*delete p_name;*/ } //Todo: release memory shared by dereference operator **p, *p and p
     virtual ExprType getExprType() const { return IDENTIFIER; }
     void setName(const char* name) { p_name = name; }
     const char* getName() const { return p_name; }
@@ -311,6 +314,25 @@ private:
     int p_number;
 };
 
+class Definition : public Expr {
+public:
+    Definition(bool valid) : p_valid(valid) {}
+    virtual ~Definition() {}
+    virtual ExprType getExprType() const { return DEFINITION; }
+    virtual void getRHSVariables(vector<const Expr*>& variables) const {}
+    virtual void getLHS(vector<const Expr*>& variables) const {}
+    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {}
+    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {}
+    virtual void populateVariable(SymbolTable* symbolTable) {}
+    const bool isValid() { return p_valid; }
+    void setIsValid(bool valid) { p_valid = valid; }
+    virtual void print(ostream& os) const {
+        os << " " <<p_valid <<endl;
+    }
+private:
+    bool p_valid;
+};
+
 class FunctionCall : public Expr {
 public:
     FunctionCall(Expr* identifier, vector<Expr*> arguments): p_functionName(identifier), p_arguments(arguments) {}
@@ -347,6 +369,54 @@ public:
 private:
     Expr* p_functionName;
     vector<Expr*> p_arguments;
+};
+
+class MallocFnCall : public FunctionCall {
+public:
+    MallocFnCall(Expr* identifier, vector<Expr*> arguments): FunctionCall(identifier, arguments) {
+        p_definition = new Definition(true);
+    }
+    virtual ~MallocFnCall() {
+        delete p_definition;
+    }
+    virtual ExprType getExprType() const { return MALLOCFNCALL; }
+    virtual void print(ostream& os) const{
+        FunctionCall::print(os);
+    }
+    //virtual void getRHSVariables(vector<const Expr*>& variables) const {}
+    //virtual void getLHS(vector<const Expr*>& variables) const {}
+    //virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {}
+    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
+        //functionCalls.push_back(this);
+    }
+    const Definition* getDefinition() const { return p_definition; }
+    //virtual void populateVariable(SymbolTable* symbolTable) {}
+private:
+    Definition* p_definition;
+};
+
+class DeleteFnCall : public FunctionCall {
+public:
+    DeleteFnCall(Expr* identifier, vector<Expr*> arguments): FunctionCall(identifier, arguments) {}
+    virtual ~DeleteFnCall() {
+    }
+    virtual ExprType getExprType() const { return DELETEFNCALL; }
+    virtual void print(ostream& os) const{
+        FunctionCall::print(os);
+    }
+    //virtual void getRHSVariables(vector<const Expr*>& variables) const {}
+    virtual void getLHS(vector<const Expr*>& variables) const {
+        const vector<Expr*> arguments = FunctionCall::getArguments();
+        for(const Expr* expr : arguments) {
+            variables.push_back(expr);
+        }
+    }
+    //virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {}
+    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
+        //functionCalls.push_back(this);
+    }
+    //virtual void populateVariable(SymbolTable* symbolTable) {}
+private:
 };
 
 #endif /* EXPR_H_ */

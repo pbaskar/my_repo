@@ -468,6 +468,9 @@ AssignStmt* InstrParser::parseInitDeclarator() {
         p_tokenizer.nextChar();
         value = parseInitializer();
     }
+    else {
+        value = new Definition(false);
+    }
     assignStmt = new AssignStmt(DECL, var, value);
     return assignStmt;
 }

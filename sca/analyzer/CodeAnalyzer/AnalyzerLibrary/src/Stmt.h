@@ -110,7 +110,7 @@ public:
     }
     virtual void print(ostream& os) {
         if(p_var) os << "Assign statement: name " <<*p_var << " type " << p_type;
-        if(p_value) os << " value " << *p_value << " ";
+        if(p_value) os << " value " << *p_value << " " << p_value->getExprType();
     }
     void setVar(IdentifierName* var) { p_var = var; }
     void setValue(Expr* value) { p_value = value; }

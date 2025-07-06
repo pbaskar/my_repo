@@ -142,6 +142,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 
             const Identifier* identifier = static_cast<const Identifier*>(functionCallStmt->getName());
             fnDecl = p_head->fetchFunctionDeclBlock(identifier->getName());
+            if(fnDecl == nullptr) { cout <<"function declaration block not found " <<endl; delete first; return FAILURE; }
 
             first->setNext(fnDecl);
             last = new BasicBlock(block->getSymbolTable());
@@ -193,8 +194,9 @@ void ControlFlowGraph::variableInitCheck(vector<Result>& results) {
     computeReachingDefsVisitor.visitCFG(p_head);
 
     map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>> inVariableNodes = computeReachingDefsVisitor.getInVariableNodes();
+    map<BasicBlock*, map<const Variable*, vector<pair<const Definition*, bool>>>> inDefinitions = computeReachingDefsVisitor.getInDefinitions();
     cout << "********************************** Compute Reaching Defs done ****************************************" <<endl;
-    VariableInitCheckVisitor variableInitCheckVisitor(inVariableNodes);
+    VariableInitCheckVisitor variableInitCheckVisitor(inVariableNodes, inDefinitions);
     variableInitCheckVisitor.visitCFG(p_head);
     results = variableInitCheckVisitor.getResults();
 }

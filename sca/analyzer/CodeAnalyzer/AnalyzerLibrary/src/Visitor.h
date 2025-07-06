@@ -19,6 +19,7 @@ class FunctionDeclBlock;
 class FunctionCallBlock;
 class AssignmentNode;
 class Variable;
+class Definition;
 class Visitor {
 public:
     Visitor();
@@ -59,7 +60,8 @@ public:
 
 class VariableInitCheckVisitor : public Visitor {
 public:
-    VariableInitCheckVisitor(map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>>& inVariableNodes);
+    VariableInitCheckVisitor(map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>>& inVariableNodes,
+                             map<BasicBlock*, map<const Variable*, vector<pair<const Definition*, bool>>>>& inDefinitions);
     virtual ~VariableInitCheckVisitor();
 
     virtual void visitBasicBlock(BasicBlock* basicBlock);
@@ -73,6 +75,7 @@ public:
     const vector<Result>& getResults() { return p_results; }
 private:
     map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>> p_inVariableNodes;
+    map<BasicBlock*, map<const Variable*, vector<pair<const Definition*, bool>>>> p_inDefinitions;
     vector<Result> p_results;
 };
 #endif /* SRC_VISITOR_H_ */
