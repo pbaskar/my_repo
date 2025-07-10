@@ -19,9 +19,11 @@ enum ExprType {
     CONSTANT,
     VARIABLE,
     POINTERVARIABLE,
+    ADDRESSOFVARIABLE,
     IDENTIFIER,
     OPERATOR,
     UNARYOPERATOR,
+    ADDRESSOFOPERATOR,
     DEREFERENCEOPERATOR,
     FUNCTIONCALL,
     MALLOCFNCALL,
@@ -168,6 +170,25 @@ private:
     Expr* p_right;
 };
 
+class Definition : public Expr {
+public:
+    Definition(bool valid) : p_valid(valid) {}
+    virtual ~Definition() {}
+    virtual ExprType getExprType() const { return DEFINITION; }
+    virtual void getRHSVariables(vector<const Expr*>& variables) const {}
+    virtual void getLHS(vector<const Expr*>& variables) const {}
+    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {}
+    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {}
+    virtual void populateVariable(SymbolTable* symbolTable) {}
+    const bool isValid() const { return p_valid; }
+    void setIsValid(bool valid) { p_valid = valid; }
+    virtual void print(ostream& os) const {
+        os << " " <<p_valid <<endl;
+    }
+private:
+    bool p_valid;
+};
+
 class Variable : public Expr {
 public:
     Variable(const char* n, VarType type): p_name(n), p_type(type) {}
@@ -175,6 +196,8 @@ public:
     virtual ExprType getExprType() const { return VARIABLE; }
     void setName(const char* name) { p_name = name; }
     const char* getName() const { return p_name; }
+    void setAddress(const Variable* address) { p_address = address; }
+    const Variable* getAddress() const { return p_address; }
     virtual void print(ostream& os) const{
         os <<p_name << " ";
     }
@@ -192,14 +215,15 @@ public:
 private:
     const char* p_name;
     VarType p_type;
+    const Variable* p_address;
 };
 
 class PointerVariable : public Variable {
 public:
-    PointerVariable(const char* n, VarType type, Variable* pointsTo): Variable(n, type), p_pointsTo(pointsTo) {}
+    PointerVariable(const char* n, VarType type, const Variable* pointsTo): Variable(n, type), p_pointsTo(pointsTo) {}
     virtual ~PointerVariable() { delete p_pointsTo; }
     virtual ExprType getExprType() const { return POINTERVARIABLE; }
-    virtual const Variable* getPointsTo() const { return p_pointsTo; }
+    const Variable* getPointsTo() const { return p_pointsTo; }
     virtual void print(ostream& os) const{
         os <<"*"<<*p_pointsTo;
     }
@@ -208,8 +232,26 @@ public:
     virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {}
     virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {}
     virtual void populateVariable(SymbolTable* symbolTable) {}
+protected:
+    const Variable* p_pointsTo;
+};
+
+class AddressOfVariable : public PointerVariable {
+public:
+    AddressOfVariable(const char* n, VarType type, const Variable* pointsTo): PointerVariable(n, type, pointsTo) {
+        p_definition = new Definition(true);
+    }
+    virtual void print(ostream& os) const{
+        Variable::print(os);
+    }
+    virtual ~AddressOfVariable() {
+        p_pointsTo = nullptr;
+        delete p_definition;
+    }
+    virtual ExprType getExprType() const { return ADDRESSOFVARIABLE; }
+    const Definition* getDefinition() const { return p_definition; }
 private:
-    Variable* p_pointsTo;
+    const Definition* p_definition;
 };
 
 class Identifier : public Expr {
@@ -296,6 +338,37 @@ private:
     Expr* p_right;
 };
 
+class AddressOfOperator : public Identifier {
+public:
+    AddressOfOperator(const char* name, Expr* r): Identifier(name), p_right(r) {}
+    virtual ~AddressOfOperator() {
+        delete p_right;
+    }
+    virtual ExprType getExprType() const { return ADDRESSOFOPERATOR; }
+    void setRightOp(Expr* right) { p_right = right; }
+    virtual void print(ostream& os) const{
+        os<< "&" <<*p_right;
+    }
+    virtual void getRHSVariables(vector<const Expr*>& variables) const {
+        Identifier::getRHSVariables(variables);
+        p_right->getRHSVariables(variables);
+    }
+    virtual void getLHS(vector<const Expr*>& variables) const {
+    }
+    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {
+        derefIdentifiers.push_back(this);
+    }
+    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
+        p_right->getFunctionCalls(functionCalls);
+    }
+    virtual void populateVariable(SymbolTable* symbolTable) {
+        p_right->populateVariable(symbolTable);
+    }
+    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable);
+private:
+    Expr* p_right;
+};
+
 class Constant : public Expr {
 public:
     Constant(int n): p_number(n) {}
@@ -312,25 +385,6 @@ public:
     }
 private:
     int p_number;
-};
-
-class Definition : public Expr {
-public:
-    Definition(bool valid) : p_valid(valid) {}
-    virtual ~Definition() {}
-    virtual ExprType getExprType() const { return DEFINITION; }
-    virtual void getRHSVariables(vector<const Expr*>& variables) const {}
-    virtual void getLHS(vector<const Expr*>& variables) const {}
-    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {}
-    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {}
-    virtual void populateVariable(SymbolTable* symbolTable) {}
-    const bool isValid() { return p_valid; }
-    void setIsValid(bool valid) { p_valid = valid; }
-    virtual void print(ostream& os) const {
-        os << " " <<p_valid <<endl;
-    }
-private:
-    bool p_valid;
 };
 
 class FunctionCall : public Expr {

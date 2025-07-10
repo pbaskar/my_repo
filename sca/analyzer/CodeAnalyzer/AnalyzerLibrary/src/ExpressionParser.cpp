@@ -180,7 +180,7 @@ Expr* ExpressionParser::parseUnaryExpression() {
             p_exprTokenizer.nextChar();
             operand = parsePostFixExpression();
             if(operand)
-                unaryExpr = new UnaryOperator(o, operand);
+                unaryExpr = new AddressOfOperator("AddressOf", operand);
         break;
         default:
             unaryExpr = parsePostFixExpression();

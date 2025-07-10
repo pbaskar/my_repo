@@ -195,7 +195,7 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                         const MallocFnCall* mallocFnCall = static_cast<const MallocFnCall*>(value);
                         const Definition* rhsDefinition = mallocFnCall->getDefinition();
 
-                        pair<const Definition*, bool> p(rhsDefinition, true);
+                        pair<const Definition*, bool> p(rhsDefinition, rhsDefinition->isValid());
                         //copy new definition as LHS var malloc definition
                         auto definitionIt = outDefinitions.find(var);
                         if(definitionIt != outDefinitions.end()) {
@@ -216,22 +216,30 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                    break;
                    }
                    case ExprType::DELETEFNCALL: {
-                           if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
-                           const Expr* rhsExpr = RHSVariables[0];
-                           const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
-                           if(rhs==nullptr) { cout << "pointer assignment rhs cast error " <<endl; break; }
-                           auto definitionIt = outDefinitions.find(rhs);
-                           if(definitionIt != outDefinitions.end()) {
-                               auto& definitions = outDefinitions.at(rhs);
-                               for(int i=0; i<definitions.size(); i++) {
-                                   auto& definition = definitions[i];
-                                   definition.second = false;
-                                   cout <<"delete : set false to " <<*rhs <<endl;
+                       if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
+                       const Expr* rhsExpr = RHSVariables[0];
+                       const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
+                       if(rhs==nullptr) { cout << "pointer assignment rhs cast error " <<endl; break; }
+                       auto definitionIt = outDefinitions.find(rhs);
+                       if(definitionIt != outDefinitions.end()) {
+                           auto deletedDefinitionPairs = outDefinitions.at(rhs);
+
+                           // set definition invalid for all variables pointing to the deleted definition
+                           for(auto it = outDefinitions.begin(); it != outDefinitions.end();  it++) {
+                               auto& definitionPairs = it->second;
+                               for(auto itDef =definitionPairs.begin(); itDef!= definitionPairs.end(); itDef++) {
+                                   auto match = [=](auto deletedDefinitionPair) { return itDef->first == deletedDefinitionPair.first; };
+                                   auto matched = find_if(deletedDefinitionPairs.begin(), deletedDefinitionPairs.end(), match);
+                                   if(matched != deletedDefinitionPairs.end()) {
+                                       itDef->second = false;
+                                       cout <<"delete : set false to " <<itDef->second <<endl;
+                                   }
                                }
                            }
-                           else {
-                               assert(false);
-                           }
+                       }
+                       else {
+                           assert(false);
+                       }
                     }
                    break;
                    case ExprType::DEFINITION: {
@@ -242,15 +250,18 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                             const PointerVariable* lhsPointer=dynamic_cast<const PointerVariable*>(pointsToLHS);
                             if(lhsPointer == nullptr) break;
 
+                            pair<const Definition*, bool> p(rhsDefinition, rhsDefinition->isValid());
                             //add dummy definition for ptr_ptr_p and ptr_p
                             auto definitionIt = outDefinitions.find(lhsPointer);
                             if(definitionIt != outDefinitions.end()) {
-                                assert(false);
+                                auto& definitions = outDefinitions.at(lhsPointer);
+                                definitions.clear();
+                                definitions.push_back(p);
                             }
                             else {
                                 cout<<" added definition lhs " <<*lhsPointer << " outDefinitions size " << outDefinitions.size()<<endl;
                                 vector<pair<const Definition*, bool>> v;
-                                v.push_back(pair<const Definition*, bool>(rhsDefinition, false));
+                                v.push_back(p);
                                 outDefinitions.insert_or_assign(lhsPointer, v);
                             }
 
@@ -271,7 +282,33 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                         }
                    }
                    break;
-                   //Variable, PointerVariable, Dereference Operator
+                   case ExprType::ADDRESSOFOPERATOR: {
+                       if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
+                       const Expr* rhsExpr = RHSVariables[0];
+                       assert(rhsExpr != nullptr);
+                       const AddressOfVariable* rhs = dynamic_cast<const AddressOfVariable*>(rhsExpr);
+                       if(rhs != nullptr) {
+                           const Definition* rhsDefinition = rhs->getDefinition();
+                           pair<const Definition*, bool> p(rhsDefinition, rhsDefinition->isValid());
+
+                           auto definitionIt = outDefinitions.find(rhs);
+                           if(definitionIt != outDefinitions.end()) {
+                               auto& definitions = outDefinitions.at(rhs);
+                               definitions.clear();
+                               definitions.push_back(p);
+                               cout<<" replaced definition of rhs " <<*rhs << " rhs definition valid " <<*rhsDefinition
+                                  <<*assignNode <<endl;
+                           }
+                           else {
+                               vector<pair<const Definition*, bool>> v;
+                               v.push_back(p);
+                               cout<<" added definition rhs " <<*rhs << " assignNode ptr " << *assignNode
+                                  << " outDefinitions size " << outDefinitions.size()<<endl;
+                               outDefinitions.insert_or_assign(rhs, v);
+                           }
+                       }
+                   } //Fallthrough
+                   //Variable, PointerVariable, Dereference Operator, AddressOfOperator
                    default: {
                        if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
                        const Expr* rhsExpr = RHSVariables[0];
