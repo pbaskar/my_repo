@@ -160,6 +160,9 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                     found = false;
                 }
             }
+            else {
+                found = false;
+            }
             map<const Variable*, vector<pair<const Definition*, bool>>>::iterator inDefinitionIt = inDefinitions.find(variable);
             if(inDefinitionIt != inDefinitions.end()) {
                 const vector<pair<const Definition*, bool>>& definitions= inDefinitionIt->second;
@@ -492,14 +495,18 @@ void VariableInitCheckVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functio
 
 void VariableInitCheckVisitor::visitFunctionCallBlock(FunctionCallBlock* functionCallBlock) {
     cout <<"Beginning of FunctionCallBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
-    BasicBlock* block = functionCallBlock->getFirst();
-    block->acceptVisitor(*this);
+    vector<FunctionCallInstance*>& functionCallInstances = functionCallBlock->getFnCallInstances();
+    for(int i=0; i<functionCallInstances.size(); i++) {
+        FunctionCallInstance* fnCallInstance = functionCallInstances[i];
+        BasicBlock* block = fnCallInstance->getFirst();
+        block->acceptVisitor(*this);
 
-    block = functionCallBlock->getFnDecl();
-    block->acceptVisitor(*this);
+        block = fnCallInstance->getFnDecl();
+        block->acceptVisitor(*this);
 
-    block = functionCallBlock->getLast();
-    block->acceptVisitor(*this);
+        block = fnCallInstance->getLast();
+        block->acceptVisitor(*this);
+    }
     cout <<"End of FunctionCallBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }
 

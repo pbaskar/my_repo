@@ -147,16 +147,15 @@ Expr* ExpressionParser::parsePostFixExpression() {
     vector<Expr*> postFixExprPrime = parsePostFixExpressionPrime(type);
     switch(type) {
         case FUNCTIONCALL: {
-            //if(primaryExpr->getExprType() == IDENTIFIER) {
-            Identifier* identifier = static_cast<Identifier*>(primaryExpr);
-            //}
-            if(strcmp(identifier->getName(),"malloc")==0) {
-                postFixExpr = new MallocFnCall(primaryExpr, postFixExprPrime);
-            } else if(strcmp(identifier->getName(), "delete") == 0) {
-                postFixExpr = new DeleteFnCall(primaryExpr, postFixExprPrime);
-            } else {
-                postFixExpr = new FunctionCall(primaryExpr, postFixExprPrime);
+            if(primaryExpr->getExprType() == IDENTIFIER) {
+                Identifier* identifier = static_cast<Identifier*>(primaryExpr);
+                if(strcmp(identifier->getName(),"malloc")==0) {
+                    postFixExpr = new MallocFnCall(primaryExpr, postFixExprPrime); break;
+                } else if(strcmp(identifier->getName(), "delete") == 0) {
+                    postFixExpr = new DeleteFnCall(primaryExpr, postFixExprPrime); break;
+                }
             }
+            postFixExpr = new FunctionCall(primaryExpr, postFixExprPrime);
         break;
         }
         default:

@@ -509,25 +509,31 @@ void ComputeReachingDefsVisitor::visitFunctionCallBlock(FunctionCallBlock* funct
     map<const Variable*, vector<AssignmentNode*>> variableNodes = p_inVariableNodes.at(functionCallBlock);
     map<const Variable*, vector<pair<const Definition*, bool>>> definitions = p_inDefinitions.at(functionCallBlock);
     cout <<"Beginning of FunctionCallBlock: variableNodes size " <<variableNodes.size() <<" " << definitions.size() <<endl <<endl;
-    meet(functionCallBlock->getFirst(), variableNodes, definitions);
+    vector<FunctionCallInstance*>& functionCallInstances = functionCallBlock->getFnCallInstances();
+    for(int i=0; i<functionCallInstances.size(); i++) {
+        FunctionCallInstance* fnCallInstance = functionCallInstances[i];
+        meet(fnCallInstance->getFirst(), variableNodes, definitions);
 
-    BasicBlock* block = functionCallBlock->getFirst();
-    block->acceptVisitor(*this);
+        BasicBlock* block = fnCallInstance->getFirst();
+        block->acceptVisitor(*this);
 
-    block = functionCallBlock->getFnDecl();
-    meet(block);
-    block->acceptVisitor(*this);
+        block = fnCallInstance->getFnDecl();
+        meet(block);
+        block->acceptVisitor(*this);
 
-    block = functionCallBlock->getLast();
-    meet(block);
-    block->acceptVisitor(*this);
+        block = fnCallInstance->getLast();
+        meet(block);
+        block->acceptVisitor(*this);
+    }
 
-    map<const Variable*, vector<AssignmentNode*>> outVariableNodes = p_outVariableNodes.at(block);
+    meet(functionCallBlock->getLast());
+    functionCallBlock->getLast()->acceptVisitor(*this);
+    map<const Variable*, vector<AssignmentNode*>> outVariableNodes = p_outVariableNodes.at(functionCallBlock->getLast());
     detectChange(p_outVariableNodes, functionCallBlock, outVariableNodes);
     p_outVariableNodes.erase(functionCallBlock);
     p_outVariableNodes[functionCallBlock] = outVariableNodes;
 
-    map<const Variable*, vector<pair<const Definition*, bool>>> outDefinitions = p_outDefinitions.at(block);
+    map<const Variable*, vector<pair<const Definition*, bool>>> outDefinitions = p_outDefinitions.at(functionCallBlock->getLast());
     p_outDefinitions.erase(functionCallBlock);
     p_outDefinitions[functionCallBlock] = outDefinitions;
 

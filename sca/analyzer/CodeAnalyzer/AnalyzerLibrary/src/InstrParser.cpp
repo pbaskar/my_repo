@@ -6,6 +6,7 @@
  */
 #include<iostream>
 #include<cstring>
+#include<cassert>
 #include<cstdarg>
 #include "InstrParser.h"
 #include "Logger.h"
@@ -42,7 +43,7 @@ Variable* makeVariable(Block* block, const IdentifierName* identifierName) {
     const PointerIdentifierName* pointerIdentifierName = dynamic_cast<const PointerIdentifierName*>(identifierName);
     if(pointerIdentifierName != nullptr) {
         Variable* pointsTo = makeVariable(block, pointerIdentifierName->getPointsTo());
-        variable = new PointerVariable(pointsTo->getName(), VarType::POINTER, pointsTo);
+        variable = new PointerVariable(pointsTo->getName(), VarType::VALUE, pointsTo);
         pointsTo->setAddress(variable);
         cout <<"Pointer Variable created " <<pointsTo->getName();
     } else {
@@ -64,8 +65,18 @@ Status InstrParser::parseBlock(Block* block) {
     status = parseDeclarationList(declList);
 
     for(AssignStmt* assignStmt : declList) {
-        Variable* var = makeVariable(block, assignStmt->getVar());
-        block->getSymbolTable()->addSymbol(var);
+        const IdentifierName* identifierName = assignStmt->getVar();
+        assert(identifierName != nullptr);
+        if(identifierName->getType() == DeclType::VARDECL) {
+            Variable* var = makeVariable(block, assignStmt->getVar());
+            block->getSymbolTable()->addSymbol(var);
+        }
+        else if(identifierName->getType() == DeclType::FUNCTIONDECL) {
+            FunctionVariable* functionVariable = new FunctionVariable(identifierName->getName(), VarType::FUNCTION);
+            PointerVariable* pointerVariable = new PointerVariable(identifierName->getName(), VarType::FUNCTION, functionVariable);
+            functionVariable->setAddress(pointerVariable);
+            block->getSymbolTable()->addSymbol(pointerVariable);
+        }
         block->addStatement(assignStmt);
     }
 
@@ -405,16 +416,35 @@ vector<IdentifierName*> InstrParser::parseDirectDeclaratorPrime(DeclType& declTy
 
 IdentifierName* InstrParser::parseDirectDeclarator() {
     IdentifierName* directDeclarator = nullptr;
-    char* next = p_tokenizer.nextWord();
-    if(next == nullptr) return directDeclarator;
+    IdentifierName* next = nullptr;
+    char nextChar = p_tokenizer.lookAhead(1);
+    if(nextChar == '(') {
+        p_tokenizer.nextChar(); //consume '('
+        next = parseDeclarator();
+        p_tokenizer.nextChar(); //consume ')'
+    } else {
+        char* nextWord = p_tokenizer.nextWord();
+        if(nextWord == nullptr) return directDeclarator;
+        next = new IdentifierName(nextWord);
+    }
     DeclType declType = VARDECL;
     vector<IdentifierName*> directDeclaratorPrime = parseDirectDeclaratorPrime(declType);
     switch(declType) {
         case VARDECL:
-            directDeclarator = new IdentifierName(next);
+            directDeclarator = next;
         break;
         case FUNCTIONDECL:
-            directDeclarator = new FunctionIdentifierName(next, directDeclaratorPrime);
+                FunctionIdentifierName* functionIdentifierName = new FunctionIdentifierName(next->getName(), directDeclaratorPrime);
+                PointerIdentifierName* pointerIdentifierName = dynamic_cast<PointerIdentifierName*>(next);
+                if(pointerIdentifierName != nullptr) {
+                    delete(pointerIdentifierName->getPointsTo());
+                    pointerIdentifierName->setPointsTo(functionIdentifierName);
+                    directDeclarator = pointerIdentifierName;
+                }
+                else {
+                    delete next;
+                    directDeclarator = functionIdentifierName;
+                }
         break;
     }
     return directDeclarator;
@@ -560,6 +590,7 @@ Status InstrParser::parseFunctionDecl(Block* block) {
     if(status == FAILURE) { return FAILURE; }
     p_tokenizer.nextLine();
     block->getSymbolTable()->addFnSymbol(identifier->getName());
+    block->getSymbolTable()->addSymbol(new Variable(identifier->getName(), VarType::FUNCTION));
     cout <<"Function Decl stmt: size = " <<stmt->getBlock()->getSubStatements().size() << " parent size "
             <<block->getSubStatements().size() << " " <<*stmt <<" status " <<status <<endl;
     return status;

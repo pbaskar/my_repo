@@ -108,19 +108,23 @@ void JsonVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
 
 void JsonVisitor::visitFunctionCallBlock(FunctionCallBlock* functionCallBlock) {
    // cout <<"Beginning of FunctionCallBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
-    BasicBlock* block = functionCallBlock->getFirst();
+    vector<FunctionCallInstance*>& functionCallInstances = functionCallBlock->getFnCallInstances();
+    for(int i=0; i<functionCallInstances.size(); i++) {
+        FunctionCallInstance* fnCallInstance = functionCallInstances[i];
+        BasicBlock* block = fnCallInstance->getFirst();
 
-    QJsonArray blocks_begin = p_blocks;
-    QJsonObject blocks_end;
-    p_blocks = QJsonArray();
+        QJsonArray blocks_begin = p_blocks;
+        QJsonObject blocks_end;
+        p_blocks = QJsonArray();
 
-    block->acceptVisitor(*this);
+        block->acceptVisitor(*this);
 
-    block = functionCallBlock->getFnDecl();
-    block->acceptVisitor(*this);
-    blocks_end["fnCall"] = p_blocks;
-    p_blocks = blocks_begin;
-    p_blocks.append(blocks_end);
+        block = fnCallInstance->getFnDecl();
+        block->acceptVisitor(*this);
+        blocks_end["fnCall"] = p_blocks;
+        p_blocks = blocks_begin;
+        p_blocks.append(blocks_end);
+    }
    // cout <<"End of FunctionCallBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
 }
 

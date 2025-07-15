@@ -14,11 +14,16 @@
 
 using namespace std;
 enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE, FUNC_DECL, FUNC_CALL };
+enum DeclType {
+    FUNCTIONDECL,
+    VARDECL
+};
 
 class IdentifierName {
 public:
     IdentifierName(const char* n): p_name(n) {}
     virtual ~IdentifierName() { /*delete p_name;*/ }
+    virtual DeclType getType() const { return DeclType::VARDECL; }
     friend ostream& operator<<(ostream& os, IdentifierName& identifierName) {
         identifierName.print(os);
         return os;
@@ -47,6 +52,7 @@ public:
             delete p_parameterList[i];
         }
     }
+    virtual DeclType getType() const { return DeclType::FUNCTIONDECL; }
     friend ostream& operator<<(ostream& os, FunctionIdentifierName& functionIdentifierName) {
         functionIdentifierName.print(os);
         return os;
@@ -70,6 +76,7 @@ public:
     virtual ~PointerIdentifierName() {
         delete p_pointsTo;
     }
+    virtual DeclType getType() const { return p_pointsTo->getType(); }
     virtual void print(ostream& os) const{
         IdentifierName::print(os);
         os << *p_pointsTo;

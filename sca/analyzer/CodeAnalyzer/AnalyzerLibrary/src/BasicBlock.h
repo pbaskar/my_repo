@@ -210,20 +210,14 @@ private:
     vector<Variable*> p_formalArguments;
 };
 
-class FunctionCallBlock : public BasicBlock {
+class FunctionCallInstance {
 public:
-    FunctionCallBlock(BasicBlock* next, const Expr* name, BasicBlock* first, FunctionDeclBlock* fnDecl, BasicBlock* last):
-        BasicBlock(next, 0), p_name(name), p_first(first), p_fnDecl(fnDecl), p_last(last){}
-    virtual ~FunctionCallBlock(){}
-    virtual void acceptVisitor(Visitor& visitor);
-    virtual void acceptTraverser(Traverser& traverser);
+    FunctionCallInstance(const char* name, BasicBlock* first, FunctionDeclBlock* fnDecl, BasicBlock* last)
+            : p_name(name), p_first(first), p_fnDecl(fnDecl), p_last(last) { }
     BasicBlock* getFnDecl() { return p_fnDecl; }
     BasicBlock* getFirst() { return p_first; }
     BasicBlock* getLast() { return p_last; }
-    const Expr* getName() { return p_name; }
-    /*bool match(const Expr* name) {
-        return strcmp(p_name, name) ==0;
-    }*/
+    const char* getName() const { return p_name; }
     void addActualArgument(Expr* expr) { p_actualArguments.push_back(expr); }
     virtual void print() {
         cout << "Function name " << p_name << " actual arguments ";
@@ -233,11 +227,45 @@ public:
         cout <<endl;
     }
 private:
-    const Expr* p_name;
+    const char* p_name;
     BasicBlock* p_first;
     FunctionDeclBlock* p_fnDecl;
     BasicBlock* p_last;
     vector<Expr*> p_actualArguments;
+};
+
+class FunctionCallBlock : public BasicBlock {
+public:
+    FunctionCallBlock(BasicBlock* next, const Expr* name): BasicBlock(next, 0), p_name(name) {
+        p_last = new BasicBlock(nullptr);
+    }
+    virtual ~FunctionCallBlock(){
+        for(int i=0; i<p_fnCallInstances.size(); i++)
+            delete p_fnCallInstances[i];
+    }
+    virtual void acceptVisitor(Visitor& visitor);
+    virtual void acceptTraverser(Traverser& traverser);
+    /*bool match(const Expr* name) {
+        return strcmp(p_name, name) ==0;
+    }*/
+    virtual void print() {
+        cout << "Function Call " << p_name << " has Instances " <<endl;
+        for(int i=0; i<p_fnCallInstances.size(); i++) {
+            p_fnCallInstances[i]->print();
+        }
+        cout <<endl;
+    }
+    const Expr* getName() const { return p_name; }
+    BasicBlock* getLast() { return p_last; }
+    void addInstance(FunctionCallInstance* functionCallInstance) {
+        functionCallInstance->getLast()->setNext(p_last);
+        p_fnCallInstances.push_back(functionCallInstance);
+    }
+    vector<FunctionCallInstance*>& getFnCallInstances() { return p_fnCallInstances; }
+private:
+    const Expr* p_name;
+    BasicBlock* p_last;
+    vector<FunctionCallInstance*> p_fnCallInstances;
 };
 
 #endif /* BASICBLOCK_H_ */

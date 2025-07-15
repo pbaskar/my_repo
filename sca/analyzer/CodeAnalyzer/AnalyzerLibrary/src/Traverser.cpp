@@ -83,16 +83,20 @@ void TraverserOne::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBloc
 }
 
 void TraverserOne::traverseFunctionCallBlock(FunctionCallBlock* functionCallBlock) {
-    BasicBlock* block = functionCallBlock->getFirst();
-    block->acceptTraverser(*this);
+    vector<FunctionCallInstance*>& functionCallInstances = functionCallBlock->getFnCallInstances();
+    for(int i=0; i<functionCallInstances.size(); i++) {
+        FunctionCallInstance* fnCallInstance = functionCallInstances[i];
+        BasicBlock* block = fnCallInstance->getFirst();
+        block->acceptTraverser(*this);
 
-    if(!p_skipFnDeclBlock) {
-        block = functionCallBlock->getFnDecl();
+        if(!p_skipFnDeclBlock) {
+            block = fnCallInstance->getFnDecl();
+            block->acceptTraverser(*this);
+        }
+
+        block = fnCallInstance->getLast();
         block->acceptTraverser(*this);
     }
-
-    block = functionCallBlock->getLast();
-    block->acceptTraverser(*this);
     functionCallBlock->acceptVisitor(*p_visitor);
 }
 

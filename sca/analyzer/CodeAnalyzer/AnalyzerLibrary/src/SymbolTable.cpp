@@ -6,6 +6,7 @@
  */
 
 #include "SymbolTable.h"
+#include <cassert>
 #include<cstring>
 #include "Expr.h"
 #include "BasicBlock.h" // FunctionDeclBlock
@@ -54,6 +55,8 @@ Variable* SymbolTable::addSymbol(Variable* newVar) {
         }
     }
     if(var) { //error
+        cout <<"Adding duplicate variable into symbol table " <<endl;
+        assert(false);
     }
     cout <<"Variable symbol added " <<newVar->getName() <<endl;
     SymbolTableEntry* symbolTableEntry = new SymbolTableEntry(newVar, INT, 0);
@@ -85,7 +88,9 @@ void SymbolTable::addFnSymbol(const char* name) {
 }
 
 void SymbolTable::setFunctionDeclBlock(FunctionDeclBlock* fnDeclBlock) {
-    if(!fnDeclBlock) { //error
+    if(!fnDeclBlock) {
+        cout << "SymbolTable::setFunctionDeclBlock null " <<endl;
+        return; //error
     }
     const char* name = fnDeclBlock->getName();
     for(auto symbol : p_fnSymbolEntries) {
@@ -147,6 +152,8 @@ FnSymbolTableEntry::~FnSymbolTableEntry() {
 }
 
 FunctionDeclBlock* FnSymbolTableEntry::fetchFunctionDeclBlock(const char* name) {
-    if(p_functionDeclBlock->match(name)) return p_functionDeclBlock;
+    //p_functionDeclBlock could be null until populated while building cfg
+    //cout <<"FnSymbolTableEntry::fetchFunctionDeclBlock " <<p_functionDeclBlock <<endl;
+    if(p_functionDeclBlock && p_functionDeclBlock->match(name)) return p_functionDeclBlock;
     return 0;
 }

@@ -57,7 +57,12 @@ Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
     cout << "********************************** Instructions file parsing done ****************************************" <<endl;
 
     ExprSimplifier exprSimplifier;
-    exprSimplifier.simplify(instrParser.getBlock());
+    s = exprSimplifier.simplify(instrParser.getBlock());
+
+    if (s == FAILURE ) {
+        cout <<"Simplify expressions failed " <<endl;
+        return s;
+    }
 
     cout << "********************************** Expression Simplification done ****************************************" <<endl;
 

@@ -13,11 +13,13 @@
 
 class SymbolTable;
 class Variable;
+class Identifier;
 using namespace std;
 enum ExprType {
     DEFINITION,
     CONSTANT,
     VARIABLE,
+    FUNCTIONVARIABLE,
     POINTERVARIABLE,
     ADDRESSOFVARIABLE,
     IDENTIFIER,
@@ -34,6 +36,7 @@ enum ExprType {
 
 enum VarType {
     VALUE,
+    FUNCTION,
     POINTER
 };
 
@@ -194,6 +197,7 @@ public:
     Variable(const char* n, VarType type): p_name(n), p_type(type) {}
     virtual ~Variable() { /*delete p_name;*/ } //Todo: release memory shared by ptr_ptr_p, ptr_p and p
     virtual ExprType getExprType() const { return VARIABLE; }
+    virtual VarType getVarType() const { return p_type; }
     void setName(const char* name) { p_name = name; }
     const char* getName() const { return p_name; }
     void setAddress(const Variable* address) { p_address = address; }
@@ -216,6 +220,20 @@ private:
     const char* p_name;
     VarType p_type;
     const Variable* p_address;
+};
+
+class FunctionVariable : public Variable {
+public:
+    FunctionVariable(const char* n, VarType type): Variable(n, type) {}
+    virtual ~FunctionVariable() {}
+    virtual ExprType getExprType() const { return FUNCTIONVARIABLE; }
+    virtual void print(ostream& os) const;
+    const vector<const Expr*>& getFunctionIdentifiers() const { return p_functionIdentifiers; }
+    void addFunction(const Expr* functionIdentifier) const {
+        p_functionIdentifiers.push_back(functionIdentifier);
+    }
+private:
+    mutable vector<const Expr*> p_functionIdentifiers;
 };
 
 class PointerVariable : public Variable {
@@ -320,7 +338,7 @@ public:
             const Variable* pointsTo = pointerVariable->getPointsTo();
             Identifier::setName(pointsTo->getName());
             Identifier::setVariable(pointsTo);
-            cout <<"deref variable populated " << pointsTo <<endl;
+            cout <<"DerefOperator::populatederefvariable populated " << pointsTo <<endl;
             return pointsTo;
         }
         else {
@@ -409,11 +427,12 @@ public:
         }
     }
     virtual void getLHS(vector<const Expr*>& variables) const {}
-    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {}
+    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) { derefIdentifiers.push_back(p_functionName); }
     virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
         functionCalls.push_back(this);
     }
     virtual void populateVariable(SymbolTable* symbolTable) {
+        p_functionName->populateVariable(symbolTable);
         for(Expr* expr : p_arguments) {
             expr->populateVariable(symbolTable);
         }

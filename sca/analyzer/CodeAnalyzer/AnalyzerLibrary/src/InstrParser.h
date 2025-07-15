@@ -16,11 +16,6 @@
 
 using namespace std;
 
-enum DeclType {
-    FUNCTIONDECL,
-    VARDECL
-};
-
 class InstrParser {
 public:
     InstrParser();

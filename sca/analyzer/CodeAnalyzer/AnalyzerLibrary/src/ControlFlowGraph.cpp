@@ -24,6 +24,43 @@ Status ControlFlowGraph::buildCFG(const Block* block) {
     return status;
 }
 
+Status ControlFlowGraph::makeFunctionCallInstance(FunctionCallInstance*& fnCallInstance, FunctionCallStmt* functionCallStmt,
+                                                       FunctionDeclBlock* fnDecl, const Block* block) {
+    BasicBlock* first(0);
+    BasicBlock* last(0);
+
+    first = new BasicBlock(block->getSymbolTable());
+    first->setNext(fnDecl);
+    last = new BasicBlock(block->getSymbolTable());
+    fnDecl->setNext(last);
+
+    auto formalArguments = fnDecl->getFormalArguments();
+    auto actualArguments = functionCallStmt->getActualArguments();
+    int i=0;
+    for(Expr* expr : actualArguments) {
+        AssignmentNode* functionDeclNode = new AssignmentNode(formalArguments[i], expr);
+        first->addNode(functionDeclNode);
+    }
+    i=0;
+    for(Expr* expr : actualArguments) {
+        if(formalArguments[i]->getExprType() == ExprType::POINTERVARIABLE) {
+            const Variable* var = dynamic_cast<Identifier*>(expr)->getVariable();
+            if(var) {
+                AssignmentNode* functionDeclNode = new AssignmentNode(var, formalArguments[i]);
+                last->addNode(functionDeclNode);
+            }
+            i++;
+        }
+    }
+    fnCallInstance = new FunctionCallInstance(fnDecl->getName(), first, fnDecl, last);
+    i=0;
+    for(Expr* expr : actualArguments) {
+        fnCallInstance->addActualArgument(expr);
+        i++;
+    }
+    return SUCCESS;
+}
+
 Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) {
     Status status = SUCCESS;
     bool beginNewBlock = false;
@@ -133,45 +170,46 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
         }
         break;
         case FUNC_CALL: {
-            BasicBlock* first(0);
             FunctionDeclBlock* fnDecl(0);
-            BasicBlock* last(0);
-
+            FunctionCallInstance* functionCallInstance(0);
+            FunctionCallBlock* functionCallBlock(0);
             FunctionCallStmt* functionCallStmt = static_cast<FunctionCallStmt*>(stmt);
-            first = new BasicBlock(block->getSymbolTable());
+            const Expr* expr = functionCallStmt->getName();
+            const Identifier* identifier = static_cast<const Identifier*>(expr);
 
-            const Identifier* identifier = static_cast<const Identifier*>(functionCallStmt->getName());
-            fnDecl = p_head->fetchFunctionDeclBlock(identifier->getName());
-            if(fnDecl == nullptr) { cout <<"function declaration block not found " <<endl; delete first; return FAILURE; }
-
-            first->setNext(fnDecl);
-            last = new BasicBlock(block->getSymbolTable());
-            fnDecl->setNext(last);
-
-            FunctionCallBlock* functionCallBlock = new FunctionCallBlock(0,identifier,first,fnDecl,last);
-            auto formalArguments = fnDecl->getFormalArguments();
-            auto actualArguments = functionCallStmt->getActualArguments();
-            int i=0;
-            for(Expr* expr : actualArguments) {
-                AssignmentNode* functionDeclNode = new AssignmentNode(formalArguments[i], expr);
-                first->addNode(functionDeclNode);
-                functionCallBlock->addActualArgument(expr);
-                i++;
-            }
-            i=0;
-            for(Expr* expr : actualArguments) {
-                if(formalArguments[i]->getExprType() == ExprType::POINTERVARIABLE &&
-                        (expr->getExprType() == ExprType::IDENTIFIER || expr->getExprType() == ExprType::DEREFERENCEOPERATOR)) {
-                    const Variable* var = static_cast<Identifier*>(expr)->getVariable();
-                    AssignmentNode* functionDeclNode = new AssignmentNode(var, formalArguments[i]);
-                    last->addNode(functionDeclNode);
-                    i++;
+            if(identifier->getExprType() == ExprType::DEREFERENCEOPERATOR){
+                const Variable* var = identifier->getVariable();
+                const FunctionVariable* fnVar = dynamic_cast<const FunctionVariable*>(var);
+                if(fnVar) {
+                    const vector<const Expr*>& fnIdentifiers = fnVar->getFunctionIdentifiers();
+                    if(fnIdentifiers.empty()) {
+                        cout << "Function pointer has no function assigned " <<identifier->getName() <<endl;
+                        continue;
+                    }
+                    functionCallBlock = new FunctionCallBlock(0,identifier);
+                    for(int i=0; i<fnIdentifiers.size(); i++) {
+                        const Variable* identifier = static_cast<const Variable*>(fnIdentifiers[i]);
+                        fnDecl = p_head->fetchFunctionDeclBlock(identifier->getName());
+                        if(fnDecl == nullptr) { cout <<"function declaration block not found " <<identifier->getName() << endl; return FAILURE; }
+                        makeFunctionCallInstance(functionCallInstance, functionCallStmt, fnDecl, block);
+                        functionCallBlock->addInstance(functionCallInstance);
+                    }
+                }
+                else {
+                    cout <<"CFG: function pointer dereference does not contain function variable " <<*expr <<endl;
                 }
             }
-            cout <<"Function Call Block: "  <<functionCallBlock->getName() << " " <<block->getSubStatements().size()<<endl;
+            else {
+                fnDecl = p_head->fetchFunctionDeclBlock(identifier->getName());
+                if(fnDecl == nullptr) { cout <<"function declaration block not found " <<endl; return FAILURE; }
+                makeFunctionCallInstance(functionCallInstance, functionCallStmt, fnDecl, block);
+                functionCallBlock = new FunctionCallBlock(0,identifier);
+                functionCallBlock->addInstance(functionCallInstance);
+            }
             currBlock->setNext(functionCallBlock);
             currBlock = functionCallBlock;
             beginNewBlock = true;
+            cout <<"Function Call Block: "  <<identifier->getName() << " " <<block->getSubStatements().size()<<endl;
         }
         break;
         default: {

@@ -31,6 +31,8 @@ public:
     void clear();
     BasicBlock* getHead() { return p_head; }
     Status buildCFG(const Block* block);
+    Status makeFunctionCallInstance(FunctionCallInstance*& fnCallInstance, FunctionCallStmt* callStmt,
+                                   FunctionDeclBlock* fnDecl, const Block* block);
     Status buildBlock(BasicBlock*& currBlock, const Block* block);
 private:
     BasicBlock* p_head;

@@ -1,13 +1,21 @@
 #include "Expr.h"
 #include "SymbolTable.h"
 
+void FunctionVariable::print(ostream& os) const {
+    Variable::print(os);
+    for(const Expr* identifier : p_functionIdentifiers) {
+        os <<", holds function ";
+        identifier->print(os);
+    }
+}
+
 void Identifier::populateVariable(SymbolTable* symbolTable) {
     p_variable = symbolTable->fetchVariable(p_name);
-    cout << "p_variable populated " << p_name <<" " <<p_variable <<endl;
+    cout << "Identifier::populateVariable populated " << p_name <<" " <<p_variable <<endl;
 }
 
 const Expr* Identifier::populateDerefVariable(SymbolTable* symbolTable) {
-    cout << "Deref populated " << p_name <<" " << p_variable <<endl;
+    cout << "Identifier::populateDerefVariable populated " << p_name <<" " << p_variable <<endl;
     return symbolTable->fetchVariable(p_name);
 }
 
