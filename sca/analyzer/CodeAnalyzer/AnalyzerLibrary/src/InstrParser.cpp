@@ -368,7 +368,8 @@ IdentifierName* InstrParser::parseParameterDecl() {
     if(declarationSpecifiers.empty()) {
         return declarator;
     }
-    declarator = parseDeclarator();
+    DeclType declType;
+    declarator = parseDeclarator(declType);
     return declarator;
 }
 
@@ -400,8 +401,7 @@ Status InstrParser::parsePointer(vector<PointerIdentifierName*>& identifierList)
     return status;
 }
 
-vector<IdentifierName*> InstrParser::parseDirectDeclaratorPrime(DeclType& declType) {
-    vector<IdentifierName*> directDeclaratorPrime;
+Status InstrParser::parseDirectDeclaratorPrime(vector<IdentifierName*>& directDeclaratorPrime, DeclType& declType) {
     char next = p_tokenizer.lookAhead(1);
     switch(next) {
         case '(':
@@ -410,30 +410,56 @@ vector<IdentifierName*> InstrParser::parseDirectDeclaratorPrime(DeclType& declTy
             p_tokenizer.nextChar(); // consume )
             declType = FUNCTIONDECL;
         break;
+        case '[':
+            p_tokenizer.nextChar(); //consume [
+            char endDelim[] = {']'};
+            char* next = p_tokenizer.nextWordUntil(endDelim, sizeof(endDelim));
+            if(next == nullptr) {
+                Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseDirectDeclaratorPrime:", "value");
+                break;
+            }
+            Expr* value = p_exprParser.parseExpressionStr(next);
+            delete value;
+            delete next;
+            if(value == nullptr) {
+                Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseDirectDeclaratorPrime:", "value");
+                break;
+            }
+            p_tokenizer.nextChar(); //consume ]
+            parseDirectDeclaratorPrime(directDeclaratorPrime, declType);
+            PointerIdentifierName* pointerIdentifierName = new PointerIdentifierName("Pointer",nullptr);
+            if(!directDeclaratorPrime.empty()) {
+                pointerIdentifierName->setPointsTo(directDeclaratorPrime.back());
+            }
+            directDeclaratorPrime.push_back(pointerIdentifierName);
+            declType = ARRAYDECL;
+
+        break;
     }
-    return directDeclaratorPrime;
+    return SUCCESS;
 }
 
-IdentifierName* InstrParser::parseDirectDeclarator() {
+IdentifierName* InstrParser::parseDirectDeclarator(DeclType& declType) {
     IdentifierName* directDeclarator = nullptr;
     IdentifierName* next = nullptr;
     char nextChar = p_tokenizer.lookAhead(1);
     if(nextChar == '(') {
         p_tokenizer.nextChar(); //consume '('
-        next = parseDeclarator();
+        next = parseDeclarator(declType);
         p_tokenizer.nextChar(); //consume ')'
     } else {
         char* nextWord = p_tokenizer.nextWord();
         if(nextWord == nullptr) return directDeclarator;
         next = new IdentifierName(nextWord);
     }
-    DeclType declType = VARDECL;
-    vector<IdentifierName*> directDeclaratorPrime = parseDirectDeclaratorPrime(declType);
+    declType = VARDECL;
+    vector<IdentifierName*> directDeclaratorPrime;
+    parseDirectDeclaratorPrime(directDeclaratorPrime, declType);
     switch(declType) {
         case VARDECL:
             directDeclarator = next;
         break;
-        case FUNCTIONDECL:
+        case FUNCTIONDECL: {
                 FunctionIdentifierName* functionIdentifierName = new FunctionIdentifierName(next->getName(), directDeclaratorPrime);
                 PointerIdentifierName* pointerIdentifierName = dynamic_cast<PointerIdentifierName*>(next);
                 if(pointerIdentifierName != nullptr) {
@@ -445,23 +471,40 @@ IdentifierName* InstrParser::parseDirectDeclarator() {
                     delete next;
                     directDeclarator = functionIdentifierName;
                 }
+            }
+        break;
+        case ARRAYDECL:
+                IdentifierName* arrayIdentifierName = directDeclaratorPrime.back();
+                arrayIdentifierName->setName(next->getName());
+                PointerIdentifierName* pointerToData = static_cast<PointerIdentifierName*>(directDeclaratorPrime.front());
+                PointerIdentifierName* pointerIdentifierName = dynamic_cast<PointerIdentifierName*>(next);
+                if(pointerIdentifierName != nullptr) {
+                    const IdentifierName* pointsTo = pointerIdentifierName->getPointsTo();
+                    pointerToData->setPointsTo(pointsTo);
+                    pointerIdentifierName->setPointsTo(arrayIdentifierName);
+                    directDeclarator = pointerIdentifierName;
+                }
+                else {
+                    pointerToData->setPointsTo(next);
+                    directDeclarator = arrayIdentifierName;
+                }
         break;
     }
     return directDeclarator;
 }
 
-IdentifierName* InstrParser::parseDeclarator() {
+IdentifierName* InstrParser::parseDeclarator(DeclType& declType) {
     IdentifierName* declarator = nullptr;
     char c = p_tokenizer.lookAhead(1);
     if(c == '*') {
         vector<PointerIdentifierName*> pointerNames;
         parsePointer(pointerNames);
-        IdentifierName* directDeclarator = parseDirectDeclarator();
+        IdentifierName* directDeclarator = parseDirectDeclarator(declType);
         pointerNames.front()->setPointsTo(directDeclarator);
         declarator = pointerNames.back();
         declarator->setName(directDeclarator->getName());
      } else {
-        declarator = parseDirectDeclarator();
+        declarator = parseDirectDeclarator(declType);
     }
     cout <<"parseDeclarator " <<declarator <<endl;
     return declarator;
@@ -492,7 +535,8 @@ vector<Expr*> InstrParser::parseInitializerList() {
 AssignStmt* InstrParser::parseInitDeclarator() {
     AssignStmt* assignStmt = nullptr;
     Expr* value = nullptr;
-    IdentifierName* var = parseDeclarator();
+    DeclType declType = VARDECL;
+    IdentifierName* var = parseDeclarator(declType);
     if(var == nullptr) return nullptr;
     char c = p_tokenizer.lookAhead(1);
     if(c == '=') {
@@ -500,7 +544,12 @@ AssignStmt* InstrParser::parseInitDeclarator() {
         value = parseInitializer();
     }
     else {
-        value = new Definition(false);
+        if(declType == DeclType::ARRAYDECL) {
+            value = new ArrayDefinition(false);
+        }
+        else {
+            value = new Definition(false);
+        }
     }
     assignStmt = new AssignStmt(DECL, var, value);
     return assignStmt;
@@ -552,7 +601,8 @@ Status InstrParser::parseFunctionDecl(Block* block) {
     block->addStatement(stmt);
 
     parseDeclarationSpecifiers();
-    IdentifierName* identifier = parseDeclarator();
+    DeclType declType;
+    IdentifierName* identifier = parseDeclarator(declType);
     FunctionIdentifierName* functionIdentifierName = dynamic_cast<FunctionIdentifierName*>(identifier);
     if(functionIdentifierName == nullptr) return FAILURE;
     vector<IdentifierName*> parameterList = functionIdentifierName->getParameterList();

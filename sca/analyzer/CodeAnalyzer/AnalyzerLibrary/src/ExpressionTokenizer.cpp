@@ -8,7 +8,7 @@
 #include<cstdlib>
 #include "ExpressionTokenizer.h"
 
-static const char delimiters[] = { '+', '-', '*', '/', '=', '(', ')' };
+static const char delimiters[] = { '+', '-', '*', '/', '=', '(', ')', '[', ']' };
 
 ExpressionTokenizer::ExpressionTokenizer(): p_expressionStr(nullptr), p_pos(0) {
     // TODO Auto-generated constructor stub

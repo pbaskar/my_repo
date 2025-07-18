@@ -21,7 +21,7 @@ public:
     Expr* parseAssignmentExpression();
     Expr* parseUnaryExpression();
     Expr* parsePostFixExpression();
-    vector<Expr*> parsePostFixExpressionPrime(ExprType& type);
+    void parsePostFixExpressionPrime(vector<Expr*>& postFixExprPrime, ExprType& type);
     Expr* parsePrimaryExpression();
     vector<Expr*> parseArgumentExpressionList();
     Expr* parseMultiplicativeExpression();

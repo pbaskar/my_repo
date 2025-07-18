@@ -10,7 +10,7 @@
 #include "Tokenizer.h"
 using namespace std;
 
-static const char delimiters[] = { '=', ';', '(', ')', '{', '}', ','};
+static const char delimiters[] = { '=', ';', '(', ')', '{', '}', ',', '[', ']'};
 Tokenizer::Tokenizer() : p_pos(0) {
     // TODO Auto-generated constructor stub
 

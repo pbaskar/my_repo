@@ -124,17 +124,24 @@ Expr* ExpressionParser::parsePrimaryExpression() {
     return primaryExpr;
 }
 
-vector<Expr*> ExpressionParser::parsePostFixExpressionPrime(ExprType& type) {
-    vector<Expr*> postFixExprPrime;
+void ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprPrime, ExprType& type) {
     char o = p_exprTokenizer.nextChar(true);
     if(o == '(') {
         type = FUNCTIONCALL;
         p_exprTokenizer.nextChar(); //consume '('
         postFixExprPrime = parseArgumentExpressionList();
         p_exprTokenizer.nextChar(); //consume ')'
+    } else if (o == '[') {
+        type = DEREFERENCEOPERATOR;
+        p_exprTokenizer.nextChar(); //consume '['
+        Expr* expr = parseExpression();
+        delete expr;
+        p_exprTokenizer.nextChar(); //consume ']'
+        Expr* operand = !postFixExprPrime.empty() ?  postFixExprPrime.back() : nullptr;
+        DereferenceOperator* dereferenceOperator = new DereferenceOperator("Deref", operand);
+        postFixExprPrime.push_back(dereferenceOperator);
+        parsePostFixExpressionPrime(postFixExprPrime, type);
     }
-    //parsePostFixExpressionPrime();
-    return postFixExprPrime;
 }
 
 Expr* ExpressionParser::parsePostFixExpression() {
@@ -144,7 +151,8 @@ Expr* ExpressionParser::parsePostFixExpression() {
     if(!primaryExpr)
         return nullptr;
     ExprType type;
-    vector<Expr*> postFixExprPrime = parsePostFixExpressionPrime(type);
+    vector<Expr*> postFixExprPrime;
+    parsePostFixExpressionPrime(postFixExprPrime, type);
     switch(type) {
         case FUNCTIONCALL: {
             if(primaryExpr->getExprType() == IDENTIFIER) {
@@ -158,6 +166,13 @@ Expr* ExpressionParser::parsePostFixExpression() {
             postFixExpr = new FunctionCall(primaryExpr, postFixExprPrime);
         break;
         }
+    case DEREFERENCEOPERATOR: {
+        Expr* arrayDereferenceOperator = postFixExprPrime.back();
+        DereferenceOperator* pointerToData = static_cast<DereferenceOperator*>(postFixExprPrime.front());
+        pointerToData->setRightOp(primaryExpr);
+        postFixExpr = arrayDereferenceOperator;
+        }
+        break;
         default:
             postFixExpr = primaryExpr;
     }

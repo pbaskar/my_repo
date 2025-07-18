@@ -17,6 +17,7 @@ class Identifier;
 using namespace std;
 enum ExprType {
     DEFINITION,
+    ARRAYDEFINITION,
     CONSTANT,
     VARIABLE,
     FUNCTIONVARIABLE,
@@ -176,7 +177,11 @@ private:
 class Definition : public Expr {
 public:
     Definition(bool valid) : p_valid(valid) {}
-    virtual ~Definition() {}
+    virtual ~Definition() {
+        for(int i=0; i<p_pointsToDefinitions.size(); i++) {
+            delete p_pointsToDefinitions[i];
+        }
+    }
     virtual ExprType getExprType() const { return DEFINITION; }
     virtual void getRHSVariables(vector<const Expr*>& variables) const {}
     virtual void getLHS(vector<const Expr*>& variables) const {}
@@ -185,11 +190,25 @@ public:
     virtual void populateVariable(SymbolTable* symbolTable) {}
     const bool isValid() const { return p_valid; }
     void setIsValid(bool valid) { p_valid = valid; }
+    void addPointsToDefinition(const Definition* pointsToDefinition) {
+        p_pointsToDefinitions.push_back(pointsToDefinition);
+    }
+    const vector<const Definition*>& getPointsToDefinitions() const { return p_pointsToDefinitions; }
     virtual void print(ostream& os) const {
         os << " " <<p_valid <<endl;
     }
 private:
     bool p_valid;
+    vector<const Definition*> p_pointsToDefinitions;
+};
+
+class ArrayDefinition : public Definition {
+public:
+    ArrayDefinition(bool valid) : Definition(valid) {}
+    virtual ~ArrayDefinition() {
+    }
+    virtual ExprType getExprType() const { return ARRAYDEFINITION; }
+private:
 };
 
 class Variable : public Expr {
@@ -447,7 +466,7 @@ private:
 class MallocFnCall : public FunctionCall {
 public:
     MallocFnCall(Expr* identifier, vector<Expr*> arguments): FunctionCall(identifier, arguments) {
-        p_definition = new Definition(true);
+        p_definition = new Definition(false);
     }
     virtual ~MallocFnCall() {
         delete p_definition;
@@ -462,6 +481,7 @@ public:
     virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
         //functionCalls.push_back(this);
     }
+    Definition* toSimplifyDefinition() { return p_definition; }
     const Definition* getDefinition() const { return p_definition; }
     //virtual void populateVariable(SymbolTable* symbolTable) {}
 private:

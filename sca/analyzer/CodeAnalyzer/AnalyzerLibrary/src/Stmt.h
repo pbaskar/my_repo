@@ -16,7 +16,8 @@ using namespace std;
 enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE, FUNC_DECL, FUNC_CALL };
 enum DeclType {
     FUNCTIONDECL,
-    VARDECL
+    VARDECL,
+    ARRAYDECL
 };
 
 class IdentifierName {
@@ -79,16 +80,16 @@ public:
     virtual DeclType getType() const { return p_pointsTo->getType(); }
     virtual void print(ostream& os) const{
         IdentifierName::print(os);
-        os << *p_pointsTo;
+        p_pointsTo->print(os);
     }
-    void setPointsTo(IdentifierName* pointsTo) {
+    void setPointsTo(const IdentifierName* pointsTo) {
         p_pointsTo = pointsTo;
     }
     const IdentifierName* getPointsTo() const {
         return p_pointsTo;
     }
 private:
-    IdentifierName* p_pointsTo;
+    const IdentifierName* p_pointsTo;
 };
 
 class Stmt {

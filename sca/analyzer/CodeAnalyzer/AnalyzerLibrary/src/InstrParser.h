@@ -26,9 +26,9 @@ public:
     IdentifierName* parseParameterDecl();
     Status parseParameterList(vector<IdentifierName*>& identifierList);
     Status parsePointer(vector<PointerIdentifierName*>& identifierList);
-    vector<IdentifierName*> parseDirectDeclaratorPrime(DeclType& declType);
-    IdentifierName* parseDirectDeclarator();
-    IdentifierName* parseDeclarator();
+    Status parseDirectDeclaratorPrime(vector<IdentifierName*>& directDeclaratorPrime, DeclType& declType);
+    IdentifierName* parseDirectDeclarator(DeclType& declType);
+    IdentifierName* parseDeclarator(DeclType& declType);
     Expr* parseInitializer();
     vector<Expr*> parseInitializerList();
     AssignStmt* parseInitDeclarator();
