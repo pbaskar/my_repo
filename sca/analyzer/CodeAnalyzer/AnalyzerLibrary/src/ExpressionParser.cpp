@@ -131,16 +131,60 @@ void ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprPri
         p_exprTokenizer.nextChar(); //consume '('
         postFixExprPrime = parseArgumentExpressionList();
         p_exprTokenizer.nextChar(); //consume ')'
-    } else if (o == '[') {
+    }
+    else if (o == '[') {
         type = DEREFERENCEOPERATOR;
         p_exprTokenizer.nextChar(); //consume '['
         Expr* expr = parseExpression();
         delete expr;
         p_exprTokenizer.nextChar(); //consume ']'
+
         Expr* operand = !postFixExprPrime.empty() ?  postFixExprPrime.back() : nullptr;
         DereferenceOperator* dereferenceOperator = new DereferenceOperator("Deref", operand);
         postFixExprPrime.push_back(dereferenceOperator);
+
+    }
+    else if (o == '.') {
+        type = DOTOPERATOR;
+        p_exprTokenizer.nextChar(); //consume '.'
+        Expr* expr = parsePrimaryExpression();
+        Identifier* identifier = dynamic_cast<Identifier*>(expr);
+        if(!identifier) {
+            cout << "Non identifier in dot operator " <<endl; return;
+        }
+        Expr* postFixExpr = nullptr;
+
         parsePostFixExpressionPrime(postFixExprPrime, type);
+        if(!postFixExprPrime.empty()) {
+            DotOperator* operand = static_cast<DotOperator*>(postFixExprPrime.back());
+            operand->setLeftOp(static_cast<Identifier*>(expr));
+            postFixExpr = new DotOperator(identifier, operand);
+        } else {
+            postFixExpr = new DotOperator(nullptr, identifier);
+            cout <<"Dot operator created " <<*identifier <<endl;
+        }
+        postFixExprPrime.push_back(postFixExpr);
+    }
+    else if (o == '-') {
+        type = POINTEROPERATOR;
+        p_exprTokenizer.nextChar(); //consume '-'
+        p_exprTokenizer.nextChar(); //consume '>'
+        Expr* expr = parsePrimaryExpression();
+        Identifier* identifier = dynamic_cast<Identifier*>(expr);
+        if(!identifier) {
+            cout << "Non identifier in dot operator " <<endl; return;
+        }
+        Expr* postFixExpr = nullptr;
+
+        parsePostFixExpressionPrime(postFixExprPrime, type);
+        if(!postFixExprPrime.empty()) {
+            DotOperator* operand = static_cast<DotOperator*>(postFixExprPrime.back());
+            operand->setLeftOp(new DereferenceOperator("Deref", expr));
+            postFixExpr = new DotOperator(identifier, operand);
+        } else {
+            postFixExpr = new DotOperator(nullptr, identifier);
+        }
+        postFixExprPrime.push_back(postFixExpr);
     }
 }
 
@@ -166,13 +210,33 @@ Expr* ExpressionParser::parsePostFixExpression() {
             postFixExpr = new FunctionCall(primaryExpr, postFixExprPrime);
         break;
         }
-    case DEREFERENCEOPERATOR: {
-        Expr* arrayDereferenceOperator = postFixExprPrime.back();
-        DereferenceOperator* pointerToData = static_cast<DereferenceOperator*>(postFixExprPrime.front());
-        pointerToData->setRightOp(primaryExpr);
-        postFixExpr = arrayDereferenceOperator;
+        case DEREFERENCEOPERATOR: {
+            Expr* arrayDereferenceOperator = postFixExprPrime.back();
+            DereferenceOperator* pointerToData = static_cast<DereferenceOperator*>(postFixExprPrime.front());
+            pointerToData->setRightOp(primaryExpr);
+            postFixExpr = arrayDereferenceOperator;
+            break;
         }
-        break;
+        case DOTOPERATOR: {
+            DotOperator* dotOperator = static_cast<DotOperator*>(postFixExprPrime.front());
+            Identifier* identifier = dynamic_cast<Identifier*>(primaryExpr);
+            if(!identifier) {
+                cout << "Non identifier in dot operator " <<endl; break;
+            }
+            dotOperator->setLeftOp(identifier);
+            postFixExpr = dotOperator;
+            break;
+        }
+    case POINTEROPERATOR: {
+            DotOperator* dotOperator = static_cast<DotOperator*>(postFixExprPrime.front());
+            Identifier* identifier = dynamic_cast<Identifier*>(primaryExpr);
+            if(!identifier) {
+                cout << "Non identifier in dot operator " <<endl; break;
+            }
+            dotOperator->setLeftOp(new DereferenceOperator("Deref", identifier));
+            postFixExpr = dotOperator;
+            break;
+        }
         default:
             postFixExpr = primaryExpr;
     }
@@ -221,7 +285,7 @@ Expr* ExpressionParser::parseAssignmentExpression() {
         else {
             assignExpr = new AssignOperator(leftOp,op,rightOp);
         }
-        cout <<"parseAssignmentExpression assignment " << assignExpr <<endl;
+        cout <<"parseAssignmentExpression assignment " << assignExpr <<" " <<leftOp <<" " <<rightOp <<endl;
 
     } else {
         //backtrack:reset state

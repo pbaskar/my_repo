@@ -13,6 +13,84 @@ Status ExprSimplifier::simplify(Block* block) {
     return status;
 }
 
+Status ExprSimplifier::populateDefinitions(const Variable* lhs, Expr* value) {
+    if(lhs->getExprType() == ExprType::POINTERVARIABLE) {
+        switch(value->getExprType()) {
+            case ExprType::MALLOCFNCALL: {
+                MallocFnCall* mallocFnCall = static_cast<MallocFnCall*>(value);
+                Definition* definition = mallocFnCall->toSimplifyDefinition();
+                const PointerVariable* lhsVar = nullptr;
+                definition->addPointsToDefinition(new Definition(true));
+                while(true) {
+                    lhsVar = dynamic_cast<const PointerVariable*>(lhs);
+                    if(lhsVar == nullptr) break;
+                    lhs = lhsVar->getPointsTo();
+                    assert(lhs);
+                    definition->addPointsToDefinition(new Definition(false));
+                }
+            }
+            break;
+            //pointervar
+            case ExprType::DEFINITION: {
+                Definition* definition = static_cast<Definition*>(value);
+                const PointerVariable* lhsVar = nullptr;
+                while(true) {
+                    Definition* pointsToDefinition = new Definition(false);
+                    definition->addPointsToDefinition(pointsToDefinition);
+                    lhsVar = dynamic_cast<const PointerVariable*>(lhs);
+                    if(lhsVar == nullptr) {
+                        assert(lhs);
+                        if(lhs->getExprType() == ExprType::STRUCTVARIABLE) {
+                            populateDefinitions(lhs, pointsToDefinition);
+                        }
+                        break;
+                    }
+                    lhs = lhsVar->getPointsTo();
+                    assert(lhs);
+                }
+            }
+            break;
+            //array
+            case ExprType::ARRAYDEFINITION: {
+                Definition* definition = static_cast<Definition*>(value);
+                const PointerVariable* lhsVar = nullptr;
+                while(true) {
+                    definition->addPointsToDefinition(new Definition(true));
+                    lhsVar = dynamic_cast<const PointerVariable*>(lhs);
+                    if(lhsVar == nullptr) break;
+                    lhs = lhsVar->getPointsTo();
+                    assert(lhs);
+                }
+        }
+        break;
+            default:;
+        }
+    }
+    else if(lhs->getExprType() == ExprType::STRUCTVARIABLE) {
+        assert(value);
+        cout <<"Expression simplification struct variable  " <<lhs->getName() <<endl;
+        switch(value->getExprType()) {
+            case ExprType::DEFINITION: {
+                Definition* definition = static_cast<Definition*>(value);
+
+                const StructVariable* structVariable = static_cast<const StructVariable*>(lhs);
+                vector<const Variable*> memVars = structVariable->getMemVars();
+                for(const Variable* memVar : memVars) {
+                    Definition* memDefinition = new Definition(false);
+                    if(memVar->getExprType() == ExprType::STRUCTVARIABLE ||
+                            memVar->getExprType() == ExprType::POINTERVARIABLE) {
+                        populateDefinitions(memVar, memDefinition);
+                    }
+                    definition->addPointsToDefinition(memDefinition);
+                }
+            }
+            break;
+        default:;
+        }
+    }
+    return SUCCESS;
+}
+
 Status ExprSimplifier::simplifyBlock(Block* block) {
     Status status = SUCCESS;
     list<Stmt*>& stmtList = block->toSimplify();
@@ -25,12 +103,13 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
             AssignStmt* assignStmt = static_cast<AssignStmt*>(stmt);
             cout << "Assign Stmt: " <<*stmt << " " <<block->getSubStatements().size() <<endl;
             Expr* value = assignStmt->toSimplify();
+            cout <<"RHS Value " <<endl;
             if(value) {
                 value->populateVariable(block->getSymbolTable());
-                vector<Expr*> DerefIdentifiers;
-                value->getDerefIdentifiers(DerefIdentifiers);
-                for(int i=0; i<DerefIdentifiers.size(); i++) {
-                    DerefIdentifiers[i]->populateDerefVariable(block->getSymbolTable());
+                vector<Expr*> derefIdentifiers;
+                value->getDerefIdentifiers(derefIdentifiers);
+                for(int i=0; i<derefIdentifiers.size(); i++) {
+                    derefIdentifiers[i]->populateDerefVariable(block->getSymbolTable());
                 }
                 vector<const Expr*> functionCalls;
                 value->getFunctionCalls(functionCalls);
@@ -42,55 +121,14 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
                     it = stmtList.insert(it, functionCallStmt);
                     it++;
                 }
-
+            cout <<"RHS Value 2" <<endl;
+                //Populate definitions for declarations
                 const IdentifierName* identifierName = assignStmt->getVar();
                 if(identifierName) {
                     const Variable* lhs =  block->getSymbolTable()->fetchVariable(identifierName->getName());
-                    if(lhs->getExprType() == ExprType::POINTERVARIABLE) {
-                        switch(value->getExprType()) {
-                            case ExprType::MALLOCFNCALL: {
-                                MallocFnCall* mallocFnCall = static_cast<MallocFnCall*>(value);
-                                Definition* definition = mallocFnCall->toSimplifyDefinition();
-                                const PointerVariable* lhsVar = nullptr;
-                                definition->addPointsToDefinition(new Definition(true));
-                                while(true) {
-                                    lhsVar = dynamic_cast<const PointerVariable*>(lhs);
-                                    if(lhsVar == nullptr) break;
-                                    lhs = lhsVar->getPointsTo();
-                                    assert(lhs);
-                                    definition->addPointsToDefinition(new Definition(false));
-                                }
-                            }
-                            break;
-                            //pointervar
-                            case ExprType::DEFINITION: {
-                                Definition* definition = static_cast<Definition*>(value);
-                                const PointerVariable* lhsVar = nullptr;
-                                while(true) {
-                                    definition->addPointsToDefinition(new Definition(false));
-                                    lhsVar = dynamic_cast<const PointerVariable*>(lhs);
-                                    if(lhsVar == nullptr) break;
-                                    lhs = lhsVar->getPointsTo();
-                                    assert(lhs);
-                                }
-                            }
-                            break;
-                            //array
-                            case ExprType::ARRAYDEFINITION: {
-                                Definition* definition = static_cast<Definition*>(value);
-                                const PointerVariable* lhsVar = nullptr;
-                                while(true) {
-                                    definition->addPointsToDefinition(new Definition(true));
-                                    lhsVar = dynamic_cast<const PointerVariable*>(lhs);
-                                    if(lhsVar == nullptr) break;
-                                    lhs = lhsVar->getPointsTo();
-                                    assert(lhs);
-                                }
-                        }
-                        break;
-                            default:;
-                        }
-                    }
+                    assert(lhs);
+                    cout <<"before populatedefinitions" <<endl;
+                    populateDefinitions(lhs, value);
                 }
             }
             // append rhs to function pointer var possible pointsTo function Identifiers
@@ -110,9 +148,10 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
 
                     const Identifier* identifier = static_cast<const Identifier*>(lhsVars[0]);
                     assert(identifier);
+                    cout <<"Identifier name, associated variable " <<identifier->getName() <<" " <<identifier->getVariable() <<endl;
                     lhs = identifier->getVariable();
-                    assert(lhs);
-                    if(lhs->getVarType() != VarType::FUNCTION) continue;
+                    //lhs can hold Dotoperator which has no associated variable
+                    if(!lhs || lhs->getVarType() != VarType::FUNCTION) continue;
                 }
                 value->getRHSVariables(fnIdentifiers);
                 if(fnIdentifiers.empty()) {  cout <<"Bad function name assigned to function pointer " <<identifierName->getName() <<endl; continue; }

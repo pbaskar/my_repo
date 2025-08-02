@@ -6,6 +6,7 @@
 
 class Variable;
 class Definition;
+class Expr;
 class ComputeReachingDefsVisitor : public Visitor {
 public:
     ComputeReachingDefsVisitor();

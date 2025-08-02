@@ -19,7 +19,32 @@ class FunctionDeclBlock;
 class FunctionCallBlock;
 class AssignmentNode;
 class Variable;
+class Expr;
 class Definition;
+
+void copyDefinitionsToPointerVar(const Variable* lhs, const vector<const Definition*>& pointsToDefinitions,
+                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
+void copyNodesToPointerVar(const Variable* lhs, AssignmentNode* assignNode,
+                                map<const Variable*, vector<AssignmentNode*>>& outVariableNodes);
+void copyDefinitionsToStructVar(const Variable* lhs, const vector<const Definition*>& pointsToDefinitions,
+                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
+void copyNodesToStructVar(const Variable* lhs, AssignmentNode* assignNode,
+                                map<const Variable*, vector<AssignmentNode*>>& outVariableNodes);
+void copyDefinitionsFromPointerVar(const Variable* lhs, const Variable* rhs,
+                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
+void copyNodesFromPointerVar(const Variable* lhs, const Variable* rhs, AssignmentNode* assignNode,
+                                map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
+                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
+void copyDefinitionsFromStructVar(const Variable* lhs, const Variable* rhs,
+                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
+void copyNodesFromStructVar(const Variable* lhs, const Variable* rhs, AssignmentNode* assignNode,
+                                map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
+                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
+
+void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNode* assignNode,
+                                 map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
+                                 map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
+
 class Visitor {
 public:
     Visitor();

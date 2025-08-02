@@ -13,12 +13,32 @@
 #include<list>
 
 using namespace std;
-enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE, FUNC_DECL, FUNC_CALL };
+enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE, FUNC_DECL, FUNC_CALL, STRUCT_DECL };
 enum DeclType {
     FUNCTIONDECL,
     VARDECL,
     ARRAYDECL
 };
+enum TypeQualifier {
+    CONST,
+    VOLATILE
+};
+enum StructOrUnion {
+    STRUCT,
+    UNION,
+    NOT_STRUCTORUNION
+};
+enum StorageClassSpecifier {
+    TYPEDEF,
+    EXTERN,
+    STATIC,
+    AUTO,
+    REGISTER
+};
+
+static const char* dataTypes[]= {"void", "char", "short", "int", "long", "float", "double", "signed", "unsigned", "struct",
+                                 "union", "enum", "typename"};
+static const size_t dataTypesSize = sizeof(dataTypes)/sizeof(dataTypes[0]);
 
 class IdentifierName {
 public:
@@ -92,6 +112,51 @@ private:
     const IdentifierName* p_pointsTo;
 };
 
+class Type {
+public:
+    Type(DataType dataType) : p_dataType(dataType) {}
+    virtual ~Type() {}
+    DataType getDataType() { return p_dataType; }
+    friend ostream& operator<<(ostream& os, Type& type) {
+        os << type.p_dataType <<" ";
+        return os;
+    }
+private:
+    DataType p_dataType;
+};
+
+class NamedType : public Type {
+public:
+    NamedType(const char* name, DataType dataType) : Type(dataType), p_name(name) {}
+    virtual ~NamedType() {
+        delete p_name;
+    }
+    const char* getName() const { return p_name; }
+private:
+    const char* p_name;
+};
+
+class StructType : public NamedType {
+public:
+    StructType(const char* name, DataType dataType) : NamedType(name, dataType) {
+    }
+    virtual ~StructType() {
+        for(int i=0; i<p_memIdentifierNames.size(); i++) {
+            delete p_memIdentifierNames[i].first;
+        }
+    }
+    void addIdentifierNames(const IdentifierName* identifierName, Type* dataType) {
+        p_memIdentifierNames.push_back(pair<const IdentifierName*,Type*>(identifierName, dataType));
+    }
+    const vector<pair<const IdentifierName*,Type*>>& getMemIdentifierNames() const { return p_memIdentifierNames; }
+private:
+    vector<pair<const IdentifierName*, Type*>> p_memIdentifierNames;
+};
+
+class EnumType : public Type {
+    EnumType(DataType dataType) : Type(dataType) {}
+};
+
 class Stmt {
 public:
     Stmt(StmtType type): p_type(type) {}
@@ -107,28 +172,34 @@ public:
 
 class AssignStmt : public Stmt {
 public:
-    AssignStmt(StmtType type): Stmt(type), p_var(0), p_value(0), p_dataType(INT) {}
-    AssignStmt(StmtType type, IdentifierName* var, Expr* value) : Stmt(type), p_var(var), p_value(value), p_dataType(INT){
+    AssignStmt(StmtType type): Stmt(type), p_var(0), p_value(0), p_dataType(0) {}
+    AssignStmt(StmtType type, IdentifierName* var, Expr* value) :
+        Stmt(type), p_var(var), p_value(value), p_dataType(0){
     }
     virtual ~AssignStmt() {
         if(p_var)
             delete p_var;
         if(p_value)
             delete p_value;
+        //if(p_dataType)
+           //delete p_dataType;
     }
     virtual void print(ostream& os) {
         if(p_var) os << "Assign statement: name " <<*p_var << " type " << p_type;
         if(p_value) os << " value " << *p_value << " " << p_value->getExprType();
+        if(p_dataType) os << " data type " <<p_dataType <<endl;
     }
     void setVar(IdentifierName* var) { p_var = var; }
     void setValue(Expr* value) { p_value = value; }
+    void setDataType(Type* type) { p_dataType = type; }
+    Type* getDataType() const { return p_dataType; }
     const IdentifierName* getVar() const { return p_var; }
     const Expr* getValue() const { return p_value; }
     Expr* toSimplify() { return p_value; }
 private:
     IdentifierName* p_var;
     Expr* p_value;
-    DataType p_dataType;
+    Type* p_dataType;
 };
 
 class Block {
@@ -249,6 +320,26 @@ public:
 private:
     const Expr* p_name;
     vector<Expr*> p_actualArguments;
+};
+
+class StructDeclStmt : public Stmt {
+public:
+    StructDeclStmt(StmtType type): Stmt(type), p_name(0), p_block(0) {}
+    virtual ~StructDeclStmt() {
+        delete p_block;
+        delete p_name;
+    }
+    virtual void print(ostream& os) {
+        os << " Struct decl name " << *p_name;
+    }
+    Block* getBlock() const { return p_block; }
+    IdentifierName* getName() const { return p_name; }
+    void setBlock(Block* block) {p_block = block; }
+    void setName(IdentifierName* name) { p_name = name; }
+    void addStatement(Stmt* stmt) { p_block->addStatement(stmt); }
+private:
+    IdentifierName* p_name;
+    Block* p_block;
 };
 
 #endif /* SRC_STMT_H_ */

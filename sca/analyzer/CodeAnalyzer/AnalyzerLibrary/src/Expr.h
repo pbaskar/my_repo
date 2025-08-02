@@ -23,11 +23,14 @@ enum ExprType {
     FUNCTIONVARIABLE,
     POINTERVARIABLE,
     ADDRESSOFVARIABLE,
+    STRUCTVARIABLE,
     IDENTIFIER,
     OPERATOR,
     UNARYOPERATOR,
     ADDRESSOFOPERATOR,
     DEREFERENCEOPERATOR,
+    DOTOPERATOR,
+    POINTEROPERATOR,
     FUNCTIONCALL,
     MALLOCFNCALL,
     DELETEFNCALL,
@@ -38,7 +41,8 @@ enum ExprType {
 enum VarType {
     VALUE,
     FUNCTION,
-    POINTER
+    POINTER,
+    STRUCTTYPE
 };
 
 class FunctionCall;
@@ -48,12 +52,13 @@ public:
     virtual ~Expr() {}
     virtual ExprType getExprType() const=0;
     virtual void print(ostream& os) const=0;
+    virtual const char* getPointedName() { return nullptr; }
     virtual void getRHSVariables(vector<const Expr*>& variables) const =0;
     virtual void getLHS(vector<const Expr*>& variables) const =0;
     virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) =0;
     virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const =0;
     virtual void populateVariable(SymbolTable* symbolTable)=0;
-    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable){ return nullptr; }
+    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable, const Expr* structVar=nullptr){ return nullptr; }
     friend ostream& operator<<(ostream& os, const Expr& expr) {
         //os <<expr.getExprType() <<" " ;
         expr.print(os);
@@ -95,8 +100,11 @@ public:
         p_left->populateVariable(symbolTable);
         p_right->populateVariable(symbolTable);
     }
-    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable) {
+    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable, const Expr* structVar=nullptr) {
         return p_left->populateDerefVariable(symbolTable);
+    }
+    virtual const char* getPointedName() {
+        return p_left->getPointedName();
     }
 private:
     Expr* p_left;
@@ -273,6 +281,32 @@ protected:
     const Variable* p_pointsTo;
 };
 
+class StructVariable : public Variable {
+public:
+    StructVariable(const char* n, VarType type): Variable(n, type) {}
+    virtual ~StructVariable() {
+        for(const Variable* v : p_memVars) {
+            //delete v;
+        }
+    }
+    virtual ExprType getExprType() const { return STRUCTVARIABLE; }
+    const vector<const Variable*>& getMemVars() const { return p_memVars; }
+    void addMemVars(const Variable* v) {
+        p_memVars.push_back(v);
+    }
+    virtual void print(ostream& os) const{
+        Variable::print(os);
+        os <<" member variables count "<<p_memVars.size();
+    }
+    virtual void getRHSVariables(vector<const Expr*>& variables) const { variables.push_back(this); }
+    virtual void getLHS(vector<const Expr*>& variables) const {}
+    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {}
+    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {}
+
+protected:
+    vector<const Variable*> p_memVars;
+};
+
 class AddressOfVariable : public PointerVariable {
 public:
     AddressOfVariable(const char* n, VarType type, const Variable* pointsTo): PointerVariable(n, type, pointsTo) {
@@ -298,6 +332,7 @@ public:
     virtual ExprType getExprType() const { return IDENTIFIER; }
     void setName(const char* name) { p_name = name; }
     const char* getName() const { return p_name; }
+    const char* getPointedName() const { return p_name; }
     void setVariable(const Variable* variable) { p_variable = variable; }
     const Variable* getVariable() const { return p_variable; }
     virtual void print(ostream& os) const{
@@ -308,7 +343,8 @@ public:
     virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {}
     virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {}
     virtual void populateVariable(SymbolTable* symbolTable);
-    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable);
+    virtual const Expr* populateStructVariable(SymbolTable* symbolTable, const Expr* structVar);
+    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable, const Expr* structVar=nullptr);
     virtual void getLHSOnLeft(vector<const Expr*>& variables) const {
         variables.push_back(p_variable);
     }
@@ -336,6 +372,9 @@ public:
     virtual void print(ostream& os) const{
         os<<"*"<<*p_right;
     }
+    virtual const char* getPointedName() const {
+        return p_right->getPointedName();
+    }
     virtual void getRHSVariables(vector<const Expr*>& variables) const {
         Identifier::getRHSVariables(variables);
         p_right->getRHSVariables(variables);
@@ -351,20 +390,8 @@ public:
     virtual void populateVariable(SymbolTable* symbolTable) {
         p_right->populateVariable(symbolTable);
     }
-    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable) {
-        const PointerVariable* pointerVariable = dynamic_cast<const PointerVariable*>(p_right->populateDerefVariable(symbolTable));
-        if(pointerVariable) {
-            const Variable* pointsTo = pointerVariable->getPointsTo();
-            Identifier::setName(pointsTo->getName());
-            Identifier::setVariable(pointsTo);
-            cout <<"DerefOperator::populatederefvariable populated " << pointsTo <<endl;
-            return pointsTo;
-        }
-        else {
-            cout <<"PopulateDerefVariable error " <<p_right->getExprType() <<endl; //error
-        }
-        return nullptr;
-    }
+    virtual const Expr* populateStructVariable(SymbolTable* symbolTable, const Expr* structVar);
+    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable, const Expr* structVar=nullptr);
     virtual void getLHSOnLeft(vector<const Expr*>& variables) const {
         variables.push_back(Identifier::getVariable());
     }
@@ -373,6 +400,49 @@ public:
     }
 private:
     Expr* p_right;
+};
+
+class DotOperator : public Identifier {
+public:
+    DotOperator(Identifier* l, Identifier* r): Identifier("DotOp"), p_left(l), p_right(r) {}
+    virtual ~DotOperator() {
+        delete p_left;
+        delete p_right;
+    }
+    virtual ExprType getExprType() const { return DOTOPERATOR; }
+    void setLeftOp(Identifier* left) { p_left = left; }
+    void setRightOp(Identifier* right) { p_right = right; }
+    virtual void print(ostream& os) const{
+        os<< *p_left << "." <<*p_right;
+    }
+    virtual void getRHSVariables(vector<const Expr*>& variables) const {
+        p_right->getRHSVariables(variables);
+    }
+    virtual void getLHS(vector<const Expr*>& variables) const {
+    }
+    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {
+        derefIdentifiers.push_back(this);
+    }
+    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
+        p_left->getFunctionCalls(functionCalls);
+        p_right->getFunctionCalls(functionCalls);
+    }
+    virtual void populateVariable(SymbolTable* symbolTable) {
+        p_left->populateVariable(symbolTable);
+        p_right->populateVariable(symbolTable);
+    }
+    virtual const Expr* populateStructVariable(SymbolTable* symbolTable, const Expr* structVar);
+    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable, const Expr* structVar=nullptr);
+    virtual void getLHSOnLeft(vector<const Expr*>& variables) const {
+        p_right->getLHSOnLeft(variables);
+    }
+    virtual void getRHSOnLeft(vector<const Expr*>& variables) const {
+        p_left->getRHSOnLeft(variables);
+        p_right->getRHSOnLeft(variables);
+    }
+private:
+    Identifier* p_left;
+    Identifier* p_right;
 };
 
 class AddressOfOperator : public Identifier {
@@ -401,7 +471,7 @@ public:
     virtual void populateVariable(SymbolTable* symbolTable) {
         p_right->populateVariable(symbolTable);
     }
-    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable);
+    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable, const Expr* structVar=nullptr);
 private:
     Expr* p_right;
 };

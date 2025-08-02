@@ -16,6 +16,9 @@ InstrParser::InstrParser(): p_mainBlock(0), p_pos(0) {
 }
 
 InstrParser::~InstrParser() {
+    for(int i=0; i<p_types.size(); i++) {
+        delete p_types[i];
+    }
 }
 
 Status InstrParser::parseFile(const char* fileName) {
@@ -26,7 +29,12 @@ Status InstrParser::parseFile(const char* fileName) {
     p_mainBlock = new Block;
     char nextChar = p_tokenizer.nextChar(true);
     while(nextChar != '\0') {
-        status = parseFunctionDecl(p_mainBlock);
+        int pos = p_tokenizer.getPos();
+        status = parseStructOrUnionSpecifier(p_mainBlock);
+        if(status == Status::FIRST_MISMATCH) {
+            p_tokenizer.setPos(pos);
+            status = parseFunctionDecl(p_mainBlock);
+        }
         if(status == FAILURE) { p_tokenizer.closeFile(); return status; }
         nextChar = p_tokenizer.nextChar(true);
     }
@@ -38,19 +46,93 @@ Status InstrParser::parseFile(const char* fileName) {
     return status;
 }
 
-Variable* makeVariable(Block* block, const IdentifierName* identifierName) {
-    Variable*  variable = nullptr;
+//make pointervariable and pointedTo variable
+Variable* InstrParser::makeVariable(Block* block, const IdentifierName* identifierName, Type* dataType) {
+    Variable* variable = nullptr;
     const PointerIdentifierName* pointerIdentifierName = dynamic_cast<const PointerIdentifierName*>(identifierName);
     if(pointerIdentifierName != nullptr) {
-        Variable* pointsTo = makeVariable(block, pointerIdentifierName->getPointsTo());
+        Variable* pointsTo = makeVariable(block, pointerIdentifierName->getPointsTo(), dataType);
         variable = new PointerVariable(pointsTo->getName(), VarType::VALUE, pointsTo);
         pointsTo->setAddress(variable);
         cout <<"Pointer Variable created " <<pointsTo->getName();
     } else {
+        assert(identifierName);
         variable = new Variable(identifierName->getName(), VarType::VALUE);
         cout << "Variable created " <<identifierName->getName();
     }
     return variable;
+}
+
+Variable* InstrParser::makeFunctionVariable(Block* block, const IdentifierName* identifierName, Type* dataType) {
+    Variable* variable = nullptr;
+    FunctionVariable* functionVariable = new FunctionVariable(identifierName->getName(), VarType::FUNCTION);
+    PointerVariable* pointerVariable = new PointerVariable(identifierName->getName(), VarType::FUNCTION, functionVariable);
+    functionVariable->setAddress(pointerVariable);
+    return pointerVariable;
+}
+
+Variable* InstrParser::makeStructVariable(Block* block, const IdentifierName* identifierName, Type* dataType) {
+    Variable* variable = nullptr;
+    const StructType* structType = nullptr;
+    NamedType* namedType = static_cast<NamedType*>(dataType);
+    for(const StructType* typeIt : p_types) {
+        if(strcmp(typeIt->getName(), namedType->getName())==0) {
+            structType = typeIt;
+            break;
+        }
+    }
+    if(!structType) {
+        cout <<"Struct type not found " <<namedType->getName() <<" " <<p_types.size() <<endl;
+        return nullptr;
+    }
+    const vector<pair<const IdentifierName*, Type*>>& memIdentifierNames = structType->getMemIdentifierNames();
+    StructVariable* structVariable = new StructVariable(identifierName->getName(), VarType::STRUCTTYPE);
+    for(const pair<const IdentifierName*, Type*>& memIdentifierName : memIdentifierNames) {
+        Variable* memVar = makeVariableFromIdentifierName(block, memIdentifierName.first, memIdentifierName.second);
+        structVariable->addMemVars(memVar);
+        cout <<"mem " <<memIdentifierName.first <<" " <<memIdentifierName.second <<endl;
+    }
+    //struct and pointer to struct
+    const PointerIdentifierName* pointerIdentifierName = dynamic_cast<const PointerIdentifierName*>(identifierName);
+    if(pointerIdentifierName != nullptr) {
+        PointerVariable* pointerVariable = new PointerVariable(identifierName->getName(), VarType::STRUCTTYPE, structVariable);
+        cout <<"struct Pointer variable added " <<*pointerVariable <<" " <<memIdentifierNames.size() <<endl;
+        variable = pointerVariable;
+    }
+    else {
+        cout <<"struct variable added " <<*structVariable <<" " <<memIdentifierNames.size() <<endl;
+        variable = structVariable;
+    }
+    return variable;
+}
+
+Variable* InstrParser::makeVariableFromIdentifierName(Block* block, const IdentifierName* identifierName, Type* dataType) {
+    DeclType declType = identifierName->getType();
+    Variable* var = nullptr;
+    switch(declType) {
+        case VARDECL: {
+            // struct and pointer to struct variables
+            if(dataType->getDataType() == DataType::STRUCTSPECIFIER) {
+                var = makeStructVariable(block, identifierName, dataType);
+                if(!var) {
+                    cout <<"Struct Declaration not found " <<identifierName->getName()<<endl;
+                    return nullptr;
+                }
+            }
+            else {
+                //variables and pointer variables
+                var = makeVariable(block, identifierName, dataType);
+            }
+        break;
+        }
+        case FUNCTIONDECL: {
+            //pointer to function
+            var = makeFunctionVariable(block, identifierName, dataType);
+        break;
+        }
+        default:;
+    }
+    return var;
 }
 
 Status InstrParser::parseBlock(Block* block) {
@@ -62,21 +144,16 @@ Status InstrParser::parseBlock(Block* block) {
     p_exprParser.setSymbolTable(block->getSymbolTable());
     p_tokenizer.nextLine();
     vector<AssignStmt*> declList;
-    status = parseDeclarationList(declList);
+    status = parseDeclarationList(block, declList);
 
+    //make variables from Identifer names for declaration list
     for(AssignStmt* assignStmt : declList) {
         const IdentifierName* identifierName = assignStmt->getVar();
         assert(identifierName != nullptr);
-        if(identifierName->getType() == DeclType::VARDECL) {
-            Variable* var = makeVariable(block, assignStmt->getVar());
-            block->getSymbolTable()->addSymbol(var);
-        }
-        else if(identifierName->getType() == DeclType::FUNCTIONDECL) {
-            FunctionVariable* functionVariable = new FunctionVariable(identifierName->getName(), VarType::FUNCTION);
-            PointerVariable* pointerVariable = new PointerVariable(identifierName->getName(), VarType::FUNCTION, functionVariable);
-            functionVariable->setAddress(pointerVariable);
-            block->getSymbolTable()->addSymbol(pointerVariable);
-        }
+        Type* type = assignStmt->getDataType();
+        Variable* var = makeVariableFromIdentifierName(block, identifierName, type);
+        block->getSymbolTable()->addSymbol(var);
+        if(!var) return Status::FAILURE;
         block->addStatement(assignStmt);
     }
 
@@ -86,14 +163,6 @@ Status InstrParser::parseBlock(Block* block) {
     char closeParen =  p_tokenizer.nextChar(true);
     p_tokenizer.nextChar(); //consume '}'
     cout <<"consuming } "<<closeParen <<endl;
-    /*char closeBrace = p_tokenizer.nextChar(true);
-    while(closeBrace != '}' && closeBrace != '\0') {
-        Status status = parseStmt(block);
-        if(status == FAILURE) {
-            return FAILURE;
-        }
-        closeBrace = p_tokenizer.nextChar(true);
-    }*/
     cout <<"parseBlock " <<status <<endl;
     return status;
 }
@@ -160,33 +229,6 @@ Status InstrParser::parseStmt(Block* block) {
     p_tokenizer.setPos(pos);
     status = parseAssign(block);
 
-    /*char* next = p_tokenizer.nextWord(true);
-
-    if(strcmp(next, "int")==0) {
-        p_tokenizer.consumeWord();
-        status = parseDecl(block);
-    }
-    else if(strcmp(next, "if")==0) {
-        p_tokenizer.consumeWord();
-        status = parseIfElse(block);
-    }
-    else if(strcmp(next, "while")==0) {
-        p_tokenizer.consumeWord();
-        status = parseWhile(block);
-    }
-    else {
-        status = parseAssign(block);
-        char c = p_tokenizer.lookAhead(2);
-        if(c == '=')
-            status = parseAssign(block);
-        else if(c == '(')
-            status = parseFunctionCall(block);
-        else {
-            Logger::logMessage(ErrorCode::STMT_INVALID,  1, "InstrParser::parseStmt:");
-            status = FAILURE;
-        }
-    }
-    delete next;*/
     cout <<"parsestmt " <<status <<endl;
     return status;
 }
@@ -202,50 +244,11 @@ Status InstrParser::parseStmtList(Block* block) {
     return status;
 }
 
-/*Status InstrParser::parseDecl(Block* block) {
-    Status status = SUCCESS;
-    AssignStmt* stmt = new AssignStmt(DECL);
-    block->addStatement(stmt);
-
-    VarType varType = VarType::VALUE;
-    char pointer = p_tokenizer.lookAhead(1);
-    if(pointer == '*') { p_tokenizer.nextChar(); varType = VarType::POINTER; }
-    char* name = p_tokenizer.nextWord();
-    if(name == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseDecl:", "name"); return FAILURE; }
-    stmt->setVar(block->addSymbol(name, varType));
-
-    char equal = p_tokenizer.nextChar();
-    if(equal == ';') { 	p_tokenizer.nextLine(); return status; }
-    if(equal != '=') {  Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseDecl:", "="); return FAILURE; }
-
-    char* next = p_tokenizer.nextWord();
-    if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseDecl:", "value"); return FAILURE; }
-    Expr* value = p_exprParser.parseExpressionStr(next);
-    delete next;
-    if(value == nullptr) { Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseDecl:", "value"); return FAILURE; }
-    stmt->setValue(value);
-    p_tokenizer.nextLine();
-    cout <<"Declarative stmt: size = " <<block->getSubStatements().size() << " " <<*stmt <<endl;
-    return status;
-}*/
-
 Status InstrParser::parseAssign(Block* block) {
     Status status = SUCCESS;
     AssignStmt* stmt = new AssignStmt(ASSIGN);
     block->addStatement(stmt);
 
-    /*char delim[] = {'='};
-    char* name = p_tokenizer.nextWordUntil(delim, sizeof(delim));
-    if(name == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "name"); return FAILURE; }
-    cout <<" name " << name <<endl;
-    Expr* var = p_exprParser.parseExpressionStr(name);
-    delete name;
-    if(var == nullptr) { Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseAssign:", "value"); return FAILURE; }
-    stmt->setVar(var);
-
-    char equal = p_tokenizer.nextChar();
-    if ( equal != '=' ) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "="); return FAILURE; }
-*/
     char endDelim[] = {';',','};
     char* next = p_tokenizer.nextWordUntil(endDelim, sizeof(endDelim));
     if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "value"); return FAILURE; }
@@ -347,51 +350,267 @@ Status InstrParser::parseWhile(Block* block) {
     return status;
 }
 
-vector<DataType> InstrParser::parseTypeSpecifiers() {
-    vector<DataType> types;
-    const char* next = p_tokenizer.nextWord();
-    if(next == nullptr) return types;
-    if(strcmp(next,"int")==0)
-        types.push_back(INT);
-    delete(next);
-    return types;
-}
-
-vector<DataType> InstrParser::parseDeclarationSpecifiers() {
-    vector<DataType> typeSpecifiers = parseTypeSpecifiers();
-    return typeSpecifiers;
-}
-
-IdentifierName* InstrParser::parseParameterDecl() {
-    IdentifierName* declarator = nullptr;
-    vector<DataType> declarationSpecifiers = parseDeclarationSpecifiers();
-    if(declarationSpecifiers.empty()) {
-        return declarator;
+TypeQualifier InstrParser::parseTypeQualifier(Block* block) {
+    TypeQualifier typeQualifier = TypeQualifier::CONST;
+    const char* next = p_tokenizer.nextWord(true);
+    if(next == nullptr) return typeQualifier;
+    if(strcmp(next,"const")==0) {
+        p_tokenizer.consumeWord();
+        typeQualifier = TypeQualifier::CONST;
     }
-    DeclType declType;
-    declarator = parseDeclarator(declType);
-    return declarator;
+    else if(strcmp(next,"volatile")==0) {
+        p_tokenizer.consumeWord();
+        typeQualifier = TypeQualifier::VOLATILE;
+    }
+    delete(next);
+    return typeQualifier;
 }
 
-Status InstrParser::parseParameterList(vector<IdentifierName*>& identifierList) {
+Status InstrParser::parseStructOrUnionDef(Block* block, Type*& type) {
     Status status = SUCCESS;
-    IdentifierName* parameterDecl = parseParameterDecl();
-    if(parameterDecl == nullptr) return status;
-    identifierList.push_back(parameterDecl);
-    char next = p_tokenizer.lookAhead(1);
-    if(next == ',') {
-        p_tokenizer.nextChar(); //consume ,
-        status = parseParameterList(identifierList);
+    StructOrUnion structOrUnion = parseStructOrUnion(block);
+    if(structOrUnion == StructOrUnion::NOT_STRUCTORUNION) {
+        return Status::FIRST_MISMATCH;
+    }
+    char* nextWord = p_tokenizer.nextWord();
+    if(nextWord == nullptr) return FAILURE;
+    type = new NamedType(nextWord, DataType::STRUCTSPECIFIER);
+    return status;
+}
+
+Status InstrParser::parseTypeSpecifier(Block* block, Type*& type) {
+    Status status = SUCCESS;
+
+    int pos = p_tokenizer.getPos();
+    status = parseStructOrUnionDef(block, type);
+    if(status == Status::FIRST_MISMATCH) {
+        p_tokenizer.setPos(pos);
+        char* next = p_tokenizer.nextWord(true);
+        cout <<"next value " <<next <<endl;
+        for(int i=0; i<dataTypesSize; i++) {
+            if(next == nullptr) return FAILURE;
+            if(strcmp(next,dataTypes[i])==0) {
+                type = new Type(DataType(i));
+                cout <<"type created " << i <<endl;
+                p_tokenizer.consumeWord();
+                return SUCCESS;
+            }
+        }
+        delete(next);
     }
     return status;
 }
 
-Status InstrParser::parsePointer(vector<PointerIdentifierName*>& identifierList) {
+StorageClassSpecifier InstrParser::parseStorageClassSpecifier(Block* block) {
+    StorageClassSpecifier storageClassSpecifier = StorageClassSpecifier::AUTO;
+    const char* next = p_tokenizer.nextWord(true);
+    if(next == nullptr) return storageClassSpecifier;
+
+    if(strcmp(next,"typedef")==0) {
+        p_tokenizer.consumeWord();
+        storageClassSpecifier = StorageClassSpecifier::TYPEDEF;
+    }
+    else if(strcmp(next,"extern")==0) {
+        p_tokenizer.consumeWord();
+        storageClassSpecifier = StorageClassSpecifier::EXTERN;
+    }
+    if(strcmp(next,"static")==0) {
+        p_tokenizer.consumeWord();
+        storageClassSpecifier = StorageClassSpecifier::STATIC;
+    }
+    else if(strcmp(next,"auto")==0) {
+        p_tokenizer.consumeWord();
+        storageClassSpecifier = StorageClassSpecifier::AUTO;
+    }
+    else if(strcmp(next,"register")==0) {
+        p_tokenizer.consumeWord();
+        storageClassSpecifier = StorageClassSpecifier::REGISTER;
+    }
+    delete(next);
+    return storageClassSpecifier;
+}
+
+vector<Type*> InstrParser::parseSpecifierQualifierList(Block* block) {
+    vector<Type*> typeSpecifiers;
+    Type* type = nullptr;
+    Status status = parseTypeSpecifier(block, type);
+    if(type)
+        typeSpecifiers.push_back(type);
+    parseTypeQualifier(block);
+    //parseSpecifierQualifierList(block);
+    return typeSpecifiers;
+}
+
+AssignStmt* InstrParser::parseStructDeclarator(Block* block) {
+    AssignStmt* assignStmt = nullptr;
+    Expr* value = nullptr;
+    DeclType declType = VARDECL;
+    IdentifierName* var = parseDeclarator(block, declType);
+    if(var == nullptr) return nullptr;
+    char c = p_tokenizer.lookAhead(1);
+    if(c == ':') {
+        p_tokenizer.nextChar(); //consume :
+        char endDelim[] = {',', ';'};
+        char* next = p_tokenizer.nextWordUntil(endDelim, sizeof(endDelim));
+        if(next == nullptr) {
+            Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseStructDeclarator:", "value");
+            return nullptr;
+        }
+        Expr* value = p_exprParser.parseExpressionStr(next);
+        delete next;
+        if(value == nullptr) {
+            Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseStructDeclarator:", "value");
+            return nullptr;
+        }
+    }
+    assignStmt = new AssignStmt(DECL, var, value);
+    return assignStmt;
+}
+
+Status InstrParser::parseStructDeclaratorList(Block* block, vector<AssignStmt*>& structDeclaratorList) {
+    Status status = SUCCESS;
+    AssignStmt* assignStmt = parseStructDeclarator(block);
+    if(assignStmt == nullptr) return FAILURE;
+    structDeclaratorList.push_back(assignStmt);
+    char c = p_tokenizer.lookAhead(1);
+    if(c == ',') {
+        p_tokenizer.nextChar(); //consume ','
+        status = parseStructDeclaratorList(block, structDeclaratorList);
+    }
+    return status;
+}
+
+Status InstrParser::parseStructDeclaration(Block* block, vector<AssignStmt*>& structDeclaration) {
+    Status status = SUCCESS;
+    const vector<Type*>& dataTypes = parseSpecifierQualifierList(block);
+    if(dataTypes.empty())
+        return Status::FIRST_MISMATCH;
+    status = parseStructDeclaratorList(block, structDeclaration);
+    for(AssignStmt* assignStmt : structDeclaration) {
+        assignStmt->setDataType(dataTypes[0]);
+        cout <<"declaration specifier " <<dataTypes[0] << " " <<structDeclaration.size()<<endl;
+    }
+    p_tokenizer.nextChar(); //consume ;
+    p_tokenizer.nextLine();
+    return status;
+}
+
+Status InstrParser::parseStructDeclarationList(Block* block, vector<AssignStmt*>& structDeclarationList) {
+    int pos = p_tokenizer.getPos();
+    Status status = parseStructDeclaration(block, structDeclarationList);
+    if(status == SUCCESS) {
+        status = parseStructDeclarationList(block, structDeclarationList);
+    } else if (status == FIRST_MISMATCH) {
+        p_tokenizer.setPos(pos);
+        status = SUCCESS;
+    }
+    return status;
+}
+
+StructOrUnion InstrParser::parseStructOrUnion(Block* block) {
+    StructOrUnion structOrUnion = StructOrUnion::NOT_STRUCTORUNION;
+    const char* next = p_tokenizer.nextWord(true);
+    if(next == nullptr) return structOrUnion;
+    if(strcmp(next,"struct")==0) {
+        p_tokenizer.consumeWord();
+        structOrUnion = StructOrUnion::STRUCT;
+    }
+    else if(strcmp(next,"union")==0) {
+        p_tokenizer.consumeWord();
+        structOrUnion = StructOrUnion::UNION;
+    }
+    delete(next);
+    return structOrUnion;
+}
+
+Status InstrParser::parseStructOrUnionSpecifier(Block* block) {
+    Status status = SUCCESS;
+    StructOrUnion structOrUnion = parseStructOrUnion(block);
+    if(structOrUnion == StructOrUnion::NOT_STRUCTORUNION) {
+        return Status::FIRST_MISMATCH;
+    }
+    StructDeclStmt* stmt = new StructDeclStmt(STRUCT_DECL);
+    Block* declBlock = new Block(block);
+    stmt->setBlock(declBlock);
+    block->addStatement(stmt);
+
+    char* nextWord = p_tokenizer.nextWord();
+    if(nextWord == nullptr) return FAILURE;
+    IdentifierName* identifier = new IdentifierName(nextWord);
+    stmt->setName(identifier);
+    cout <<"create structdeclStmt " <<nextWord <<endl;
+
+    p_tokenizer.nextChar(); //consume {
+    p_tokenizer.nextLine();
+    vector<AssignStmt*> structDeclarationList;
+    status = parseStructDeclarationList(block, structDeclarationList);
+    p_tokenizer.nextChar(); //consume }
+
+    if(status == FAILURE) { return FAILURE; }
+    p_tokenizer.nextLine();
+    StructType* structType = new StructType(identifier->getName(), DataType::STRUCTSPECIFIER);
+    cout <<"created new struct type " <<identifier->getName()<<endl;
+
+    for(AssignStmt* assignStmt : structDeclarationList) {
+        const IdentifierName* identifierName = assignStmt->getVar();
+        assert(identifierName != nullptr);
+        structType->addIdentifierNames(identifierName,assignStmt->getDataType());
+    }
+    p_types.push_back(structType);
+    cout <<"Struct Decl stmt: size = " <<stmt->getBlock()->getSubStatements().size() << " parent size "
+            <<block->getSubStatements().size() << " " <<*stmt <<" status " <<status <<endl;
+    return status;
+}
+
+vector<Type*> InstrParser::parseDeclarationSpecifiers(Block* block) {
+    StorageClassSpecifier s = parseStorageClassSpecifier(block);
+    //cout <<"StorageClass specifier "<<s <<endl;
+    Type* typeSpecifier = nullptr;
+    parseTypeSpecifier(block, typeSpecifier);
+    cout <<"Type specifier " <<typeSpecifier <<endl;
+    TypeQualifier t = parseTypeQualifier(block);
+    //cout <<"Type Qualiffier " <<t <<endl;
+    vector<Type*> declarationSpecifiers;
+    if(typeSpecifier)
+        declarationSpecifiers.push_back(typeSpecifier);
+    cout <<"parseDeclarationSpecifiers " <<declarationSpecifiers.size() <<endl;
+    return declarationSpecifiers;
+}
+
+IdentifierName* InstrParser::parseParameterDecl(Block* block) {
+    IdentifierName* declarator = nullptr;
+    const vector<Type*>& declarationSpecifiers = parseDeclarationSpecifiers(block);
+    if(declarationSpecifiers.empty()) {
+        return declarator;
+    }
+    DeclType declType;
+    declarator = parseDeclarator(block, declType);
+    cout <<"parseparameterdecl returns "<< declType <<" " <<declarator<<endl;
+    return declarator;
+}
+
+Status InstrParser::parseParameterList(Block* block, vector<IdentifierName*>& identifierList) {
+    Status status = SUCCESS;
+    IdentifierName* parameterDecl = parseParameterDecl(block);
+    if(parameterDecl == nullptr) {
+        cout <<"parameter decl null " <<endl;
+        return status;
+    }
+    identifierList.push_back(parameterDecl);
+    char next = p_tokenizer.lookAhead(1);
+    if(next == ',') {
+        p_tokenizer.nextChar(); //consume ,
+        status = parseParameterList(block, identifierList);
+    }
+    return status;
+}
+
+Status InstrParser::parsePointer(Block* block, vector<PointerIdentifierName*>& identifierList) {
     Status status = SUCCESS;
     char c = p_tokenizer.lookAhead(1);
     if(c=='*') {
         p_tokenizer.nextChar(); //consume *
-        status = parsePointer(identifierList);
+        status = parsePointer(block, identifierList);
         PointerIdentifierName* pointerIdentifier = new PointerIdentifierName("Pointer", nullptr);
         if(!identifierList.empty()) {
             pointerIdentifier->setPointsTo(identifierList.back());
@@ -401,12 +620,12 @@ Status InstrParser::parsePointer(vector<PointerIdentifierName*>& identifierList)
     return status;
 }
 
-Status InstrParser::parseDirectDeclaratorPrime(vector<IdentifierName*>& directDeclaratorPrime, DeclType& declType) {
+Status InstrParser::parseDirectDeclaratorPrime(Block* block, vector<IdentifierName*>& directDeclaratorPrime, DeclType& declType) {
     char next = p_tokenizer.lookAhead(1);
     switch(next) {
         case '(':
             p_tokenizer.nextChar(); // consume (
-            parseParameterList(directDeclaratorPrime);
+            parseParameterList(block, directDeclaratorPrime);
             p_tokenizer.nextChar(); // consume )
             declType = FUNCTIONDECL;
         break;
@@ -426,7 +645,7 @@ Status InstrParser::parseDirectDeclaratorPrime(vector<IdentifierName*>& directDe
                 break;
             }
             p_tokenizer.nextChar(); //consume ]
-            parseDirectDeclaratorPrime(directDeclaratorPrime, declType);
+            parseDirectDeclaratorPrime(block, directDeclaratorPrime, declType);
             PointerIdentifierName* pointerIdentifierName = new PointerIdentifierName("Pointer",nullptr);
             if(!directDeclaratorPrime.empty()) {
                 pointerIdentifierName->setPointsTo(directDeclaratorPrime.back());
@@ -439,13 +658,13 @@ Status InstrParser::parseDirectDeclaratorPrime(vector<IdentifierName*>& directDe
     return SUCCESS;
 }
 
-IdentifierName* InstrParser::parseDirectDeclarator(DeclType& declType) {
+IdentifierName* InstrParser::parseDirectDeclarator(Block* block, DeclType& declType) {
     IdentifierName* directDeclarator = nullptr;
     IdentifierName* next = nullptr;
     char nextChar = p_tokenizer.lookAhead(1);
     if(nextChar == '(') {
         p_tokenizer.nextChar(); //consume '('
-        next = parseDeclarator(declType);
+        next = parseDeclarator(block, declType);
         p_tokenizer.nextChar(); //consume ')'
     } else {
         char* nextWord = p_tokenizer.nextWord();
@@ -454,11 +673,12 @@ IdentifierName* InstrParser::parseDirectDeclarator(DeclType& declType) {
     }
     declType = VARDECL;
     vector<IdentifierName*> directDeclaratorPrime;
-    parseDirectDeclaratorPrime(directDeclaratorPrime, declType);
+    parseDirectDeclaratorPrime(block, directDeclaratorPrime, declType);
     switch(declType) {
         case VARDECL:
             directDeclarator = next;
         break;
+            //function decl and pointer to function
         case FUNCTIONDECL: {
                 FunctionIdentifierName* functionIdentifierName = new FunctionIdentifierName(next->getName(), directDeclaratorPrime);
                 PointerIdentifierName* pointerIdentifierName = dynamic_cast<PointerIdentifierName*>(next);
@@ -471,8 +691,10 @@ IdentifierName* InstrParser::parseDirectDeclarator(DeclType& declType) {
                     delete next;
                     directDeclarator = functionIdentifierName;
                 }
+                cout <<"FunctionIdentfierName created " <<functionIdentifierName->getName() <<endl;
             }
         break;
+        //array and pointer to array represented as PointerIdentifierName. Assigned ARRAY_DEFINITION.
         case ARRAYDECL:
                 IdentifierName* arrayIdentifierName = directDeclaratorPrime.back();
                 arrayIdentifierName->setName(next->getName());
@@ -493,24 +715,24 @@ IdentifierName* InstrParser::parseDirectDeclarator(DeclType& declType) {
     return directDeclarator;
 }
 
-IdentifierName* InstrParser::parseDeclarator(DeclType& declType) {
+IdentifierName* InstrParser::parseDeclarator(Block* block, DeclType& declType) {
     IdentifierName* declarator = nullptr;
     char c = p_tokenizer.lookAhead(1);
     if(c == '*') {
         vector<PointerIdentifierName*> pointerNames;
-        parsePointer(pointerNames);
-        IdentifierName* directDeclarator = parseDirectDeclarator(declType);
+        parsePointer(block, pointerNames);
+        IdentifierName* directDeclarator = parseDirectDeclarator(block, declType);
         pointerNames.front()->setPointsTo(directDeclarator);
         declarator = pointerNames.back();
         declarator->setName(directDeclarator->getName());
      } else {
-        declarator = parseDirectDeclarator(declType);
+        declarator = parseDirectDeclarator(block, declType);
     }
     cout <<"parseDeclarator " <<declarator <<endl;
     return declarator;
 }
 
-Expr* InstrParser::parseInitializer() {
+Expr* InstrParser::parseInitializer(Block* block) {
     char endDelim[] = {';',','};
     char* next = p_tokenizer.nextWordUntil(endDelim, sizeof(endDelim));
     if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "value"); return nullptr; }
@@ -520,28 +742,28 @@ Expr* InstrParser::parseInitializer() {
     return value;
 }
 
-vector<Expr*> InstrParser::parseInitializerList() {
+vector<Expr*> InstrParser::parseInitializerList(Block* block) {
     vector<Expr*> initializerList;
-    Expr* initializer = parseInitializer();
+    Expr* initializer = parseInitializer(block);
     initializerList.push_back(initializer);
     char c = p_tokenizer.lookAhead(1);
     if(c == ',') {
         p_tokenizer.nextChar();
-        parseInitializerList();
+        parseInitializerList(block);
     }
     return initializerList;
 }
 
-AssignStmt* InstrParser::parseInitDeclarator() {
+AssignStmt* InstrParser::parseInitDeclarator(Block* block) {
     AssignStmt* assignStmt = nullptr;
     Expr* value = nullptr;
     DeclType declType = VARDECL;
-    IdentifierName* var = parseDeclarator(declType);
+    IdentifierName* var = parseDeclarator(block, declType);
     if(var == nullptr) return nullptr;
     char c = p_tokenizer.lookAhead(1);
     if(c == '=') {
         p_tokenizer.nextChar();
-        value = parseInitializer();
+        value = parseInitializer(block);
     }
     else {
         if(declType == DeclType::ARRAYDECL) {
@@ -555,37 +777,46 @@ AssignStmt* InstrParser::parseInitDeclarator() {
     return assignStmt;
 }
 
-Status InstrParser::parseInitDeclaratorList(vector<AssignStmt*>& initDeclaratorList) {
+Status InstrParser::parseInitDeclaratorList(Block* block, vector<AssignStmt*>& initDeclaratorList) {
     Status status = SUCCESS;
-    AssignStmt* assignStmt = parseInitDeclarator();
+    AssignStmt* assignStmt = parseInitDeclarator(block);
     if(assignStmt == nullptr) return FAILURE;
     initDeclaratorList.push_back(assignStmt);
     char c = p_tokenizer.lookAhead(1);
     if(c == ',') {
         p_tokenizer.nextChar();
-        status = parseInitDeclaratorList(initDeclaratorList);
+        status = parseInitDeclaratorList(block, initDeclaratorList);
     }
     return status;
 }
 
-Status InstrParser::parseDeclaration(vector<AssignStmt*>& declaration) {
+Status InstrParser::parseDeclaration(Block* block, vector<AssignStmt*>& declaration) {
     Status status = SUCCESS;
-    vector<DataType> declarationSpecifiers = parseDeclarationSpecifiers();
-    if(declarationSpecifiers.empty())
+    const vector<Type*>& declarationSpecifiers = parseDeclarationSpecifiers(block);
+    if(declarationSpecifiers.empty()) {
         return FIRST_MISMATCH;
-    status = parseInitDeclaratorList(declaration);
+    }
+    vector<AssignStmt*> initDeclaratorList;
+    status = parseInitDeclaratorList(block, initDeclaratorList);
+    if(declarationSpecifiers.empty()) return FAILURE;
+    // set datatype, structtype and other datatypes
+    for(AssignStmt* assignStmt : initDeclaratorList) {
+        assignStmt->setDataType(declarationSpecifiers[0]);
+        declaration.push_back(assignStmt);
+        cout <<"declaration specifier " <<declarationSpecifiers[0] << " " <<declaration.size()<<endl;
+    }
     p_tokenizer.nextChar(); //consume ';'
     p_tokenizer.nextLine();
     cout <<"parseDeclaration " <<status <<endl;
     return status;
 }
 
-Status InstrParser::parseDeclarationList(vector<AssignStmt*>& declarationList) {
+Status InstrParser::parseDeclarationList(Block* block, vector<AssignStmt*>& declarationList) {
     Status status = SUCCESS;
     int pos = p_tokenizer.getPos();
-    status = parseDeclaration(declarationList);
+    status = parseDeclaration(block, declarationList);
     if(status == SUCCESS) {
-        status = parseDeclarationList(declarationList);
+        status = parseDeclarationList(block, declarationList);
     } else if (status == FIRST_MISMATCH) {
         p_tokenizer.setPos(pos);
         status = SUCCESS;
@@ -600,41 +831,18 @@ Status InstrParser::parseFunctionDecl(Block* block) {
     stmt->setBlock(declBlock);
     block->addStatement(stmt);
 
-    parseDeclarationSpecifiers();
+    const vector<Type*>& dataTypes = parseDeclarationSpecifiers(block);
+    assert(!dataTypes.empty());
     DeclType declType;
-    IdentifierName* identifier = parseDeclarator(declType);
+    IdentifierName* identifier = parseDeclarator(block, declType);
     FunctionIdentifierName* functionIdentifierName = dynamic_cast<FunctionIdentifierName*>(identifier);
     if(functionIdentifierName == nullptr) return FAILURE;
     vector<IdentifierName*> parameterList = functionIdentifierName->getParameterList();
     for(IdentifierName* identifierName : parameterList) {
-        Variable* var = makeVariable(block, identifierName);
+        Variable* var = makeVariable(block, identifierName, dataTypes[0]);
         block->getSymbolTable()->addSymbol(var);
     }
     stmt->setName(identifier);
-
-    /*char* next = p_tokenizer.nextWord(); //return type
-    if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "return type"); return FAILURE; }
-
-    next = p_tokenizer.nextWord();	//function name - add to symbol table
-    if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "function name"); return FAILURE; }
-    stmt->setName(next);
-    cout<<"function name " <<next <<endl;
-
-    char openBrace = p_tokenizer.nextChar();
-    if ( openBrace != '(') { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "open brace"); return FAILURE; }
-
-    next = p_tokenizer.nextWord();
-    if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "argument declaration"); return FAILURE; }
-    delete next;
-
-    VarType varType = VarType::VALUE;
-    char pointer = p_tokenizer.lookAhead(1);
-    if(pointer == '*') { p_tokenizer.nextChar(); varType = VarType::POINTER; }
-    next = p_tokenizer.nextWord();
-    if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionDecl:", "argument name"); return FAILURE; }
-
-    Variable* argument = block->addSymbol(next, varType); // add to the current symbol table
-    stmt->addFormalArgument(argument);*/
 
     status = parseBlock(stmt->getBlock());
     if(status == FAILURE) { return FAILURE; }
@@ -645,30 +853,6 @@ Status InstrParser::parseFunctionDecl(Block* block) {
             <<block->getSubStatements().size() << " " <<*stmt <<" status " <<status <<endl;
     return status;
 }
-
-/*Status InstrParser::parseFunctionCall(Block* block) {
-    Status status = SUCCESS;
-    FunctionCallStmt* stmt = new FunctionCallStmt(FUNC_CALL);
-    block->addStatement(stmt);
-
-    char* next = p_tokenizer.nextWord(); //function name
-    if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionCall:", "function name"); return FAILURE; }
-    stmt->setName(next);
-
-    char openBrace = p_tokenizer.nextChar();
-    if ( openBrace != '(') { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFunctionCall:", "open brace"); return FAILURE; }
-
-    next = p_tokenizer.nextWord();
-    if(next == nullptr) { return status; }
-    Expr* argument = p_exprParser.parseExpressionStr(next);
-    delete next;
-    if(argument == nullptr) { cout<<"InstrParser::parseFunctionCall: could not parse argument "<<endl; return FAILURE; }
-    stmt->addActualArgument(argument);
-
-    p_tokenizer.nextLine();
-    cout <<"Function Call stmt: size = " <<block->getSubStatements().size() << " " <<*stmt <<endl;
-    return status;
-}*/
 
 Block* InstrParser::getBlock() const {
     return p_mainBlock;

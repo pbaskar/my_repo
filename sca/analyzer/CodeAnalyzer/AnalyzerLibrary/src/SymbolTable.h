@@ -15,8 +15,20 @@ class FunctionDeclBlock;
 using namespace std;
 
 enum DataType {
+    VOID,
+    CHAR,
+    SHORT,
     INT,
-    DOUBLE
+    LONG,
+    FLOAT,
+    DOUBLE,
+    SIGNED,
+    UNSIGNED,
+    STRUCTSPECIFIER,
+    UNIONSPECIFIER,
+    ENUM,
+    TYPENAME,
+    INVALIDDATATYPE
 };
 
 class SymbolTableEntry {
