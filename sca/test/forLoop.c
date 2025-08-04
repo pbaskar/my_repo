@@ -4,7 +4,7 @@ void fun(int i) {
     int sum;
     int a;
     int b;
-    for(int i=0; 2; i=i+1) {
+    for(int j=0; 2; j=j+1) {
         sum = a+b+*p;
     }
 }
