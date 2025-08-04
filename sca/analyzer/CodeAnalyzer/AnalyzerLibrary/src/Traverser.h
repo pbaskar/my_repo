@@ -13,6 +13,7 @@
 class BasicBlock;
 class IfElseBlock;
 class WhileBlock;
+class ForBlock;
 
 class Traverser {
 public:
@@ -22,6 +23,7 @@ public:
     virtual void traverseBasicBlock(BasicBlock* basicBlock)=0;
     virtual void traverseIfElseBlock(IfElseBlock* ifElseBlock)=0;
     virtual void traverseWhileBlock(WhileBlock* whileBlock)=0;
+    virtual void traverseForBlock(ForBlock* forBlock)=0;
     virtual void traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock)=0;
     virtual void traverseFunctionCallBlock(FunctionCallBlock* functionCallBlock)=0;
     virtual void traverseCFG(BasicBlock* block)=0;
@@ -38,6 +40,7 @@ public:
     virtual void traverseBasicBlock(BasicBlock* basicBlock);
     virtual void traverseIfElseBlock(IfElseBlock* ifElseBlock);
     virtual void traverseWhileBlock(WhileBlock* whileBlock);
+    virtual void traverseForBlock(ForBlock* forBlock);
     virtual void traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
     virtual void traverseFunctionCallBlock(FunctionCallBlock* functionCallBlock);
     virtual void traverseCFG(BasicBlock* block);
@@ -51,6 +54,7 @@ public:
     virtual void traverseBasicBlock(BasicBlock* basicBlock);
     virtual void traverseIfElseBlock(IfElseBlock* ifElseBlock);
     virtual void traverseWhileBlock(WhileBlock* whileBlock);
+    virtual void traverseForBlock(ForBlock* forBlock);
     virtual void traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
     virtual void traverseFunctionCallBlock(FunctionCallBlock* functionCallBlock);
     virtual void traverseCFG(BasicBlock* block);

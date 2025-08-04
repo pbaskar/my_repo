@@ -13,7 +13,7 @@
 #include<list>
 
 using namespace std;
-enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE, FUNC_DECL, FUNC_CALL, STRUCT_DECL };
+enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE, FOR, FUNC_DECL, FUNC_CALL, STRUCT_DECL };
 enum DeclType {
     FUNCTIONDECL,
     VARDECL,
@@ -181,8 +181,8 @@ public:
             delete p_var;
         if(p_value)
             delete p_value;
-        //if(p_dataType)
-           //delete p_dataType;
+        if(p_dataType)
+           delete p_dataType;
     }
     virtual void print(ostream& os) {
         if(p_var) os << "Assign statement: name " <<*p_var << " type " << p_type;
@@ -250,6 +250,43 @@ public:
     void addStatement(Stmt* stmt) { p_block->addStatement(stmt); }
 private:
     Expr* p_condition;
+    Block* p_block;
+};
+
+class ForStmt : public Stmt {
+public:
+    ForStmt(StmtType type): Stmt(type), p_initStmt(0), p_condition(0), p_postExpr(0), p_block(0) {}
+    virtual ~ForStmt() {
+        if(p_initStmt)
+            delete p_initStmt;
+        if(p_condition)
+            delete p_condition;
+        if(p_postExpr)
+            delete p_postExpr;
+        delete p_block;
+    }
+    virtual void print(ostream& os) {
+        //os << "type " << p_type <<
+        if(p_condition)
+            os << " condition " <<*p_condition <<" ";
+    }
+    const AssignStmt* getInitStmt() const { return p_initStmt; }
+    const Expr* getInitExpr() const {return p_initStmt->getValue(); }
+    Expr* toSimplifyInitExpr() { return p_initStmt->toSimplify(); }
+    const Expr* getCondition() const { return p_condition; }
+    Expr* toSimplifyCondition() { return p_condition; }
+    const Expr* getPostExpr() const { return p_postExpr; }
+    Expr* toSimplifyPostExpr() { return p_postExpr; }
+    Block* getBlock() const { return p_block; }
+    void setInitStmt(AssignStmt* initStmt) { p_initStmt = initStmt; }
+    void setCondition(Expr* condition) { p_condition = condition; }
+    void setPostExpr(Expr* postExpr) { p_postExpr = postExpr; }
+    void setBlock(Block* block) {p_block = block; }
+    void addStatement(Stmt* stmt) { p_block->addStatement(stmt); }
+private:
+    AssignStmt* p_initStmt;
+    Expr* p_condition;
+    Expr* p_postExpr;
     Block* p_block;
 };
 

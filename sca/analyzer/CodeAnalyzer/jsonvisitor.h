@@ -12,6 +12,7 @@ public:
     virtual void visitBasicBlock(BasicBlock* basicBlock);
     virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
     virtual void visitWhileBlock(WhileBlock* whileBlock);
+    virtual void visitForBlock(ForBlock* forBlock);
     virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
     virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
     virtual void visitCFG(BasicBlock* block);

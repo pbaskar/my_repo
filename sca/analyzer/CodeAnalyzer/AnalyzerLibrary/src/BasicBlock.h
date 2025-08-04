@@ -64,9 +64,7 @@ private:
 class ConditionNode : public Node {
 public:
     ConditionNode() : p_condition(0) { }
-    ConditionNode(const IfStmt& stmt) : p_condition(stmt.getCondition()) {
-    }
-    ConditionNode(const WhileStmt& stmt) : p_condition(stmt.getCondition()) {
+    ConditionNode(const Expr* condition) : p_condition(condition) {
     }
     NodeType type() { return CONDITION; }
     virtual ~ConditionNode() {
@@ -168,6 +166,24 @@ public:
     WhileBlock(BasicBlock* next, BasicBlock* first, BasicBlock* last):
         BasicBlock(next, 0), p_first(first), p_last(last) {}
     virtual ~WhileBlock() {
+    }
+    void setSelf() {
+        p_last->setNext(p_first);
+    }
+    virtual void acceptVisitor(Visitor& visitor);
+    virtual void acceptTraverser(Traverser& traverser);
+    BasicBlock* getFirst() { return p_first; }
+    BasicBlock* getLast() { return p_last; }
+private:
+    BasicBlock* p_first;
+    BasicBlock* p_last;
+};
+
+class ForBlock : public BasicBlock {
+public:
+    ForBlock(BasicBlock* next, BasicBlock* first, BasicBlock* last):
+        BasicBlock(next, 0), p_first(first), p_last(last) {}
+    virtual ~ForBlock() {
     }
     void setSelf() {
         p_last->setNext(p_first);

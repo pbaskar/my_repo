@@ -43,6 +43,10 @@ void PrintVisitor::visitWhileBlock(WhileBlock* whileBlock) {
     whileBlock->print();
 }
 
+void PrintVisitor::visitForBlock(ForBlock* forBlock) {
+    forBlock->print();
+}
+
 void PrintVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
     functionDeclBlock->print();
 }
@@ -69,6 +73,10 @@ void DeleteVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
 
 void DeleteVisitor::visitWhileBlock(WhileBlock* whileBlock) {
     delete whileBlock;
+}
+
+void DeleteVisitor::visitForBlock(ForBlock* forBlock) {
+    delete forBlock;
 }
 
 void DeleteVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
@@ -707,6 +715,21 @@ void VariableInitCheckVisitor::visitWhileBlock(WhileBlock* whileBlock) {
     }
     block->acceptVisitor(*this);
     cout <<"End of WhileBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+}
+
+void VariableInitCheckVisitor::visitForBlock(ForBlock* forBlock) {
+    cout <<"Beginning of ForBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    BasicBlock* block = forBlock->getFirst();
+    BasicBlock* lastBlock = forBlock->getLast();
+    BasicBlock* next(0);
+
+    while(block != lastBlock) {
+        next = block->getNext();
+        block->acceptVisitor(*this);
+        block = next;
+    }
+    block->acceptVisitor(*this);
+    cout <<"End of ForBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {

@@ -15,6 +15,7 @@ using namespace std;
 class BasicBlock;
 class IfElseBlock;
 class WhileBlock;
+class ForBlock;
 class FunctionDeclBlock;
 class FunctionCallBlock;
 class AssignmentNode;
@@ -52,6 +53,7 @@ public:
     virtual void visitBasicBlock(BasicBlock* basicBlock)=0;
     virtual void visitIfElseBlock(IfElseBlock* ifElseBlock)=0;
     virtual void visitWhileBlock(WhileBlock* whileBlock)=0;
+    virtual void visitForBlock(ForBlock* forBlock)=0;
     virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock)=0;
     virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock)=0;
     virtual void visitCFG(BasicBlock* block)=0;
@@ -65,6 +67,7 @@ public:
     virtual void visitBasicBlock(BasicBlock* basicBlock);
     virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
     virtual void visitWhileBlock(WhileBlock* whileBlock);
+    virtual void visitForBlock(ForBlock* forBlock);
     virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
     virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
     virtual void visitCFG(BasicBlock* block){}
@@ -78,6 +81,7 @@ public:
     virtual void visitBasicBlock(BasicBlock* basicBlock);
     virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
     virtual void visitWhileBlock(WhileBlock* whileBlock);
+    virtual void visitForBlock(ForBlock* forBlock);
     virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
     virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
     virtual void visitCFG(BasicBlock* block){}
@@ -92,6 +96,7 @@ public:
     virtual void visitBasicBlock(BasicBlock* basicBlock);
     virtual void visitIfElseBlock(IfElseBlock* ifElseBlock);
     virtual void visitWhileBlock(WhileBlock* whileBlock);
+    virtual void visitForBlock(ForBlock* forBlock);
     virtual void visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock);
     virtual void visitFunctionCallBlock(FunctionCallBlock* functionCallBlock);
     virtual void visitCFG(BasicBlock* block);

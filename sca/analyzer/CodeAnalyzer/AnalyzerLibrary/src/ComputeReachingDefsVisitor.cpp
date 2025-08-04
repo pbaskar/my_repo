@@ -264,6 +264,37 @@ void ComputeReachingDefsVisitor::visitWhileBlock(WhileBlock* whileBlock) {
     cout <<"End of WhileBlock: variableNodes size " <<outVariableNodes.size() <<" " << outDefinitions.size() <<endl <<endl;
 }
 
+void ComputeReachingDefsVisitor::visitForBlock(ForBlock* forBlock) {
+    BasicBlock* block = forBlock->getFirst();
+    BasicBlock* lastBlock = forBlock->getLast();
+    BasicBlock* next(0);
+
+    map<const Variable*, vector<AssignmentNode*>> variableNodes = p_inVariableNodes.at(forBlock);
+    map<const Variable*, vector<pair<const Definition*, bool>>> definitions = p_inDefinitions.at(forBlock);
+    cout <<"Beginning of ForBlock: variableNodes size " <<variableNodes.size() <<" " << definitions.size() <<endl <<endl;
+    meet(block, variableNodes, definitions);
+
+    while(block != lastBlock) {
+        next = block->getNext();
+        block->acceptVisitor(*this);
+        block = next;
+        assert(block != nullptr);
+        meet(block);
+    }
+    block->acceptVisitor(*this);
+
+    const map<const Variable*, vector<AssignmentNode*>>& outVariableNodes = p_outVariableNodes.at(forBlock->getLast());
+    detectChange(p_outVariableNodes, forBlock, outVariableNodes);
+    p_outVariableNodes.erase(forBlock);
+    p_outVariableNodes[forBlock] = outVariableNodes;
+
+    const map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions = p_outDefinitions.at(forBlock->getLast());
+    p_outDefinitions.erase(forBlock);
+    p_outDefinitions[forBlock] = outDefinitions;
+
+    cout <<"End of forBlock: variableNodes size " <<outVariableNodes.size() <<" " << outDefinitions.size() <<endl <<endl;
+}
+
 void ComputeReachingDefsVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
     BasicBlock* block = functionDeclBlock->getFirst();
     BasicBlock* lastBlock = functionDeclBlock->getLast();

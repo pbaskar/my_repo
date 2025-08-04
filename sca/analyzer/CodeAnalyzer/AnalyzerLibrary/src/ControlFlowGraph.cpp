@@ -96,7 +96,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             BasicBlock* elseLast(0);
 
             IfStmt* ifStmt = static_cast<IfStmt*>(stmt);
-            ConditionNode* ifNode = new ConditionNode(*ifStmt);
+            ConditionNode* ifNode = new ConditionNode(ifStmt->getCondition());
             cout << "If Node: " << *ifNode << " " <<block->getSubStatements().size() <<endl;
 
             first = new BasicBlock(ifStmt->getBlock()->getSymbolTable());
@@ -107,7 +107,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 
             const IfStmt* elseStmt = ifStmt->getElse();
             if(elseStmt) {
-                ConditionNode* elseNode = new ConditionNode(*elseStmt);
+                ConditionNode* elseNode = new ConditionNode(elseStmt->getCondition());
                 cout << "Else Node: " << *elseNode << " " <<block->getSubStatements().size() <<endl;
 
                 elseFirst = new BasicBlock(elseStmt->getBlock()->getSymbolTable());
@@ -128,7 +128,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             BasicBlock* last(0);
 
             WhileStmt* whileStmt = static_cast<WhileStmt*>(stmt);
-            ConditionNode* whileNode = new ConditionNode(*whileStmt);
+            ConditionNode* whileNode = new ConditionNode(whileStmt->getCondition());
             cout << "While Node: " << *whileNode << " " <<block->getSubStatements().size() <<endl;
 
             first = new BasicBlock(whileStmt->getBlock()->getSymbolTable());
@@ -141,6 +141,49 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             whileBlock->setSelf();
             currBlock->setNext(whileBlock);
             currBlock = whileBlock;
+            beginNewBlock = true;
+        }
+        break;
+        case FOR: {
+            BasicBlock* first(0);
+            BasicBlock* last(0);
+
+            ForStmt* forStmt = static_cast<ForStmt*>(stmt);
+            const AssignStmt* initStmt = forStmt->getInitStmt();
+            AssignmentNode* initNode = nullptr;
+            first = new BasicBlock(forStmt->getBlock()->getSymbolTable());
+            if(initStmt) {
+                Variable* var = nullptr;
+                const IdentifierName* identifierName = initStmt->getVar();
+                if(identifierName)
+                    var = block->getSymbolTable()->fetchVariable(identifierName->getName());
+                const Expr* value = initStmt->getValue();
+                AssignmentNode* initNode = new AssignmentNode(var, value);
+                first->addNode(initNode);
+                cout << "For:init " << *initNode << " " <<block->getSubStatements().size() <<endl;
+            }
+
+            const Expr* forCondition = forStmt->getCondition();
+            if(forCondition) {
+                ConditionNode* condition = new ConditionNode(forCondition);
+                cout << "For:condition " << *condition << " " <<block->getSubStatements().size() <<endl;
+                first->addNode(condition);
+            }
+
+            last = first;
+            status = buildBlock(last, forStmt->getBlock());
+
+            const Expr* forPostExpr = forStmt->getPostExpr();
+            if(forPostExpr) {
+                ConditionNode* postExpr = new ConditionNode(forPostExpr);
+                cout << "For:postExpr " << *postExpr << " " <<block->getSubStatements().size() <<endl;
+                last->addNode(postExpr);
+            }
+
+            ForBlock* forBlock = new ForBlock(0,first,last);
+            forBlock->setSelf();
+            currBlock->setNext(forBlock);
+            currBlock = forBlock;
             beginNewBlock = true;
         }
         break;

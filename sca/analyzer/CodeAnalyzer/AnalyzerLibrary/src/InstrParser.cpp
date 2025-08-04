@@ -192,7 +192,11 @@ Status InstrParser::parseIterationStmt(Block* block) {
     if(strcmp(next, "while")==0) {
         p_tokenizer.consumeWord();
         parseWhile(block);
-    } else {
+    }
+    else if(strcmp(next, "for")==0) {
+        p_tokenizer.consumeWord();
+        parseFor(block);
+    }else {
         status = FIRST_MISMATCH;
     }
     return status;
@@ -201,6 +205,24 @@ Status InstrParser::parseIterationStmt(Block* block) {
 Status InstrParser::parseJumpStmt(Block* block) {
     Status status = FIRST_MISMATCH;
     return status;
+}
+
+Expr* InstrParser::parseExpressionStmt(Block* block) {
+    char endDelim[] = {';'};
+    char* next = p_tokenizer.nextWordUntil(endDelim, sizeof(endDelim));
+    if(next == nullptr) {
+        Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseExpressionStmt:", "value");
+        return nullptr;
+    }
+    cout <<" next word " << next <<endl;
+    Expr* value = p_exprParser.parseExpressionStr(next);
+    delete next;
+    if(value == nullptr) {
+        Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseExpressionStmt:", "value");
+        return nullptr;
+    }
+    p_tokenizer.nextChar(); // consume ';'
+    return value;
 }
 
 Status InstrParser::parseStmt(Block* block) {
@@ -350,6 +372,53 @@ Status InstrParser::parseWhile(Block* block) {
     return status;
 }
 
+Status InstrParser::parseFor(Block* block) {
+    Status status = SUCCESS;
+    ForStmt* forStmt = new ForStmt(FOR);
+    Block* forBlock = new Block(block);
+    forStmt->setBlock(forBlock);
+    block->addStatement(forStmt);
+
+    char openBrace = p_tokenizer.nextChar();
+    if ( openBrace != '(') { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseFor:", "open brace"); return FAILURE; }
+
+    vector<AssignStmt*> initStmts;
+    parseDeclaration(forBlock, initStmts);
+    if(!initStmts.empty()) {
+        AssignStmt* initAssignStmt = initStmts[0];
+
+        const IdentifierName* identifierName = initAssignStmt->getVar();
+        assert(identifierName != nullptr);
+        Type* type = initAssignStmt->getDataType();
+        Variable* var = makeVariableFromIdentifierName(forBlock, identifierName, type);
+        forBlock->getSymbolTable()->addSymbol(var);
+        if(!var) return Status::FAILURE;
+
+        forStmt->setInitStmt(initAssignStmt);
+    }
+
+    Expr* condition = parseExpressionStmt(forBlock);
+    if(!condition)
+        forStmt->setCondition(condition);
+
+    char endDelim[] = {')'};
+    char* next = p_tokenizer.nextWordUntil(endDelim, sizeof(endDelim));
+    if(next != nullptr) {
+        Expr* postExpr = p_exprParser.parseExpressionStr(next);
+        delete next;
+        if(postExpr == nullptr) { Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseFor:", "postExpr"); return FAILURE; }
+        forStmt->setPostExpr(postExpr);
+    }
+
+    p_tokenizer.nextChar();  //consume )
+    status = parseBlock(forBlock);
+    if(status == FAILURE) { return FAILURE; }
+
+    p_tokenizer.nextLine();
+    cout <<"For stmt: size = " <<block->getSubStatements().size() << " " <<*forStmt <<endl;
+    return status;
+}
+
 TypeQualifier InstrParser::parseTypeQualifier(Block* block) {
     TypeQualifier typeQualifier = TypeQualifier::CONST;
     const char* next = p_tokenizer.nextWord(true);
@@ -485,9 +554,11 @@ Status InstrParser::parseStructDeclaration(Block* block, vector<AssignStmt*>& st
     const vector<Type*>& dataTypes = parseSpecifierQualifierList(block);
     if(dataTypes.empty())
         return Status::FIRST_MISMATCH;
-    status = parseStructDeclaratorList(block, structDeclaration);
-    for(AssignStmt* assignStmt : structDeclaration) {
+    vector<AssignStmt*> structDeclaratorList;
+    status = parseStructDeclaratorList(block, structDeclaratorList);
+    for(AssignStmt* assignStmt : structDeclaratorList) {
         assignStmt->setDataType(dataTypes[0]);
+        structDeclaration.push_back(assignStmt);
         cout <<"declaration specifier " <<dataTypes[0] << " " <<structDeclaration.size()<<endl;
     }
     p_tokenizer.nextChar(); //consume ;
@@ -563,6 +634,7 @@ Status InstrParser::parseStructOrUnionSpecifier(Block* block) {
 }
 
 vector<Type*> InstrParser::parseDeclarationSpecifiers(Block* block) {
+    cout <<"parsedeclaration specifiers " <<endl;
     StorageClassSpecifier s = parseStorageClassSpecifier(block);
     //cout <<"StorageClass specifier "<<s <<endl;
     Type* typeSpecifier = nullptr;
@@ -791,6 +863,7 @@ Status InstrParser::parseInitDeclaratorList(Block* block, vector<AssignStmt*>& i
 }
 
 Status InstrParser::parseDeclaration(Block* block, vector<AssignStmt*>& declaration) {
+    cout <<"parsedeclaration begin " <<endl;
     Status status = SUCCESS;
     const vector<Type*>& declarationSpecifiers = parseDeclarationSpecifiers(block);
     if(declarationSpecifiers.empty()) {
@@ -806,7 +879,7 @@ Status InstrParser::parseDeclaration(Block* block, vector<AssignStmt*>& declarat
         cout <<"declaration specifier " <<declarationSpecifiers[0] << " " <<declaration.size()<<endl;
     }
     p_tokenizer.nextChar(); //consume ';'
-    p_tokenizer.nextLine();
+
     cout <<"parseDeclaration " <<status <<endl;
     return status;
 }
@@ -816,6 +889,7 @@ Status InstrParser::parseDeclarationList(Block* block, vector<AssignStmt*>& decl
     int pos = p_tokenizer.getPos();
     status = parseDeclaration(block, declarationList);
     if(status == SUCCESS) {
+        p_tokenizer.nextLine();
         status = parseDeclarationList(block, declarationList);
     } else if (status == FIRST_MISMATCH) {
         p_tokenizer.setPos(pos);

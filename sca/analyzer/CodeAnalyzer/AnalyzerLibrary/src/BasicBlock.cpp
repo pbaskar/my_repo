@@ -19,6 +19,10 @@ void WhileBlock::acceptTraverser(Traverser& traverser) {
     traverser.traverseWhileBlock(this);
 }
 
+void ForBlock::acceptTraverser(Traverser& traverser) {
+    traverser.traverseForBlock(this);
+}
+
 void FunctionDeclBlock::acceptTraverser(Traverser& traverser) {
     traverser.traverseFunctionDeclBlock(this);
 }
@@ -37,6 +41,10 @@ void IfElseBlock::acceptVisitor(Visitor& visitor) {
 
 void WhileBlock::acceptVisitor(Visitor& visitor) {
     visitor.visitWhileBlock(this);
+}
+
+void ForBlock::acceptVisitor(Visitor& visitor) {
+    visitor.visitForBlock(this);
 }
 
 void FunctionDeclBlock::acceptVisitor(Visitor& visitor) {

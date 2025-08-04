@@ -56,12 +56,14 @@ public:
     Status parseSelectionStmt(Block* block);
     Status parseIterationStmt(Block* block);
     Status parseJumpStmt(Block* block);
+    Expr* parseExpressionStmt(Block* block);
     Status parseStmt(Block* block);
     Status parseStmtList(Block* block);
     Status parseAssign(Block* block);
     Status parseIf(IfStmt* stmt);
     Status parseElse(IfStmt* stmt);
     Status parseIfElse(Block* block);
+    Status parseFor(Block* block);
     Status parseWhile(Block* block);
     Status parseBlock(Block* block);
     Status parseFunctionDecl(Block* block);

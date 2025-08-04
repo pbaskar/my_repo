@@ -195,11 +195,31 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
         case WHILE: {
             WhileStmt* whileStmt = static_cast<WhileStmt*>(stmt);
             cout << "While Stmt: " <<block->getSubStatements().size() <<endl;
+            SymbolTable* whileSymbolTable = whileStmt->getBlock()->getSymbolTable();
             Expr* condition = whileStmt->toSimplifyCondition();
             if(condition) {
-                condition->populateVariable(block->getSymbolTable());
+                condition->populateVariable(whileSymbolTable);
             }
             status = simplifyBlock(whileStmt->getBlock());
+        }
+        break;
+        case FOR: {
+            ForStmt* forStmt = static_cast<ForStmt*>(stmt);
+            cout << "For Stmt: " <<block->getSubStatements().size() <<endl;
+            SymbolTable* forSymbolTable = forStmt->getBlock()->getSymbolTable();
+            Expr* initExpr = forStmt->toSimplifyInitExpr();
+            if(initExpr) {
+                initExpr->populateVariable(forSymbolTable);
+            }
+            Expr* condition = forStmt->toSimplifyCondition();
+            if(condition) {
+                condition->populateVariable(forSymbolTable);
+            }
+            Expr* postExpr = forStmt->toSimplifyPostExpr();
+            if(postExpr) {
+                postExpr->populateVariable(forSymbolTable);
+            }
+            status = simplifyBlock(forStmt->getBlock());
         }
         break;
         case FUNC_DECL: {

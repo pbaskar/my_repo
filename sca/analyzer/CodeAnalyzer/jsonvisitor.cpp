@@ -84,6 +84,29 @@ void JsonVisitor::visitWhileBlock(WhileBlock* whileBlock) {
     //cout <<"End of WhileBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
 }
 
+void JsonVisitor::visitForBlock(ForBlock* forBlock) {
+    //cout <<"Beginning of WhileBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    BasicBlock* block = forBlock->getFirst();
+    BasicBlock* lastBlock = forBlock->getLast();
+    BasicBlock* next(0);
+
+    QJsonArray blocks_begin = p_blocks;
+    QJsonObject blocks_end;
+    p_blocks = QJsonArray();
+
+    while(block != lastBlock) {
+        next = block->getNext();
+        block->acceptVisitor(*this);
+        block = next;
+    }
+
+    block->acceptVisitor(*this);
+    blocks_end["while"] = p_blocks;
+    p_blocks = blocks_begin;
+    p_blocks.append(blocks_end);
+    //cout <<"End of WhileBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+}
+
 void JsonVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
     //cout <<"Beginning of FunctionDeclBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
     BasicBlock* block = functionDeclBlock->getFirst();
