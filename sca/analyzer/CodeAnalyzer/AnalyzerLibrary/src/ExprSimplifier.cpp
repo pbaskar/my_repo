@@ -68,7 +68,7 @@ Status ExprSimplifier::populateDefinitions(const Variable* lhs, Expr* value) {
     }
     else if(lhs->getExprType() == ExprType::STRUCTVARIABLE) {
         assert(value);
-        cout <<"Expression simplification struct variable  " <<lhs->getName() <<endl;
+        //cout <<"Expression simplification struct variable  " <<lhs->getName() <<endl;
         switch(value->getExprType()) {
             case ExprType::DEFINITION: {
                 Definition* definition = static_cast<Definition*>(value);
@@ -101,9 +101,10 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
         case DECL:
         case ASSIGN: {
             AssignStmt* assignStmt = static_cast<AssignStmt*>(stmt);
-            cout << "Assign Stmt: " <<*stmt << " " <<block->getSubStatements().size() <<endl;
+            cout << "Assign Stmt: " <<*stmt <<endl;
+            //cout << " no of substatements " <<block->getSubStatements().size() <<endl;
             Expr* value = assignStmt->toSimplify();
-            cout <<"RHS Value " <<endl;
+
             if(value) {
                 value->populateVariable(block->getSymbolTable());
                 vector<Expr*> derefIdentifiers;
@@ -117,17 +118,17 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
                     const FunctionCall* functionCallExpr = static_cast<const FunctionCall*>(functionCalls[i]);
                     FunctionCallStmt* functionCallStmt = new FunctionCallStmt(FUNC_CALL, functionCallExpr->getName(),
                                                                               functionCallExpr->getArguments());
-                    cout <<"Function call stmt inserted for  "<<functionCallExpr->getName()->getExprType() <<endl;
+                    cout <<"Function call stmt inserted for Name "<<functionCallExpr->getName() << " Name ExprType " <<
+                           functionCallExpr->getName()->getExprType() <<endl;
                     it = stmtList.insert(it, functionCallStmt);
                     it++;
                 }
-            cout <<"RHS Value 2" <<endl;
+
                 //Populate definitions for declarations
                 const IdentifierName* identifierName = assignStmt->getVar();
                 if(identifierName) {
                     const Variable* lhs =  block->getSymbolTable()->fetchVariable(identifierName->getName());
                     assert(lhs);
-                    cout <<"before populatedefinitions" <<endl;
                     populateDefinitions(lhs, value);
                 }
             }
@@ -178,7 +179,7 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
         case IF:
         case ELSE: {
             IfStmt* ifStmt = static_cast<IfStmt*>(stmt);
-            cout << "If Stmt: " <<block->getSubStatements().size() <<endl;
+            cout << "If Stmt: no of substatements " <<block->getSubStatements().size() <<endl;
             Expr* condition = ifStmt->toSimplifyCondition();
             if(condition) {
                 condition->populateVariable(block->getSymbolTable());
@@ -187,14 +188,14 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
 
             const IfStmt* elseStmt = ifStmt->getElse();
             if(elseStmt) {
-                cout << "Else Stmt: " << " " <<block->getSubStatements().size() <<endl;
+                cout << "Else Stmt: no of substatements " << " " <<block->getSubStatements().size() <<endl;
                 status = simplifyBlock(elseStmt->getBlock());
             }
         }
         break;
         case WHILE: {
             WhileStmt* whileStmt = static_cast<WhileStmt*>(stmt);
-            cout << "While Stmt: " <<block->getSubStatements().size() <<endl;
+            cout << "While Stmt: no of substatements " <<block->getSubStatements().size() <<endl;
             SymbolTable* whileSymbolTable = whileStmt->getBlock()->getSymbolTable();
             Expr* condition = whileStmt->toSimplifyCondition();
             if(condition) {
@@ -205,7 +206,7 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
         break;
         case FOR: {
             ForStmt* forStmt = static_cast<ForStmt*>(stmt);
-            cout << "For Stmt: " <<block->getSubStatements().size() <<endl;
+            cout << "For Stmt: no of substatements " <<block->getSubStatements().size() <<endl;
             SymbolTable* forSymbolTable = forStmt->getBlock()->getSymbolTable();
             Expr* initExpr = forStmt->toSimplifyInitExpr();
             if(initExpr) {
@@ -224,7 +225,7 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
         break;
         case FUNC_DECL: {
             FunctionDeclStmt* functionDeclStmt = static_cast<FunctionDeclStmt*>(stmt);
-            cout << "Func Decl Stmt: " <<block->getSubStatements().size() <<endl;
+            cout << "Func Decl Stmt: no of substatements " <<block->getSubStatements().size() <<endl;
             status = simplifyBlock(functionDeclStmt->getBlock());
         }
         break;

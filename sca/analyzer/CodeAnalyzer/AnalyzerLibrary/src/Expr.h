@@ -203,7 +203,7 @@ public:
     }
     const vector<const Definition*>& getPointsToDefinitions() const { return p_pointsToDefinitions; }
     virtual void print(ostream& os) const {
-        os << " " <<p_valid <<endl;
+        os << " def " <<p_valid <<endl;
     }
 private:
     bool p_valid;

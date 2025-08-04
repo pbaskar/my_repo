@@ -186,7 +186,7 @@ public:
     }
     virtual void print(ostream& os) {
         if(p_var) os << "Assign statement: name " <<*p_var << " type " << p_type;
-        if(p_value) os << " value " << *p_value << " " << p_value->getExprType();
+        if(p_value) os << " value " << *p_value << " value exprType " << p_value->getExprType();
         if(p_dataType) os << " data type " <<p_dataType <<endl;
     }
     void setVar(IdentifierName* var) { p_var = var; }
@@ -267,8 +267,12 @@ public:
     }
     virtual void print(ostream& os) {
         //os << "type " << p_type <<
+        if(p_initStmt)
+            os << "init " <<*p_initStmt <<" ";
         if(p_condition)
             os << " condition " <<*p_condition <<" ";
+        if(p_postExpr)
+            os << " postExpr " <<*p_postExpr <<" ";
     }
     const AssignStmt* getInitStmt() const { return p_initStmt; }
     const Expr* getInitExpr() const {return p_initStmt->getValue(); }

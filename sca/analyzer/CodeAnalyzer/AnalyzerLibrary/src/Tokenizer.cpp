@@ -108,7 +108,7 @@ char* Tokenizer::nextWord(bool peek) {
 
     if(!peek) {
         p_pos = begin + wordLen;
-        cout<<"token " <<token <<" p_pos " <<p_pos<<" wordLen " <<wordLen <<endl;
+        //cout<<"Tokenizer::nextWord::token " <<token <<" p_pos " <<p_pos<<" wordLen " <<wordLen <<endl;
     }
     return token;
 }

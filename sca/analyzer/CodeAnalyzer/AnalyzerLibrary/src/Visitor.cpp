@@ -558,7 +558,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                     strncat(r.errorMessage,m,strlen(m));
                     strncat(r.errorMessage,name,strlen(name));
                     r.errorMessage[strlen(m)+strlen(name)] = '\0';
-                    cout << "Error message: Declaration " <<r.errorMessage << " " <<*var <<endl;
+                    cout <<"Error message: Declaration " <<r.errorMessage << " " <<*var <<endl<<endl;
                     p_results.push_back(r);
                 }
             }
@@ -585,7 +585,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                                     nodeValue->getExprType() == ExprType::ARRAYDEFINITION) {
                                 const Definition* def = static_cast<const Definition*>(nodeValue);
                                 if(!def->isValid()) {
-                                    cout <<"Invalid assignment: var " <<*variable<< " value = " <<*value <<endl;
+                                    cout <<endl <<"Invalid assignment: var " <<*variable<< " value = " <<*value <<endl;
                                     found = false;
                                     break;
                                 }
@@ -595,7 +595,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                                 assert(mallocFnCall);
                                 const Definition* def = mallocFnCall->getDefinition();
                                 if(!def->isValid()) {
-                                    cout <<"Invalid assignment: var " <<*variable<< " value = " <<*value <<endl;
+                                    cout <<endl <<"Invalid assignment: var " <<*variable<< " value = " <<*value <<endl;
                                     found = false;
                                     break;
                                 }
@@ -603,12 +603,12 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                         }
                     }
                 } else {
-                    cout <<"Variable has no assignment node " <<endl;
+                    cout <<endl <<"Variable has no assignment node " <<endl;
                     found = false;
                 }
             }
             else {
-                cout <<"Variable has no entry in VariableNodes " <<endl;
+                cout <<endl <<"Variable has no entry in VariableNodes " <<endl;
                 found = false;
             }
             map<const Variable*, vector<pair<const Definition*, bool>>>::iterator outDefinitionIt = outDefinitions.find(variable);
@@ -637,7 +637,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                 strncat(r.errorMessage,m,strlen(m));
                 strncat(r.errorMessage,name,strlen(name));
                 r.errorMessage[strlen(m)+strlen(name)] = '\0';
-                cout << "Error message: " <<r.errorMessage << " " <<*variable <<endl;
+                cout << "Error message: " <<r.errorMessage << " " <<*variable <<endl <<endl;
                 p_results.push_back(r);
             }
         }
@@ -653,7 +653,8 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
             visitBasicBlockHelper(var, value, assignNode, outVariableNodes, outDefinitions);
         }
     }
-    cout <<"End of Block: variableNodes size " <<outVariableNodes.size() <<endl <<endl;
+    cout <<"End of Block: variableNodes size " <<outVariableNodes.size() <<" definitions size " <<
+           outDefinitions.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::intersect(vector<AssignmentNode*>& dest, vector<AssignmentNode*>& source) {
