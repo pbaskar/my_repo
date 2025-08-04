@@ -77,7 +77,8 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
                 var = block->getSymbolTable()->fetchVariable(identifierName->getName());
             const Expr* value = assignStmt->getValue();
             AssignmentNode* newNode = new AssignmentNode(var, value);
-            cout << "Assignment Node: " << *newNode << " " <<block->getSubStatements().size() <<endl;
+            cout << "Assignment Node: " << *newNode <<endl;
+            //cout <<block->getSubStatements().size() <<endl;
 
             if(beginNewBlock) {
                 beginNewBlock = false;
@@ -156,7 +157,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
                 Variable* var = nullptr;
                 const IdentifierName* identifierName = initStmt->getVar();
                 if(identifierName)
-                    var = block->getSymbolTable()->fetchVariable(identifierName->getName());
+                    var = forStmt->getBlock()->getSymbolTable()->fetchVariable(identifierName->getName());
                 const Expr* value = initStmt->getValue();
                 AssignmentNode* initNode = new AssignmentNode(var, value);
                 first->addNode(initNode);
@@ -165,9 +166,9 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 
             const Expr* forCondition = forStmt->getCondition();
             if(forCondition) {
-                ConditionNode* condition = new ConditionNode(forCondition);
-                cout << "For:condition " << *condition << " " <<block->getSubStatements().size() <<endl;
-                first->addNode(condition);
+                AssignmentNode* conditionNode = new AssignmentNode(nullptr, forCondition);
+                cout << "For:condition " << *conditionNode << " " <<block->getSubStatements().size() <<endl;
+                first->addNode(conditionNode);
             }
 
             last = first;
@@ -175,9 +176,9 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 
             const Expr* forPostExpr = forStmt->getPostExpr();
             if(forPostExpr) {
-                ConditionNode* postExpr = new ConditionNode(forPostExpr);
-                cout << "For:postExpr " << *postExpr << " " <<block->getSubStatements().size() <<endl;
-                last->addNode(postExpr);
+                AssignmentNode* postExprNode = new AssignmentNode(nullptr, forPostExpr);
+                cout << "For:postExpr " << *postExprNode << " " <<block->getSubStatements().size() <<endl;
+                last->addNode(postExprNode);
             }
 
             ForBlock* forBlock = new ForBlock(0,first,last);
