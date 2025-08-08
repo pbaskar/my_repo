@@ -203,7 +203,26 @@ Status InstrParser::parseIterationStmt(Block* block) {
 }
 
 Status InstrParser::parseJumpStmt(Block* block) {
-    Status status = FIRST_MISMATCH;
+    Status status = SUCCESS;
+    char* next = p_tokenizer.nextWord(true);
+    if(next == nullptr) return FAILURE;
+    if(strcmp(next, "break")==0) {
+        p_tokenizer.consumeWord();
+        block->addStatement(new JumpStmt(JUMP, JumpType::BREAK));
+    } else if(strcmp(next, "continue")==0) {
+        p_tokenizer.consumeWord();
+        block->addStatement(new JumpStmt(JUMP, JumpType::CONTINUE));
+    } else if(strcmp(next, "return")==0) {
+        p_tokenizer.consumeWord();
+        block->addStatement(new JumpStmt(JUMP, JumpType::RETURN));
+    }
+    else {
+        delete next;
+        return FIRST_MISMATCH;
+    }
+    delete next;
+    p_tokenizer.nextChar(); //consume ;
+    p_tokenizer.nextLine();
     return status;
 }
 

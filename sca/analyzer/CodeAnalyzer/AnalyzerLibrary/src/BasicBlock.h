@@ -13,10 +13,17 @@ using namespace std;
 
 class Visitor;
 class Traverser;
+class BasicBlock;
 
 enum NodeType {
     ASSIGNMENT,
-    CONDITION
+    CONDITION,
+    JUMPNODE
+};
+
+enum BlockType {
+    JUMPBLOCK,
+    DEFAULTBLOCK
 };
 
 class Node {
@@ -24,9 +31,8 @@ public:
     Node(): p_next(0) {}
     virtual ~Node(){
     }
-    virtual NodeType type()=0;
+    virtual NodeType type() const =0;
     virtual void print(ostream& os) const=0;
-    virtual const Expr* getValue() const =0;
     friend ostream& operator<<(ostream& os, const Node& node) {
         node.print(os);
         return os;
@@ -40,7 +46,7 @@ class AssignmentNode : public Node {
 public:
     AssignmentNode() : p_var(0), p_value(0) { }
     AssignmentNode(const Variable* var, const Expr* value) : p_var(var), p_value(value) { }
-    virtual NodeType type() { return ASSIGNMENT; }
+    virtual NodeType type() const { return ASSIGNMENT; }
     virtual ~AssignmentNode() {
         //delete p_var;
         //delete p_value;
@@ -66,7 +72,7 @@ public:
     ConditionNode() : p_condition(0) { }
     ConditionNode(const Expr* condition) : p_condition(condition) {
     }
-    NodeType type() { return CONDITION; }
+    NodeType type() const { return CONDITION; }
     virtual ~ConditionNode() {
         //delete p_condition;
     }
@@ -81,10 +87,29 @@ private:
     const Expr* p_condition;
 };
 
+class JumpNode : public Node {
+public:
+    JumpNode(JumpType jumpType) : Node(), p_jumpType(jumpType), p_target(0) { }
+    NodeType type() const { return JUMPNODE; }
+    virtual ~JumpNode() {
+    }
+    virtual void print(ostream& os) const {
+        if(p_target)
+            os <<p_target <<" ";
+    }
+    void setTarget(BasicBlock* target) { p_target = target; }
+    const BasicBlock* getTarget() const { return p_target; };
+    JumpType getJumpType() const { return p_jumpType; }
+private:
+    JumpType p_jumpType;
+    BasicBlock* p_target;
+};
+
 class BasicBlock {
 public:
-    BasicBlock(SymbolTable* symbolTable) : p_next(0), p_symbolTable(symbolTable) {}
-    BasicBlock(BasicBlock* next, SymbolTable* symbolTable): p_next(next), p_symbolTable(symbolTable){}
+    BasicBlock(SymbolTable* symbolTable) : p_next(0), p_symbolTable(symbolTable), p_type(BlockType::DEFAULTBLOCK) {}
+    BasicBlock(BasicBlock* next, SymbolTable* symbolTable): p_next(next), p_symbolTable(symbolTable),
+                                                            p_type(BlockType::DEFAULTBLOCK){}
     virtual ~BasicBlock() {
         for(Node* n : nodeList) {
             delete n;
@@ -121,6 +146,9 @@ public:
         nodeList.push_back(newNode);
     }
     const vector<Node*>& getNodeList() { return nodeList; }
+    vector<Node*>& toUpdateNodeList() { return nodeList; }
+    BlockType getType() const { return p_type; }
+    void setType(BlockType type) { p_type = type; }
     const vector<BasicBlock*>& getPredecessors() { return p_predecessors; }
     virtual void acceptVisitor(Visitor& visitor);
     virtual void acceptTraverser(Traverser& traverser);
@@ -132,6 +160,7 @@ private:
     BasicBlock* p_next;
     vector<BasicBlock*> p_predecessors;
     SymbolTable* p_symbolTable;
+    BlockType p_type;
 };
 
 class IfElseBlock : public BasicBlock {
@@ -139,10 +168,6 @@ public:
     IfElseBlock(BasicBlock* next, BasicBlock* ifFirst, BasicBlock* ifLast, BasicBlock* elseFirst, BasicBlock* elseLast)
 : BasicBlock(next,0), p_ifFirst(ifFirst), p_ifLast(ifLast), p_elseFirst(elseFirst), p_elseLast(elseLast) {
         p_last = new BasicBlock(nullptr);
-        p_ifLast->setNext(p_last);
-        if(p_elseLast) {
-            p_elseLast->setNext(p_last);
-        }
     }
     virtual ~IfElseBlock() {
     }
@@ -186,7 +211,7 @@ public:
     virtual ~ForBlock() {
     }
     void setSelf() {
-        p_last->setNext(p_first);
+        p_last->setNext(p_first->getNext());
     }
     virtual void acceptVisitor(Visitor& visitor);
     virtual void acceptTraverser(Traverser& traverser);

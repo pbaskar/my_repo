@@ -7,6 +7,7 @@
 
 #include "ControlFlowGraph.h"
 #include "ComputeReachingDefsVisitor.h"
+#include "ControlFlowGraphUpdater.h"
 
 ControlFlowGraph::ControlFlowGraph(): p_head(0) {
 
@@ -68,6 +69,20 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
     for(Stmt* stmt : stmtList ) {
         StmtType type = stmt->getType();
         switch(type) {
+        case JUMP: {
+            JumpStmt* jumpStmt = static_cast<JumpStmt*>(stmt);
+            JumpNode* jumpNode = new JumpNode(jumpStmt->getJumpType());
+            cout <<" Jump Node: "<< jumpNode <<endl;
+            if(beginNewBlock) {
+                beginNewBlock = false;
+                BasicBlock* newBlock = new BasicBlock(block->getSymbolTable());
+                currBlock->setNext(newBlock);
+                currBlock = newBlock;
+            }
+            currBlock->addNode(jumpNode);
+            currBlock->setType(BlockType::JUMPBLOCK);
+        }
+        break;
         case DECL:
         case ASSIGN: {
             AssignStmt* assignStmt = static_cast<AssignStmt*>(stmt);
@@ -119,6 +134,11 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             }
 
             IfElseBlock* ifElseBlock = new IfElseBlock(0, first, ifLast, elseFirst, elseLast);
+            if(ifLast->getType() != BlockType::JUMPBLOCK)
+                ifLast->setNext(ifElseBlock->getLast());
+            if(elseLast && elseLast->getType() != BlockType::JUMPBLOCK) {
+                elseLast->setNext(ifElseBlock->getLast());
+            }
             currBlock->setNext(ifElseBlock);
             currBlock = ifElseBlock;
             beginNewBlock = true;
@@ -161,24 +181,29 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
                 const Expr* value = initStmt->getValue();
                 AssignmentNode* initNode = new AssignmentNode(var, value);
                 first->addNode(initNode);
-                cout << "For:init " << *initNode << " " <<block->getSubStatements().size() <<endl;
+                cout << "For:init " << initNode << " " <<block->getSubStatements().size() <<endl;
             }
 
             const Expr* forCondition = forStmt->getCondition();
+            BasicBlock* condition = new BasicBlock(forStmt->getBlock()->getSymbolTable());
+            first->setNext(condition);
+            last = condition;
             if(forCondition) {
                 AssignmentNode* conditionNode = new AssignmentNode(nullptr, forCondition);
-                cout << "For:condition " << *conditionNode << " " <<block->getSubStatements().size() <<endl;
-                first->addNode(conditionNode);
+                cout << "For:condition " << conditionNode << " " <<block->getSubStatements().size() <<endl;
+                condition->addNode(conditionNode);
             }
 
-            last = first;
             status = buildBlock(last, forStmt->getBlock());
 
+            BasicBlock* forPostBlock = new BasicBlock(forStmt->getBlock()->getSymbolTable());
             const Expr* forPostExpr = forStmt->getPostExpr();
+            last->setNext(forPostBlock);
+            last = forPostBlock;
             if(forPostExpr) {
                 AssignmentNode* postExprNode = new AssignmentNode(nullptr, forPostExpr);
-                cout << "For:postExpr " << *postExprNode << " " <<block->getSubStatements().size() <<endl;
-                last->addNode(postExprNode);
+                cout << "For:postExpr " << postExprNode << " " <<block->getSubStatements().size() <<endl;
+                forPostBlock->addNode(postExprNode);
             }
 
             ForBlock* forBlock = new ForBlock(0,first,last);
@@ -272,6 +297,9 @@ void ControlFlowGraph::print(ostream& os) {
 }
 
 void ControlFlowGraph::variableInitCheck(vector<Result>& results) {
+    ControlFlowGraphUpdater controlFlowGraphUpdater;
+    controlFlowGraphUpdater.visitCFG(p_head);
+
     ComputeReachingDefsVisitor computeReachingDefsVisitor;
     computeReachingDefsVisitor.visitCFG(p_head);
 

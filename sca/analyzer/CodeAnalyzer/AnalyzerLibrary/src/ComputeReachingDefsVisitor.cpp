@@ -197,10 +197,18 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
     meet(ifElseBlock->getIfFirst(), variableNodes, definitions);
 
     while(block != lastBlock) {
+        if(block->getType() == JUMPBLOCK) {
+            cout <<"Unreachable code following jump " <<endl;
+            break;
+        }
         next = block->getNext();
         block->acceptVisitor(*this);
         block = next;
         assert(block != nullptr);
+        if(block->getType() == JUMPBLOCK) {
+            cout <<"Unreachable code following jump " <<endl;
+            break;
+        }
         meet(block);
     }
     lastBlock->acceptVisitor(*this);
@@ -210,6 +218,10 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
         block = ifElseBlock->getElseFirst();
         lastBlock = ifElseBlock->getElseLast();
         while(block != lastBlock) {
+            if(block->getType() == JUMPBLOCK) {
+                cout <<"Unreachable code following jump " <<endl;
+                break;
+            }
             next = block->getNext();
             block->acceptVisitor(*this);
             block = next;
@@ -246,6 +258,10 @@ void ComputeReachingDefsVisitor::visitWhileBlock(WhileBlock* whileBlock) {
     meet(block, variableNodes, definitions);
 
     while(block != lastBlock) {
+        if(block->getType() == JUMPBLOCK) {
+            cout <<"Unreachable code following jump " <<endl;
+            break;
+        }
         next = block->getNext();
         block->acceptVisitor(*this);
         block = next;
@@ -277,6 +293,10 @@ void ComputeReachingDefsVisitor::visitForBlock(ForBlock* forBlock) {
     meet(block, variableNodes, definitions);
 
     while(block != lastBlock) {
+        if(block->getType() == JUMPBLOCK) {
+            cout <<"Unreachable code following jump " <<endl;
+            break;
+        }
         next = block->getNext();
         block->acceptVisitor(*this);
         block = next;
@@ -309,6 +329,10 @@ void ComputeReachingDefsVisitor::visitFunctionDeclBlock(FunctionDeclBlock* funct
     meet(functionDeclBlock->getFirst(), variableNodes, definitions);
 
     while(block != lastBlock) {
+        if(block->getType() == JUMPBLOCK) {
+            cout <<"Unreachable code following jump " <<endl;
+            break;
+        }
         next = block->getNext();
         block->acceptVisitor(*this);
         block = next;

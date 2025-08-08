@@ -525,7 +525,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
     for(Node* node: nodeList) {
         if(node->type() != ASSIGNMENT) continue;
         AssignmentNode* assignNode = static_cast<AssignmentNode*>(node);
-        const Expr* value=node->getValue();
+        const Expr* value=assignNode->getValue();
         vector<const Expr*> RHSVariables;
         if(value) {
             value->getRHSVariables(RHSVariables);
@@ -682,6 +682,10 @@ void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
     BasicBlock* lastBlock = ifElseBlock->getIfLast();
     BasicBlock* next(0);
     while(block != lastBlock) {
+        if(block->getType() == JUMPBLOCK) {
+            cout <<"Unreachable code following jump " <<endl;
+            break;
+        }
         next = block->getNext();
         block->acceptVisitor(*this);
         block = next;
@@ -692,6 +696,10 @@ void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
         block = ifElseBlock->getElseFirst();
         lastBlock = ifElseBlock->getElseLast();
         while(block != lastBlock) {
+            if(block->getType() == JUMPBLOCK) {
+                cout <<"Unreachable code following jump " <<endl;
+                break;
+            }
             next = block->getNext();
             block->acceptVisitor(*this);
             block = next;
@@ -710,6 +718,10 @@ void VariableInitCheckVisitor::visitWhileBlock(WhileBlock* whileBlock) {
     BasicBlock* next(0);
 
     while(block != lastBlock) {
+        if(block->getType() == JUMPBLOCK) {
+            cout <<"Unreachable code following jump " <<endl;
+            break;
+        }
         next = block->getNext();
         block->acceptVisitor(*this);
         block = next;
@@ -725,6 +737,10 @@ void VariableInitCheckVisitor::visitForBlock(ForBlock* forBlock) {
     BasicBlock* next(0);
 
     while(block != lastBlock) {
+        if(block->getType() == JUMPBLOCK) {
+            cout <<"Unreachable code following jump " <<endl;
+            break;
+        }
         next = block->getNext();
         block->acceptVisitor(*this);
         block = next;
@@ -740,6 +756,10 @@ void VariableInitCheckVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functio
     BasicBlock* next(0);
 
     while(block != lastBlock) {
+        if(block->getType() == JUMPBLOCK) {
+            cout <<"Unreachable code following jump " <<endl;
+            break;
+        }
         next = block->getNext();
         block->acceptVisitor(*this);
         block = next;

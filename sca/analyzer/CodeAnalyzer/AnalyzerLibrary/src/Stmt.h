@@ -13,7 +13,7 @@
 #include<list>
 
 using namespace std;
-enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE, FOR, FUNC_DECL, FUNC_CALL, STRUCT_DECL };
+enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE, FOR, JUMP, FUNC_DECL, FUNC_CALL, STRUCT_DECL };
 enum DeclType {
     FUNCTIONDECL,
     VARDECL,
@@ -34,6 +34,12 @@ enum StorageClassSpecifier {
     STATIC,
     AUTO,
     REGISTER
+};
+
+enum JumpType {
+    BREAK,
+    CONTINUE,
+    RETURN
 };
 
 static const char* dataTypes[]= {"void", "char", "short", "int", "long", "float", "double", "signed", "unsigned", "struct",
@@ -320,6 +326,19 @@ private:
     Expr* p_condition;
     IfStmt* p_else;
     Block* p_block;
+};
+
+class JumpStmt : public Stmt {
+public:
+    JumpStmt(StmtType type, JumpType jumpType): Stmt(type), p_jumpType(jumpType) {}
+    virtual ~JumpStmt() {
+    }
+    virtual void print(ostream& os) {
+        os << " type " << p_type <<" jump type " <<p_jumpType<<" ";
+    }
+    JumpType getJumpType() const { return p_jumpType; }
+private:
+    JumpType p_jumpType;
 };
 
 class FunctionDeclStmt : public Stmt {
