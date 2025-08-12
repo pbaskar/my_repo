@@ -77,6 +77,7 @@ const Expr* DereferenceOperator::populateStructVariable(SymbolTable* symbolTable
 
 const Expr* DotOperator::populateDerefVariable(SymbolTable* symbolTable, const Expr* structVar) {
     const Expr* leftVar = p_left->populateDerefVariable(symbolTable);
+    if(leftVar == nullptr) return leftVar;
     const Expr* pointedToVar = p_right->populateStructVariable(symbolTable, leftVar);
     assert(pointedToVar);
     cout<<"DotOperator::populateDerefVariable " <<*pointedToVar <<endl;
@@ -94,6 +95,7 @@ const Expr* DotOperator::populateStructVariable(SymbolTable* symbolTable, const 
             memStructVar = memVariables[i];
         }
     }
+    if(memStructVar == nullptr) return memStructVar;
     p_left->populateDerefVariable(symbolTable, memStructVar);
     memStructVar = p_right->populateStructVariable(symbolTable, memStructVar);
     assert(memStructVar);

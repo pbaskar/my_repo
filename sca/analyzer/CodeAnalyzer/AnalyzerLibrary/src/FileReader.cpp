@@ -37,7 +37,9 @@ void FileReader::closeFile() {
     p_is.close();
 }
 
-void FileReader::getLine(char* line) {
+Status FileReader::getLine(char* line) {
+    if(p_is.eof()) return FAILURE;
     p_is.getline(line, 256);
+    return SUCCESS;
 }
 

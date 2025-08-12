@@ -161,6 +161,7 @@ Status InstrParser::parseBlock(Block* block) {
     status = parseStmtList(block);
 
     char closeParen =  p_tokenizer.nextChar(true);
+    if(closeParen != '}') return FAILURE;
     p_tokenizer.nextChar(); //consume '}'
     cout <<"consuming } "<<closeParen <<endl;
     cout <<"parseBlock " <<status <<endl;
@@ -195,7 +196,7 @@ Status InstrParser::parseIterationStmt(Block* block) {
     }
     else if(strcmp(next, "for")==0) {
         p_tokenizer.consumeWord();
-        parseFor(block);
+        status = parseFor(block);
     }else {
         status = FIRST_MISMATCH;
     }
@@ -268,18 +269,23 @@ Status InstrParser::parseStmt(Block* block) {
 
     p_tokenizer.setPos(pos);
     status = parseAssign(block);
-
+    if(status == FIRST_MISMATCH) {
+        p_tokenizer.setPos(pos);
+    }
     cout <<"parsestmt " <<status <<endl;
     return status;
 }
 
 Status InstrParser::parseStmtList(Block* block) {
     Status status = SUCCESS;
-    status = parseStmt(block);
     char c = p_tokenizer.lookAhead(1);
     cout <<"stmt list look for closing brace " << c <<endl;
-    if(status == SUCCESS && c != '}') {
+    if(c == '}') return SUCCESS;
+    status = parseStmt(block);
+    if(status == SUCCESS) {
         status = parseStmtList(block);
+    } else if(status == FIRST_MISMATCH) {
+        status = SUCCESS;
     }
     return status;
 }
@@ -291,11 +297,11 @@ Status InstrParser::parseAssign(Block* block) {
 
     char endDelim[] = {';',','};
     char* next = p_tokenizer.nextWordUntil(endDelim, sizeof(endDelim));
-    if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "value"); return FAILURE; }
+    if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "value"); return FIRST_MISMATCH; }
 
     Expr* value = p_exprParser.parseExpressionStr(next);
     delete next;
-    if(value == nullptr) { Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseAssign:", "value"); return FAILURE; }
+    if(value == nullptr) { Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseAssign:", "value"); return FIRST_MISMATCH; }
     stmt->setValue(value);
     char comma = p_tokenizer.lookAhead(1);
     cout << "comma " <<comma <<endl;
@@ -349,7 +355,7 @@ Status InstrParser::parseIf(IfStmt* stmt) {
     p_tokenizer.nextChar(); // consume )
 
     status = parseBlock(stmt->getBlock());
-    if(status == FAILURE) { return FAILURE; }
+    if(status == FAILURE || status == FIRST_MISMATCH) { return FAILURE; }
 
     cout <<"If stmt: " <<stmt->getBlock()->getSubStatements().size() << " "<<*stmt <<endl;
     return status;
@@ -359,7 +365,7 @@ Status InstrParser::parseElse(IfStmt* stmt) {
     Status status = SUCCESS;
 
     status = parseBlock(stmt->getBlock());
-    if(status == FAILURE) { return FAILURE; }
+    if(status == FAILURE || status == FIRST_MISMATCH) { return FAILURE; }
 
     cout <<"Else stmt: " <<*stmt <<endl;
     return status;
@@ -383,7 +389,7 @@ Status InstrParser::parseWhile(Block* block) {
 
     p_tokenizer.nextChar();  //consume )
     status = parseBlock(stmt->getBlock());
-    if(status == FAILURE) { return FAILURE; }
+    if(status == FAILURE || status == FIRST_MISMATCH) { return FAILURE; }
 
     p_tokenizer.nextLine();
     cout <<"While stmt: size = " <<block->getSubStatements().size() << " " <<*stmt <<endl;
@@ -416,7 +422,7 @@ Status InstrParser::parseFor(Block* block) {
     }
 
     Expr* condition = parseExpressionStmt(forBlock);
-    cout <<"ParseFor::condition " <<*condition <<endl;
+    cout <<"ParseFor::condition " <<condition <<endl;
     if(condition)
         forStmt->setCondition(condition);
 
@@ -431,7 +437,7 @@ Status InstrParser::parseFor(Block* block) {
 
     p_tokenizer.nextChar();  //consume )
     status = parseBlock(forBlock);
-    if(status == FAILURE) { return FAILURE; }
+    if(status == FAILURE || status == FIRST_MISMATCH) { return FAILURE; }
 
     p_tokenizer.nextLine();
     cout <<"For stmt: size = " <<block->getSubStatements().size() << " " <<*forStmt <<endl;
@@ -929,12 +935,12 @@ Status InstrParser::parseFunctionDecl(Block* block) {
     vector<IdentifierName*> parameterList = functionIdentifierName->getParameterList();
     for(IdentifierName* identifierName : parameterList) {
         Variable* var = makeVariable(block, identifierName, dataTypes[0]);
-        block->getSymbolTable()->addSymbol(var);
+        declBlock->getSymbolTable()->addSymbol(var);
     }
     stmt->setName(identifier);
 
     status = parseBlock(stmt->getBlock());
-    if(status == FAILURE) { return FAILURE; }
+    if(status == FAILURE || status == FIRST_MISMATCH) { return FAILURE; }
     p_tokenizer.nextLine();
     block->getSymbolTable()->addFnSymbol(identifier->getName());
     block->getSymbolTable()->addSymbol(new Variable(identifier->getName(), VarType::FUNCTION));

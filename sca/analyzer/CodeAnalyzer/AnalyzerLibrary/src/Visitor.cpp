@@ -644,12 +644,10 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
 
         // compute result after each node inside basic block
         for(auto variableIt = LHSVariables.begin(); variableIt != LHSVariables.end(); variableIt++) {
-            assert(*variableIt != nullptr);
-            cout <<"LHS variable " << **variableIt <<" LHS Var size " << LHSVariables.size()
-                << " RHS Var size "<<RHSVariables.size() <<endl;
             const Variable* var = dynamic_cast<const Variable*>(*variableIt);
             if (var==nullptr) { cout <<"var null cast error " <<endl; continue; }
-
+            cout <<"LHS variable " << **variableIt <<" LHS Var size " << LHSVariables.size()
+                << " RHS Var size "<<RHSVariables.size() <<endl;
             visitBasicBlockHelper(var, value, assignNode, outVariableNodes, outDefinitions);
         }
     }

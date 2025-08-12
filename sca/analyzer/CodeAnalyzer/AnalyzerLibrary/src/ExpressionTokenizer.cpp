@@ -8,7 +8,7 @@
 #include<cstdlib>
 #include "ExpressionTokenizer.h"
 
-static const char delimiters[] = { '+', '-', '*', '/', '=', '(', ')', '[', ']', '.', '-', '>' };
+static const char delimiters[] = { '+', '-', '*', '/', '=', '(', ')', '[', ']', '.', '-', '>', '{', '}'};
 
 ExpressionTokenizer::ExpressionTokenizer(): p_expressionStr(nullptr), p_pos(0) {
     // TODO Auto-generated constructor stub
@@ -82,7 +82,7 @@ char* ExpressionTokenizer::nextWord(ExprType& type, bool peek) {
     }
     if(!peek)
         p_pos = p ;
-    //cout <<"Expression Tokenizer:: next word " <<p <<"  " <<token <<endl;
+    cout <<"Expression Tokenizer:: next word " <<p <<"  " <<token <<endl;
     return token;
 }
 

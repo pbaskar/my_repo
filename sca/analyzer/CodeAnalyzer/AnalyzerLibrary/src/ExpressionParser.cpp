@@ -66,10 +66,10 @@ Expr* ExpressionParser::parseAdditiveExpression() {
             oper = new Operator(leftOp,o,rightOp);
         }
     } else {
-        //cout << "AdditiveExpression " <<leftOp <<endl;
+        cout << "AdditiveExpression " <<leftOp <<endl;
         return leftOp;
     }
-    //cout << "AdditiveExpression " <<oper <<endl;
+    cout << "AdditiveExpression " <<oper <<endl;
     return oper;
 }
 
@@ -77,7 +77,7 @@ Expr* ExpressionParser::parseMultiplicativeExpression() {
     Expr* oper = nullptr;
     Expr* leftOp = parseUnaryExpression();
     char o = p_exprTokenizer.nextChar(true);
-    //cout <<"MultiplicativeExpr: op " <<o <<endl;
+    cout <<"MultiplicativeExpr: op " <<o <<endl;
 
     //if(o == '\0' || o == '=') { cout <<"return leftop " <<leftOp <<endl; return leftOp; }
     if(o == '*' || o == '/') {
@@ -94,7 +94,7 @@ Expr* ExpressionParser::parseMultiplicativeExpression() {
     } else {
         return leftOp;
     }
-    //cout << "MultiplicativeExpression " <<oper <<endl;
+    cout << "MultiplicativeExpression " <<oper <<endl;
     return oper;
 }
 
@@ -194,7 +194,7 @@ Expr* ExpressionParser::parsePostFixExpression() {
 
     if(!primaryExpr)
         return nullptr;
-    ExprType type;
+    ExprType type=ExprType::INVALID;
     vector<Expr*> postFixExprPrime;
     parsePostFixExpressionPrime(postFixExprPrime, type);
     switch(type) {
@@ -272,7 +272,10 @@ Expr* ExpressionParser::parseAssignmentExpression() {
 
     Expr* leftOp = parseUnaryExpression();
     char op = p_exprTokenizer.nextChar(true);
-    if(op == '\0') return leftOp;
+    if(op == '\0') {
+        cout <<"unary expresson " <<leftOp <<endl;
+        return leftOp;
+    }
 
     if(op == '=') {
         p_exprTokenizer.nextChar();
@@ -285,7 +288,7 @@ Expr* ExpressionParser::parseAssignmentExpression() {
         else {
             assignExpr = new AssignOperator(leftOp,op,rightOp);
         }
-        //cout <<"parseAssignmentExpression assignment " << assignExpr <<" " <<leftOp <<" " <<rightOp <<endl;
+        cout <<"parseAssignmentExpression assignment " << assignExpr <<" " <<leftOp <<" " <<rightOp <<endl;
 
     } else {
         //backtrack:reset state
@@ -293,7 +296,7 @@ Expr* ExpressionParser::parseAssignmentExpression() {
         p_exprTokenizer.setPos(pos);
 
         assignExpr = parseAdditiveExpression();
-        //cout <<"parseAssignmentExpression expression " << assignExpr <<endl;
+        cout <<"parseAssignmentExpression expression " << assignExpr <<endl;
     }
     return assignExpr;
 }

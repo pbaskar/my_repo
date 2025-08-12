@@ -39,14 +39,19 @@ void Tokenizer::closeFile() {
 
 Status Tokenizer::nextLine() {
     Status status = SUCCESS;
-    memset(p_line, 0, 256);
     p_pos = 0;
-    fr.getLine(p_line);
-    if(p_line[0] == '\0') return FAILURE;
-    if(p_line[0] == '/' && p_line[1] == '/') {
+    int i=0;
+    do {
         memset(p_line, 0, 256);
-        fr.getLine(p_line);
-    }
+        Status s = fr.getLine(p_line);
+        if(s == FAILURE) {
+            p_line[0] = '\0';
+            return status;
+        }
+        i=0;
+        while(p_line[i]==' ' || p_line[i] == '\t') i++;
+    } while (p_line[i] == '\0' || p_line[i] == '/' && p_line[i+1] == '/' || p_line[i] == '#');
+    p_pos = i;
     return status;
 }
 

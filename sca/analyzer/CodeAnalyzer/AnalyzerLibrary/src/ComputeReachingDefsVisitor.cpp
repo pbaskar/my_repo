@@ -167,12 +167,10 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
         if(var) LHSVariables.push_back(var);
 
         for(auto variableIt = LHSVariables.begin(); variableIt != LHSVariables.end(); variableIt++) {
-            assert(*variableIt != nullptr);
-            cout <<"LHS variable " << **variableIt <<" LHS Var size " << LHSVariables.size()
-                << " RHS Var size "<<RHSVariables.size() <<endl;
             const Variable* var = dynamic_cast<const Variable*>(*variableIt);
             if (var==nullptr) { cout <<"var null cast error " <<endl; continue; }
-
+            cout <<"LHS variable " << **variableIt <<" LHS Var size " << LHSVariables.size()
+                << " RHS Var size "<<RHSVariables.size() <<endl;
             visitBasicBlockHelper(var, value, assignNode, outVariableNodes, outDefinitions);
         }
     }

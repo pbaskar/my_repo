@@ -20,7 +20,7 @@ public:
     void setFile(const char* fileName);
     Status openFile();
     void closeFile();
-    void getLine(char* line);
+    Status getLine(char* line);
 private:
     ifstream p_is;
     char p_fileName[50];
