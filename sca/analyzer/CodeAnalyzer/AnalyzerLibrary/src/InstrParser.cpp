@@ -292,27 +292,26 @@ Status InstrParser::parseStmtList(Block* block) {
 
 Status InstrParser::parseAssign(Block* block) {
     Status status = SUCCESS;
-    AssignStmt* stmt = new AssignStmt(ASSIGN);
-    block->addStatement(stmt);
 
-    char endDelim[] = {';',','};
+    char endDelim[] = {';'};
     char* next = p_tokenizer.nextWordUntil(endDelim, sizeof(endDelim));
     if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "value"); return FIRST_MISMATCH; }
 
-    Expr* value = p_exprParser.parseExpressionStr(next);
+    vector<Expr*> values = p_exprParser.parseExpressionList(next);
     delete next;
-    if(value == nullptr) { Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseAssign:", "value"); return FIRST_MISMATCH; }
-    stmt->setValue(value);
-    char comma = p_tokenizer.lookAhead(1);
-    cout << "comma " <<comma <<endl;
-    if(comma == ',') {
-        p_tokenizer.nextChar();
-        parseAssign(block);
+
+    if(values.empty()) { Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseAssign:", "value"); return FIRST_MISMATCH; }
+    for(int i=0; i<values.size(); i++) {
+        Expr* value = values[i];
+        assert(value != nullptr);
+
+        AssignStmt* stmt = new AssignStmt(ASSIGN);
+        block->addStatement(stmt);
+        stmt->setValue(value);
     }
-    else {
-        p_tokenizer.nextLine();
-    }
-    cout <<"Assignment stmt: size = " << block->getSubStatements().size()  <<" " <<*stmt <<endl;
+
+    p_tokenizer.nextLine();
+    cout <<"Assignment stmt: size = " << block->getSubStatements().size() <<endl;
     return status;
 }
 
@@ -687,7 +686,6 @@ Status InstrParser::parseParameterList(Block* block, vector<IdentifierName*>& id
     Status status = SUCCESS;
     IdentifierName* parameterDecl = parseParameterDecl(block);
     if(parameterDecl == nullptr) {
-        cout <<"parameter decl null " <<endl;
         return status;
     }
     identifierList.push_back(parameterDecl);

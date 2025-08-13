@@ -42,6 +42,14 @@ void copyNodesFromStructVar(const Variable* lhs, const Variable* rhs, Assignment
                                 map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
                                 map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
 
+void copyDefinitionsForAddressOfOperator(const Variable* var, const Expr* rhsExpr,
+                                         map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
+                                         map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions );
+
+void copyNodesForAddressOfOperator(const Expr* rhsExpr, AssignmentNode* assignNode,
+                                 map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
+                                 map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions );
+
 void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNode* assignNode,
                                  map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
                                  map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);

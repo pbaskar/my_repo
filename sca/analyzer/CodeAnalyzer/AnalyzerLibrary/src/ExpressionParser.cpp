@@ -25,6 +25,23 @@ Expr* ExpressionParser::parseExpressionStr(char* expressionStr) {
     return expr;
 }
 
+vector<Expr*> ExpressionParser::parseExpressionList(char* expressionStr) {
+    vector<Expr*> expressionList;
+    p_exprTokenizer.setExpressionStr(expressionStr);
+    while(true) {
+        Expr* expr = parseExpression();
+        if(expr != nullptr) {
+            expressionList.push_back(expr);
+        } else break;
+        char next = p_exprTokenizer.nextChar(true);
+        if(next == ',') {
+            p_exprTokenizer.nextChar();
+        }
+        else break;
+    }
+    return expressionList;
+}
+
 Expr* ExpressionParser::makeNewLeaf(char* token, ExprType type) {
     Expr* expr = nullptr;
     switch(type) {
@@ -98,13 +115,19 @@ Expr* ExpressionParser::parseMultiplicativeExpression() {
     return oper;
 }
 
-vector<Expr*> ExpressionParser::parseArgumentExpressionList() {
+void ExpressionParser::parseArgumentExpressionList(vector<Expr*>& argumentExprList) {
     Expr* argumentExpr = parseAdditiveExpression();
-    //parseArgumentExpressionList();
-    vector<Expr*> argumentExprList;
-    if(argumentExpr != nullptr)
+
+    if(argumentExpr != nullptr) {
         argumentExprList.push_back(argumentExpr);
-    return argumentExprList;
+        char next = p_exprTokenizer.nextChar(true);
+        cout <<"next char " <<next <<endl;
+        if(next == ',') {
+            p_exprTokenizer.nextChar();
+            parseArgumentExpressionList(argumentExprList);
+        }
+    }
+    return;
 }
 
 Expr* ExpressionParser::parsePrimaryExpression() {
@@ -129,7 +152,7 @@ void ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprPri
     if(o == '(') {
         type = FUNCTIONCALL;
         p_exprTokenizer.nextChar(); //consume '('
-        postFixExprPrime = parseArgumentExpressionList();
+        parseArgumentExpressionList(postFixExprPrime);
         p_exprTokenizer.nextChar(); //consume ')'
     }
     else if (o == '[') {

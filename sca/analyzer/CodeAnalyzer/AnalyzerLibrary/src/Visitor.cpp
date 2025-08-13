@@ -377,6 +377,55 @@ void copyNodesFromStructVar(const Variable* lhs, const Variable* rhs, Assignment
     }
 }
 
+void copyDefinitionsForAddressOfOperator(const Variable* var, const Expr* rhsExpr,
+                                         map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
+                                         map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions ) {
+    const AddressOfVariable* rhs = dynamic_cast<const AddressOfVariable*>(rhsExpr);
+    if(rhs != nullptr) {
+        const Definition* rhsDefinition = rhs->getDefinition();
+        pair<const Definition*, bool> p(rhsDefinition, rhsDefinition->isValid());
+
+        auto definitionIt = outDefinitions.find(rhs);
+        if(definitionIt != outDefinitions.end()) {
+            auto& definitions = outDefinitions.at(rhs);
+            definitions.clear();
+            definitions.push_back(p);
+            cout<<" replaced definition of rhs " <<*rhs << " rhs definition valid " <<*rhsDefinition
+                <<endl;
+        }
+        else {
+            vector<pair<const Definition*, bool>> v;
+            v.push_back(p);
+            cout<<" added definition rhs " <<*rhs
+               << " outDefinitions size " << outDefinitions.size()<<endl;
+            outDefinitions.insert_or_assign(rhs, v);
+        }
+    }
+}
+
+void copyNodesForAddressOfOperator(const Expr* rhsExpr, AssignmentNode* assignNode,
+                                 map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
+                                 map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions ) {
+    //replace with or add current assignNode for AddressOfOperator
+    const AddressOfVariable* rhs = dynamic_cast<const AddressOfVariable*>(rhsExpr);
+    if(rhs != nullptr) {
+        auto variableNodeIt = outVariableNodes.find(rhs);
+        if(variableNodeIt != outVariableNodes.end()) {
+            auto& nodes = outVariableNodes.at(rhs);
+            cout <<"nodes size before clear " << nodes.size() <<endl;
+            nodes.clear();
+            nodes.push_back(assignNode);
+            cout<<" replaced var " <<*rhs << " " <<*assignNode <<endl;
+        }
+        else {
+            vector<AssignmentNode*> v;
+            v.push_back(assignNode);
+            cout<<" added var " <<*rhs << " " << *assignNode <<endl;
+            outVariableNodes.insert_or_assign(rhs, v);
+        }
+    }
+}
+
 void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNode* assignNode,
                                                  map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
                                                  map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions) {
@@ -402,7 +451,7 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
     }
     else if(var->getExprType() == ExprType::POINTERVARIABLE || value->getExprType()==ExprType::DELETEFNCALL) {
         switch(value->getExprType()) {
-           case ExprType::DELETEFNCALL: {
+            case ExprType::DELETEFNCALL: {
                if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
                const Expr* rhsExpr = RHSVariables[0];
                const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
@@ -428,51 +477,56 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
                    assert(false);
                }
             }
-           break;
-           case ExprType::MALLOCFNCALL: {
+            break;
+            case ExprType::MALLOCFNCALL: {
                     const MallocFnCall* mallocFnCall = static_cast<const MallocFnCall*>(value);
                     const Definition* rhsDefinition = mallocFnCall->getDefinition();
                     const vector<const Definition*>& pointsToDefinitions = rhsDefinition->getPointsToDefinitions();
                     copyDefinitionsToPointerVar(var, pointsToDefinitions, outDefinitions);
                     copyNodesToPointerVar(var, assignNode, outVariableNodes);
                 }
-           break;
-           case ExprType::ARRAYDEFINITION:
-           case ExprType::DEFINITION: {
+            break;
+            case ExprType::ARRAYDEFINITION:
+            case ExprType::DEFINITION: {
                 const Definition* rhsDefinition = static_cast<const Definition*>(value);
                 const vector<const Definition*>& pointsToDefinitions = rhsDefinition->getPointsToDefinitions();
                 copyDefinitionsToPointerVar(var, pointsToDefinitions, outDefinitions);
                 copyNodesToPointerVar(var, assignNode, outVariableNodes);
-           }
-           break;
-           case ExprType::ADDRESSOFOPERATOR: {
-               if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
-               const Expr* rhsExpr = RHSVariables[0];
-               assert(rhsExpr != nullptr);
-               const AddressOfVariable* rhs = dynamic_cast<const AddressOfVariable*>(rhsExpr);
-               if(rhs != nullptr) {
-                   const Definition* rhsDefinition = rhs->getDefinition();
-                   pair<const Definition*, bool> p(rhsDefinition, rhsDefinition->isValid());
-
-                   auto definitionIt = outDefinitions.find(rhs);
-                   if(definitionIt != outDefinitions.end()) {
-                       auto& definitions = outDefinitions.at(rhs);
-                       definitions.clear();
-                       definitions.push_back(p);
-                       cout<<" replaced definition of rhs " <<*rhs << " rhs definition valid " <<*rhsDefinition
-                          <<*assignNode <<endl;
-                   }
-                   else {
-                       vector<pair<const Definition*, bool>> v;
-                       v.push_back(p);
-                       cout<<" added definition rhs " <<*rhs << " assignNode ptr " << *assignNode
-                          << " outDefinitions size " << outDefinitions.size()<<endl;
-                       outDefinitions.insert_or_assign(rhs, v);
-                   }
-               }
-           } //Fallthrough
-           //PointerVariable, Dereference Operator, AddressOfOperator
-           default: {
+            }
+            break;
+            case ExprType::ASSIGNOPERATOR: {
+                const AssignOperator* rhs = static_cast<const AssignOperator*>(value);
+                const Expr* rightOp = rhs->getRightOp();
+                assert(rightOp != nullptr);
+                switch(rightOp->getExprType()) {
+                    case ExprType::MALLOCFNCALL: {
+                             const MallocFnCall* mallocFnCall = static_cast<const MallocFnCall*>(rightOp);
+                             const Definition* rhsDefinition = mallocFnCall->getDefinition();
+                             const vector<const Definition*>& pointsToDefinitions = rhsDefinition->getPointsToDefinitions();
+                             copyDefinitionsToPointerVar(var, pointsToDefinitions, outDefinitions);
+                             copyNodesToPointerVar(var, assignNode, outVariableNodes);
+                    }
+                    break;
+                    case ExprType::ADDRESSOFOPERATOR: {
+                        if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
+                        const Expr* rhsExpr = RHSVariables[0];
+                        assert(rhsExpr != nullptr);
+                        copyNodesForAddressOfOperator(rhsExpr, assignNode, outVariableNodes, outDefinitions);
+                        copyDefinitionsForAddressOfOperator(var, rhsExpr, outVariableNodes, outDefinitions);
+                    }
+                    goto CopyPointerVariables;
+                } //switch end
+            }
+            case ExprType::ADDRESSOFOPERATOR: {
+                if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
+                const Expr* rhsExpr = RHSVariables[0];
+                assert(rhsExpr != nullptr);
+                copyNodesForAddressOfOperator(var, assignNode, outVariableNodes, outDefinitions);
+                copyDefinitionsForAddressOfOperator(var, rhsExpr, outVariableNodes, outDefinitions);
+            } //Fallthrough
+            //PointerVariable, Dereference Operator, AddressOfOperator
+CopyPointerVariables:
+            default: {
                if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
                cout <<"rhs pointer variable " <<endl;
                const Expr* rhsExpr = RHSVariables[0];
@@ -481,7 +535,7 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
                 copyDefinitionsFromPointerVar(var, rhs, outDefinitions);
                 copyNodesFromPointerVar(var, rhs, assignNode, outVariableNodes, outDefinitions);
            }
-       } //switch end
+        } //switch end
     }
     else if(var->getExprType() == ExprType::STRUCTVARIABLE) {
         switch(value->getExprType()) {

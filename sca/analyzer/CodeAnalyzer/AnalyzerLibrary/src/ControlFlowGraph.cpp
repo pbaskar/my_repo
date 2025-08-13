@@ -41,6 +41,7 @@ Status ControlFlowGraph::makeFunctionCallInstance(FunctionCallInstance*& fnCallI
     for(Expr* expr : actualArguments) {
         AssignmentNode* functionDeclNode = new AssignmentNode(formalArguments[i], expr);
         first->addNode(functionDeclNode);
+        i++;
     }
     i=0;
     for(Expr* expr : actualArguments) {
@@ -50,8 +51,8 @@ Status ControlFlowGraph::makeFunctionCallInstance(FunctionCallInstance*& fnCallI
                 AssignmentNode* functionDeclNode = new AssignmentNode(var, formalArguments[i]);
                 last->addNode(functionDeclNode);
             }
-            i++;
         }
+        i++;
     }
     fnCallInstance = new FunctionCallInstance(fnDecl->getName(), first, fnDecl, last);
     i=0;

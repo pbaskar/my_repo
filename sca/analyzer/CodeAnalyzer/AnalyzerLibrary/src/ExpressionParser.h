@@ -17,13 +17,14 @@ public:
     virtual ~ExpressionParser();
 
     Expr* parseExpressionStr(char* expressionStr);
+    vector<Expr*> parseExpressionList(char* expressionStr);
     Expr* parseExpression();
     Expr* parseAssignmentExpression();
     Expr* parseUnaryExpression();
     Expr* parsePostFixExpression();
     void parsePostFixExpressionPrime(vector<Expr*>& postFixExprPrime, ExprType& type);
     Expr* parsePrimaryExpression();
-    vector<Expr*> parseArgumentExpressionList();
+    void parseArgumentExpressionList(vector<Expr*>& argumentExprList);
     Expr* parseMultiplicativeExpression();
     Expr* parseAdditiveExpression();
     Expr* makeNewLeaf(char* token, ExprType type);

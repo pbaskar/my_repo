@@ -122,6 +122,8 @@ public:
     virtual ExprType getExprType() const { return ASSIGNOPERATOR; }
     void setLeftOp(Expr* left) { p_left = left; }
     void setRightOp(Expr* right) { p_right = right; }
+    const Expr* getLeftOp() const { return p_left; }
+    const Expr* getRightOp() const { return p_right; }
     void setOp(char op) { p_op = op; }
     virtual void print(ostream& os) const{
         os<< *p_left <<p_op << " " <<*p_right;
