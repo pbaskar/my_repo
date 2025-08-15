@@ -121,7 +121,6 @@ void ExpressionParser::parseArgumentExpressionList(vector<Expr*>& argumentExprLi
     if(argumentExpr != nullptr) {
         argumentExprList.push_back(argumentExpr);
         char next = p_exprTokenizer.nextChar(true);
-        cout <<"next char " <<next <<endl;
         if(next == ',') {
             p_exprTokenizer.nextChar();
             parseArgumentExpressionList(argumentExprList);

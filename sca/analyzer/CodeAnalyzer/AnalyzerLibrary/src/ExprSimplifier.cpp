@@ -13,21 +13,26 @@ Status ExprSimplifier::simplify(Block* block) {
     return status;
 }
 
+Status ExprSimplifier::populateMallocFnCall(const Variable* lhs, Expr* value) {
+    MallocFnCall* mallocFnCall = static_cast<MallocFnCall*>(value);
+    Definition* definition = mallocFnCall->toSimplifyDefinition();
+    const PointerVariable* lhsVar = nullptr;
+    definition->addPointsToDefinition(new Definition(true));
+    while(true) {
+        lhsVar = dynamic_cast<const PointerVariable*>(lhs);
+        if(lhsVar == nullptr) break;
+        lhs = lhsVar->getPointsTo();
+        assert(lhs);
+        definition->addPointsToDefinition(new Definition(false));
+    }
+    return SUCCESS;
+}
+
 Status ExprSimplifier::populateDefinitions(const Variable* lhs, Expr* value) {
     if(lhs->getExprType() == ExprType::POINTERVARIABLE) {
         switch(value->getExprType()) {
             case ExprType::MALLOCFNCALL: {
-                MallocFnCall* mallocFnCall = static_cast<MallocFnCall*>(value);
-                Definition* definition = mallocFnCall->toSimplifyDefinition();
-                const PointerVariable* lhsVar = nullptr;
-                definition->addPointsToDefinition(new Definition(true));
-                while(true) {
-                    lhsVar = dynamic_cast<const PointerVariable*>(lhs);
-                    if(lhsVar == nullptr) break;
-                    lhs = lhsVar->getPointsTo();
-                    assert(lhs);
-                    definition->addPointsToDefinition(new Definition(false));
-                }
+                populateMallocFnCall(lhs, value);
             }
             break;
             //pointervar
@@ -61,8 +66,19 @@ Status ExprSimplifier::populateDefinitions(const Variable* lhs, Expr* value) {
                     lhs = lhsVar->getPointsTo();
                     assert(lhs);
                 }
-        }
-        break;
+            }
+            break;
+            case ExprType::ASSIGNOPERATOR: {
+                AssignOperator* assignOperator = static_cast<AssignOperator*>(value);
+                const Identifier* lhs = static_cast<const Identifier*>(assignOperator->getLeftOp());
+                assert(lhs);
+                const Variable* lhsVar = static_cast<const Variable*>(lhs->getVariable());
+                Expr* rhs = assignOperator->toSimplifyRightOp();
+                if(rhs->getExprType() == ExprType::MALLOCFNCALL) {
+                    populateMallocFnCall(lhsVar, rhs);
+                }
+            }
+            break;
             default:;
         }
     }
@@ -124,56 +140,57 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
                     it++;
                 }
 
-                //Populate definitions for declarations
+                //fetch LHS from declaration and assignment
+                const Variable* lhs = nullptr;
                 const IdentifierName* identifierName = assignStmt->getVar();
                 if(identifierName) {
-                    const Variable* lhs =  block->getSymbolTable()->fetchVariable(identifierName->getName());
-                    assert(lhs);
-                    populateDefinitions(lhs, value);
+                    lhs =  block->getSymbolTable()->fetchVariable(identifierName->getName());
                 }
-            }
-            // append rhs to function pointer var possible pointsTo function Identifiers
-            const Variable* lhs = nullptr;
-            const Variable* rhs = nullptr;
-            const IdentifierName* identifierName = assignStmt->getVar();
-            if(identifierName) {
-                if(identifierName->getType() != DeclType::FUNCTIONDECL) continue;
-                lhs = block->getSymbolTable()->fetchVariable(identifierName->getName());
-            }
-            vector<const Expr*> fnIdentifiers;
-            if(value) {
                 if(!lhs) {
                     vector<const Expr*> lhsVars;
                     value->getLHS(lhsVars);
-                    if(lhsVars.empty()) continue;
-
-                    const Identifier* identifier = static_cast<const Identifier*>(lhsVars[0]);
-                    assert(identifier);
-                    cout <<"Identifier name, associated variable " <<identifier->getName() <<" " <<identifier->getVariable() <<endl;
-                    lhs = identifier->getVariable();
-                    //lhs can hold Dotoperator which has no associated variable
-                    if(!lhs || lhs->getVarType() != VarType::FUNCTION) continue;
+                    if(!lhsVars.empty()) {
+                        const Identifier* identifier = static_cast<const Identifier*>(lhsVars[0]);
+                        assert(identifier);
+                        cout <<"Identifier name, associated variable " <<identifier->getName() <<" " <<identifier->getVariable() <<endl;
+                        //lhs can hold Dotoperator which has no associated variable
+                        lhs = identifier->getVariable();
+                    }
                 }
+
+                //Populate definitions for declarations and assignments(malloc)
+                if(lhs) {
+                    populateDefinitions(lhs, value);
+                }
+
+                // append rhs to function pointer var possible pointsTo function Identifiers
+                const Variable* rhs = nullptr;
+                if(identifierName) {
+                    if(identifierName->getType() != DeclType::FUNCTIONDECL) continue;
+                }
+                vector<const Expr*> fnIdentifiers;
+                if(!lhs || lhs->getVarType() != VarType::FUNCTION) continue;
                 value->getRHSVariables(fnIdentifiers);
                 if(fnIdentifiers.empty()) {  cout <<"Bad function name assigned to function pointer " <<identifierName->getName() <<endl; continue; }
                 assert(fnIdentifiers[0]);
                 rhs = static_cast<const Variable*>(fnIdentifiers[0]);
+
+                assert(lhs->getExprType() == ExprType::POINTERVARIABLE);
+                const PointerVariable* pointerVariable = static_cast<const PointerVariable*>(lhs);
+                lhs = pointerVariable->getPointsTo();
+                const PointerVariable* rhsPointer=dynamic_cast<const PointerVariable*>(rhs);
+                //&function name on rhs or directly function name
+                if(rhsPointer != nullptr) {
+                    rhs = rhsPointer->getPointsTo();
+                }
+                const FunctionVariable* functionVariable = dynamic_cast<const FunctionVariable*>(lhs);
+                if(functionVariable == nullptr) {
+                    cout <<"Function pointer has no valid function Variable " <<identifierName->getName() <<endl;
+                    continue;
+                }
+                assert(rhs);
+                functionVariable->addFunction(rhs);
             }
-            else continue;
-            assert(lhs->getExprType() == ExprType::POINTERVARIABLE);
-            const PointerVariable* pointerVariable = static_cast<const PointerVariable*>(lhs);
-            lhs = pointerVariable->getPointsTo();
-            const PointerVariable* rhsPointer=dynamic_cast<const PointerVariable*>(rhs);
-            if(rhsPointer != nullptr) {
-                rhs = rhsPointer->getPointsTo();
-            }
-            const FunctionVariable* functionVariable = dynamic_cast<const FunctionVariable*>(lhs);
-            if(functionVariable == nullptr) {
-                cout <<"Function pointer has no valid function Variable " <<identifierName->getName() <<endl;
-                continue;
-            }
-            assert(rhs);
-            functionVariable->addFunction(rhs);
         }
         break;
         case IF:

@@ -9,6 +9,7 @@ public:
     ExprSimplifier();
 
     Status simplify(Block* block);
+    Status populateMallocFnCall(const Variable* lhs, Expr* value);
     Status populateDefinitions(const Variable* lhs, Expr* value);
     Status simplifyBlock(Block* block);
 };
