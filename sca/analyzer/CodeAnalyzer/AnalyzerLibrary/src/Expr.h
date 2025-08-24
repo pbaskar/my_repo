@@ -17,7 +17,9 @@ class Identifier;
 using namespace std;
 enum ExprType {
     DEFINITION,
+    POINTERDEFINITION,
     ARRAYDEFINITION,
+    STRUCTDEFINITION,
     CONSTANT,
     VARIABLE,
     FUNCTIONVARIABLE,
@@ -189,8 +191,8 @@ class Definition : public Expr {
 public:
     Definition(bool valid) : p_valid(valid) {}
     virtual ~Definition() {
-        for(int i=0; i<p_pointsToDefinitions.size(); i++) {
-            delete p_pointsToDefinitions[i];
+        for(int i=0; i<p_memDefinitions.size(); i++) {
+            delete p_memDefinitions[i];
         }
     }
     virtual ExprType getExprType() const { return DEFINITION; }
@@ -201,21 +203,34 @@ public:
     virtual void populateVariable(SymbolTable* symbolTable) {}
     const bool isValid() const { return p_valid; }
     void setIsValid(bool valid) { p_valid = valid; }
-    void addPointsToDefinition(const Definition* pointsToDefinition) {
-        p_pointsToDefinitions.push_back(pointsToDefinition);
+    void addMemDefinition(const Definition* memDefinition) {
+        p_memDefinitions.push_back(memDefinition);
     }
-    const vector<const Definition*>& getPointsToDefinitions() const { return p_pointsToDefinitions; }
+    const vector<const Definition*>& getMemDefinitions() const { return p_memDefinitions; }
     virtual void print(ostream& os) const {
         os << " def " <<p_valid <<endl;
     }
 private:
     bool p_valid;
-    vector<const Definition*> p_pointsToDefinitions;
+    vector<const Definition*> p_memDefinitions;
 };
 
-class ArrayDefinition : public Definition {
+class PointerDefinition : public Definition {
 public:
-    ArrayDefinition(bool valid) : Definition(valid) {}
+    PointerDefinition(bool valid) : Definition(valid), p_pointsTo(nullptr) {}
+    virtual ~PointerDefinition() {
+        delete p_pointsTo;
+    }
+    Definition* getPointsTo() const { return p_pointsTo; }
+    void setPointsTo(Definition* pointsTo) { p_pointsTo = pointsTo; }
+    virtual ExprType getExprType() const { return POINTERDEFINITION; }
+private:
+    Definition* p_pointsTo;
+};
+
+class ArrayDefinition : public PointerDefinition {
+public:
+    ArrayDefinition(bool valid) : PointerDefinition(valid) {}
     virtual ~ArrayDefinition() {
     }
     virtual ExprType getExprType() const { return ARRAYDEFINITION; }
@@ -481,9 +496,12 @@ private:
 
 class Constant : public Expr {
 public:
-    Constant(int n): p_number(n) {}
+    Constant(int n): p_number(n) {
+        p_definition = new Definition(true);
+    }
     virtual ~Constant() {}
     virtual ExprType getExprType() const { return CONSTANT; }
+    const Definition* getDefinition() const { return p_definition; }
     virtual void getRHSVariables(vector<const Expr*>& variables) const {}
     virtual void getLHS(vector<const Expr*>& variables) const {}
     virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {}
@@ -495,6 +513,7 @@ public:
     }
 private:
     int p_number;
+    const Definition* p_definition;
 };
 
 class FunctionCall : public Expr {
@@ -539,7 +558,7 @@ private:
 class MallocFnCall : public FunctionCall {
 public:
     MallocFnCall(Expr* identifier, vector<Expr*> arguments): FunctionCall(identifier, arguments) {
-        p_definition = new Definition(false);
+        p_definition = new PointerDefinition(true);
     }
     virtual ~MallocFnCall() {
         delete p_definition;
@@ -554,11 +573,11 @@ public:
     virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
         //functionCalls.push_back(this);
     }
-    Definition* toSimplifyDefinition() { return p_definition; }
-    const Definition* getDefinition() const { return p_definition; }
+    PointerDefinition* toSimplifyDefinition() { return p_definition; }
+    const PointerDefinition* getDefinition() const { return p_definition; }
     //virtual void populateVariable(SymbolTable* symbolTable) {}
 private:
-    Definition* p_definition;
+    PointerDefinition* p_definition;
 };
 
 class DeleteFnCall : public FunctionCall {

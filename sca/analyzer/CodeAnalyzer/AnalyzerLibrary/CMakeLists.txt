@@ -25,6 +25,7 @@ add_library(AnalyzerLibrary SHARED
   src/Traverser.cpp
   src/Visitor.cpp
   src/ComputeReachingDefsVisitor.cpp
+  src/ControlFlowGraphUpdater.cpp
   src/Utils.cpp
   src/Expr.h
   src/BasicBlock.h
@@ -41,6 +42,7 @@ add_library(AnalyzerLibrary SHARED
   src/Traverser.h
   src/Visitor.h
   src/ComputeReachingDefsVisitor.h
+  src/ControlFlowGraphUpdater.h
   src/Utils.h
   src/Results.h
 )

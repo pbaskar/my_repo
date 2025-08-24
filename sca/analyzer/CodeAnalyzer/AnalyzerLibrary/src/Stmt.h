@@ -14,6 +14,12 @@
 
 using namespace std;
 enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE, FOR, JUMP, FUNC_DECL, FUNC_CALL, STRUCT_DECL };
+enum IdentifierType {
+    VARIDENTIFIER,
+    POINTERIDENTIFIER,
+    FUNCTIONIDENTIFIER
+};
+
 enum DeclType {
     FUNCTIONDECL,
     VARDECL,
@@ -51,6 +57,7 @@ public:
     IdentifierName(const char* n): p_name(n) {}
     virtual ~IdentifierName() { /*delete p_name;*/ }
     virtual DeclType getType() const { return DeclType::VARDECL; }
+    virtual IdentifierType getIdentifierType() const { return IdentifierType::VARIDENTIFIER; }
     friend ostream& operator<<(ostream& os, IdentifierName& identifierName) {
         identifierName.print(os);
         return os;
@@ -80,6 +87,7 @@ public:
         }
     }
     virtual DeclType getType() const { return DeclType::FUNCTIONDECL; }
+    virtual IdentifierType getIdentifierType() const { return IdentifierType::FUNCTIONIDENTIFIER; }
     friend ostream& operator<<(ostream& os, FunctionIdentifierName& functionIdentifierName) {
         functionIdentifierName.print(os);
         return os;
@@ -104,6 +112,7 @@ public:
         delete p_pointsTo;
     }
     virtual DeclType getType() const { return p_pointsTo->getType(); }
+    virtual IdentifierType getIdentifierType() const { return IdentifierType::POINTERIDENTIFIER; }
     virtual void print(ostream& os) const{
         IdentifierName::print(os);
         p_pointsTo->print(os);

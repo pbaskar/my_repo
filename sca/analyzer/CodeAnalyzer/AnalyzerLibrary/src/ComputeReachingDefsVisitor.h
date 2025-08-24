@@ -22,16 +22,20 @@ public:
 
     void meet(BasicBlock* basicBlock);
     void meet(BasicBlock* basicBlock, map<const Variable*, vector<AssignmentNode*>>& inVariableNodes,
-              map<const Variable*, vector<pair<const Definition*, bool>>>& inDefinitions);
+              map<const Variable*, vector<pair<const Definition*, bool>>>& inDefinitions,
+              map<const Definition*, vector<vector<const Variable*>>>& inVariableGroups);
     void detectChange(map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>>& oldVariableNodes,
                       BasicBlock* basicBlock,
                       const map<const Variable*, vector<AssignmentNode*>>& newVariableNodes);
     map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>> getInVariableNodes() { return p_inVariableNodes; }
     map<BasicBlock*, map<const Variable*, vector<pair<const Definition*, bool>>>> getInDefinitions() { return p_inDefinitions; }
+    map<BasicBlock*, map<const Definition*, vector<vector<const Variable*>>>> getInVariableGroups() { return p_inVariableGroups; }
 private:
     map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>> p_inVariableNodes;
     map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>> p_outVariableNodes;
 
+    map<BasicBlock*, map<const Definition*, vector<vector<const Variable*>>>> p_inVariableGroups;
+    map<BasicBlock*, map<const Definition*, vector<vector<const Variable*>>>> p_outVariableGroups;
 
     map<BasicBlock*, map<const Variable*, vector<pair<const Definition*, bool>>>> p_inDefinitions;
     map<BasicBlock*, map<const Variable*, vector<pair<const Definition*, bool>>>> p_outDefinitions;

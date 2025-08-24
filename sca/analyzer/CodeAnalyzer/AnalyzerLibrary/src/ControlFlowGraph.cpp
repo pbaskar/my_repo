@@ -43,7 +43,7 @@ Status ControlFlowGraph::makeFunctionCallInstance(FunctionCallInstance*& fnCallI
         first->addNode(functionDeclNode);
         i++;
     }
-    i=0;
+    /*i=0;
     for(Expr* expr : actualArguments) {
         if(formalArguments[i]->getExprType() == ExprType::POINTERVARIABLE) {
             const Variable* var = dynamic_cast<Identifier*>(expr)->getVariable();
@@ -53,7 +53,7 @@ Status ControlFlowGraph::makeFunctionCallInstance(FunctionCallInstance*& fnCallI
             }
         }
         i++;
-    }
+    }*/
     fnCallInstance = new FunctionCallInstance(fnDecl->getName(), first, fnDecl, last);
     i=0;
     for(Expr* expr : actualArguments) {
@@ -306,8 +306,9 @@ void ControlFlowGraph::variableInitCheck(vector<Result>& results) {
 
     map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>> inVariableNodes = computeReachingDefsVisitor.getInVariableNodes();
     map<BasicBlock*, map<const Variable*, vector<pair<const Definition*, bool>>>> inDefinitions = computeReachingDefsVisitor.getInDefinitions();
+    map<BasicBlock*, map<const Definition*, vector<vector<const Variable*>>>> inVariableGroups = computeReachingDefsVisitor.getInVariableGroups();
     cout << "********************************** Compute Reaching Defs done ****************************************" <<endl;
-    VariableInitCheckVisitor variableInitCheckVisitor(inVariableNodes, inDefinitions);
+    VariableInitCheckVisitor variableInitCheckVisitor(inVariableNodes, inDefinitions, inVariableGroups);
     variableInitCheckVisitor.visitCFG(p_head);
     results = variableInitCheckVisitor.getResults();
 }

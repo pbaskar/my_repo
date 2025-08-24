@@ -31,16 +31,29 @@ void copyDefinitionsToStructVar(const Variable* lhs, const vector<const Definiti
                                 map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
 void copyNodesToStructVar(const Variable* lhs, AssignmentNode* assignNode,
                                 map<const Variable*, vector<AssignmentNode*>>& outVariableNodes);
+void copyDefinitionsFromVarGroup(const Variable* lhs, const Variable* rhs,
+                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                                map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups);
+void copyDefinitionsFromVar(const Variable* lhs, const Variable* rhs,
+                            map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                            map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups);
+void copyDefinitionsFromPointerVarGroup(const Variable* lhs, const Variable* rhs,
+                                        map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                                        map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups);
 void copyDefinitionsFromPointerVar(const Variable* lhs, const Variable* rhs,
-                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
+                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                                map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups);
 void copyNodesFromPointerVar(const Variable* lhs, const Variable* rhs, AssignmentNode* assignNode,
-                                map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
-                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
+                             map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
+                             map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                             map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups);
 void copyDefinitionsFromStructVar(const Variable* lhs, const Variable* rhs,
-                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
+                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                                map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups);
 void copyNodesFromStructVar(const Variable* lhs, const Variable* rhs, AssignmentNode* assignNode,
-                                map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
-                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
+                            map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
+                            map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                            map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups);
 
 void copyDefinitionsForAddressOfOperator(const Variable* var, const Expr* rhsExpr,
                                          map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
@@ -52,7 +65,8 @@ void copyNodesForAddressOfOperator(const Expr* rhsExpr, AssignmentNode* assignNo
 
 void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNode* assignNode,
                                  map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
-                                 map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions);
+                                 map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                                 map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups);
 
 class Visitor {
 public:
@@ -98,7 +112,8 @@ public:
 class VariableInitCheckVisitor : public Visitor {
 public:
     VariableInitCheckVisitor(map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>>& inVariableNodes,
-                             map<BasicBlock*, map<const Variable*, vector<pair<const Definition*, bool>>>>& inDefinitions);
+                             map<BasicBlock*, map<const Variable*, vector<pair<const Definition*, bool>>>>& inDefinitions,
+                             map<BasicBlock*, map<const Definition*, vector<vector<const Variable*>>>>& inVariableGroups);
     virtual ~VariableInitCheckVisitor();
 
     virtual void visitBasicBlock(BasicBlock* basicBlock);
@@ -114,6 +129,7 @@ public:
 private:
     map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>> p_inVariableNodes;
     map<BasicBlock*, map<const Variable*, vector<pair<const Definition*, bool>>>> p_inDefinitions;
+    map<BasicBlock*, map<const Definition*, vector<vector<const Variable*>>>> p_inVariableGroups;
     vector<Result> p_results;
 };
 #endif /* SRC_VISITOR_H_ */

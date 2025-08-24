@@ -87,20 +87,34 @@ void DeleteVisitor::visitFunctionCallBlock(FunctionCallBlock* functionCallBlock)
     delete functionCallBlock;
 }
 
-void copyDefinitionsToPointerVar(const Variable* lhs, const vector<const Definition*>& pointsToDefinitions,
+void copyDefinitionsToVar(const Variable* lhs, const Definition* pointsToDefinition,
                                     map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions) {
-    int i=0;
+    pair<const Definition*, bool> pointsToDefinitionPair(pointsToDefinition,pointsToDefinition->isValid());
+    auto definitionIt = outDefinitions.find(lhs);
+    if(definitionIt != outDefinitions.end()) {
+        auto& definitions = outDefinitions.at(lhs);
+        definitions.clear();
+        definitions.push_back(pointsToDefinitionPair);
+        cout<<" replaced definition of lhs " <<*lhs <<
+           " rhsDefinitions size " <<definitions.size() <<endl;
+    }
+    else {
+        cout<<" added definition lhs " <<*lhs << " outDefinitions size " << outDefinitions.size()<<endl;
+        vector<pair<const Definition*, bool>> v;
+        v.push_back(pointsToDefinitionPair);
+        outDefinitions.insert_or_assign(lhs, v);
+    }
+}
+
+void copyDefinitionsToPointerVar(const Variable* lhs, const Definition* pointsToDefinition,
+                                    map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions) {
     while(true) {
         const PointerVariable* lhsPointer=dynamic_cast<const PointerVariable*>(lhs);
         if(lhsPointer == nullptr) {
-            assert(lhs);
-            if(lhs->getExprType() == ExprType::STRUCTVARIABLE) {
-                copyDefinitionsToStructVar(lhs, pointsToDefinitions[i]->getPointsToDefinitions(), outDefinitions);
-            }
             break;
         }
-        assert(i<pointsToDefinitions.size());
-        pair<const Definition*, bool> pointsToDefinitionPair(pointsToDefinitions[i],pointsToDefinitions[i]->isValid());
+        assert(pointsToDefinition);
+        pair<const Definition*, bool> pointsToDefinitionPair(pointsToDefinition,pointsToDefinition->isValid());
         auto definitionIt = outDefinitions.find(lhsPointer);
         if(definitionIt != outDefinitions.end()) {
             auto& definitions = outDefinitions.at(lhsPointer);
@@ -117,7 +131,15 @@ void copyDefinitionsToPointerVar(const Variable* lhs, const vector<const Definit
         }
         lhs = lhsPointer->getPointsTo();
         assert(lhs != nullptr);
-        i++;
+        const PointerDefinition* pointerDefinition = dynamic_cast<const PointerDefinition*>(pointsToDefinition);
+        assert(pointerDefinition);
+        pointsToDefinition = pointerDefinition->getPointsTo();
+    }
+    assert(pointsToDefinition);
+    if(lhs->getExprType() == ExprType::STRUCTVARIABLE) {
+        copyDefinitionsToStructVar(lhs, pointsToDefinition->getMemDefinitions(), outDefinitions);
+    } else {
+        copyDefinitionsToVar(lhs, pointsToDefinition, outDefinitions);
     }
 
 }
@@ -161,23 +183,10 @@ void copyDefinitionsToStructVar(const Variable* lhs, const vector<const Definiti
         const Variable* memVar = memVars[i];
         assert(i<pointsToDefinitions.size());
         if(memVar->getExprType() == ExprType::POINTERVARIABLE) {
-            copyDefinitionsToPointerVar(memVar, pointsToDefinitions[i]->getPointsToDefinitions(), outDefinitions);
+            copyDefinitionsToPointerVar(memVar, pointsToDefinitions[i], outDefinitions);
             continue;
         }
-        pair<const Definition*, bool> pointsToDefinitionPair(pointsToDefinitions[i],pointsToDefinitions[i]->isValid());
-        auto definitionIt = outDefinitions.find(memVar);
-        if(definitionIt != outDefinitions.end()) {
-            auto& definitions = outDefinitions.at(memVar);
-            definitions.clear();
-            definitions.push_back(pointsToDefinitionPair);
-            cout<<" replaced definition of lhs " <<*memVar <<" rhsDefinitions size " <<definitions.size() <<endl;
-        }
-        else {
-            cout<<" added definition lhs " <<*memVar << " outDefinitions size " << outDefinitions.size()<<endl;
-            vector<pair<const Definition*, bool>> v;
-            v.push_back(pointsToDefinitionPair);
-            outDefinitions.insert_or_assign(memVar, v);
-        }
+        copyDefinitionsToVar(memVar, pointsToDefinitions[i], outDefinitions);
     }
 }
 
@@ -209,49 +218,185 @@ void copyNodesToStructVar(const Variable* lhs, AssignmentNode* assignNode,
     }
 }
 
+void updateVariableGroup(const Variable* lhs, const Variable* rhs,
+                         map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                         map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
+    //find definition of rhs in the map and entry that has rhs, add lhs to that entry of variablegroup
+    //if not present, create one
+    //find definition of lhs in the map and entry that has lhs, remove lhs from entry of variable group if present
+    auto rhsDefinitionIt = outDefinitions.find(rhs);
+    if(rhsDefinitionIt == outDefinitions.end()) return;
+    vector<pair<const Definition*, bool>>& defPairs = rhsDefinitionIt->second;
+    for(int j=0; j<defPairs.size(); j++) {
+        auto variableGroupsIt = outVariableGroups.find(defPairs[j].first);
+        if(variableGroupsIt != outVariableGroups.end()) {
+            bool added = false;
+            vector<vector<const Variable*>>& outVariableGroup = (variableGroupsIt->second);
+            for(int i=0; i<outVariableGroup.size(); i++) {
+                vector<const Variable*>& outVariables = outVariableGroup[i];
+                auto variableRhsIt = std::find(outVariables.begin(), outVariables.end(),rhs);
+                if(variableRhsIt != outVariables.end()) {
+                    outVariables.push_back(lhs);
+                    added = true;
+                }
+
+                auto variableLhsIt = std::find(outVariables.begin(), outVariables.end(),lhs);
+                if(variableLhsIt != outVariables.end()) {
+                    outVariables.erase(variableLhsIt);
+                }
+
+            }
+            if(!added) { //new variable group for existing definition
+                vector<const Variable*> newVariables;
+                newVariables.push_back(lhs);
+                newVariables.push_back(rhs);
+                outVariableGroup.push_back(newVariables);
+            }
+        }
+        else { //new definition entry
+            vector<vector<const Variable*>> newVariableGroup;
+            vector<const Variable*> newVariables;
+            newVariables.push_back(lhs);
+            newVariables.push_back(rhs);
+            newVariableGroup.push_back(newVariables);
+            pair<const Definition*, vector<vector<const Variable*>>> defPair(defPairs[j].first, newVariableGroup);
+            outVariableGroups.insert(defPair);
+        }
+    }
+}
+
+void copyDefinitionsFromVar(const Variable* lhs, const Variable* rhs,
+                            map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                            map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
+    //Only for variables p
+    vector<pair<const Definition*, bool>> rhsDefinitions;
+    auto rhsDefinitionIt = outDefinitions.find(rhs);
+    if(rhsDefinitionIt != outDefinitions.end()) {
+        rhsDefinitions = outDefinitions.at(rhs);
+        cout<<" found rhsDefinitions RHS pointer " << *rhs <<
+           " rhsDefinitions size " << rhsDefinitions.size()<<endl;
+    }
+    else {
+        cout <<"not found rhsDefinitions RHS pointer" << *rhs <<endl;
+    }
+
+    auto definitionIt = outDefinitions.find(lhs);
+    if(definitionIt != outDefinitions.end()) {
+        auto& definitions = outDefinitions.at(lhs);
+        definitions.clear();
+        definitions = /*std::move*/(rhsDefinitions);
+        cout<<" replaced definition of lhs " <<*lhs <<"  "<<lhs <<
+        " rhsDefinitions size " <<definitions.size() <<endl;
+    }
+    else {
+        cout<<" added definition lhs " <<*lhs << " " <<lhs <<" outDefinitions size " << outDefinitions.size()<<endl;
+        outDefinitions.insert_or_assign(lhs, rhsDefinitions);
+    }
+}
+
+void copyDefinitionsFromVarGroup(const Variable* lhs, const Variable* rhs,
+                                        map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                                        map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
+    // find definition of lhs and entry that has lhs in the map and fetch all variables and recursively call this method.
+    auto lhsDefinitionIt = outDefinitions.find(lhs);
+    if(lhsDefinitionIt == outDefinitions.end()) { cout << "no def found " <<endl; return; }
+    vector<pair<const Definition*, bool>>& defPairs = lhsDefinitionIt->second;
+    cout <<"def pairs " <<defPairs.size() <<endl;
+    for(int j=0; j<defPairs.size(); j++) {
+        auto variableGroupsIt = outVariableGroups.find(defPairs[j].first);
+        //cout <<"outVariableGroups " <<outVariableGroups.size() << " " <<outVariableGroups.begin()->first <<" " <<defPairs[j].first <<endl;
+        if(variableGroupsIt != outVariableGroups.end()) {
+            vector<vector<const Variable*>>& outVariableGroup = (variableGroupsIt->second);
+            //cout <<"outVariable Group " <<outVariableGroup.size() <<endl;
+            for(int i=0; i<outVariableGroup.size(); i++) {
+                vector<const Variable*>& outVariables = outVariableGroup[i];
+                auto variableLhsIt = std::find(outVariables.begin(), outVariables.end(),lhs);
+                if(variableLhsIt != outVariables.end()) {
+                    //cout <<"outVariables " <<outVariables.size() <<endl;
+                    for(int k=0; k<outVariables.size(); k++) {
+                        copyDefinitionsFromVar(outVariables[k], rhs, outDefinitions, outVariableGroups);
+                        //cout <<"copy definitions from var " << *(outVariables[k]) <<endl;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void copyDefinitionsFromPointerVarGroup(const Variable* lhs, const Variable* rhs,
+                                        map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                                        map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
+    // find definition of lhs and entry that has lhs in the map and fetch all variables and recursively call this method.
+    auto lhsDefinitionIt = outDefinitions.find(lhs);
+    if(lhsDefinitionIt == outDefinitions.end()) return;
+    vector<pair<const Definition*, bool>>& defPairs = lhsDefinitionIt->second;
+    for(int j=0; j<defPairs.size(); j++) {
+        auto variableGroupsIt = outVariableGroups.find(defPairs[j].first);
+        if(variableGroupsIt != outVariableGroups.end()) {
+            vector<vector<const Variable*>>& outVariableGroup = (variableGroupsIt->second);
+            for(int i=0; i<outVariableGroup.size(); i++) {
+                vector<const Variable*>& outVariables = outVariableGroup[i];
+                auto variableLhsIt = std::find(outVariables.begin(), outVariables.end(),lhs);
+                if(variableLhsIt != outVariables.end()) {
+                    for(int k=0; k<outVariables.size(); k++) {
+                        copyDefinitionsFromPointerVar(outVariables[k], rhs, outDefinitions, outVariableGroups);
+                    }
+                }
+            }
+        }
+    }
+}
+
 void copyDefinitionsFromPointerVar(const Variable* lhs, const Variable* rhs,
-                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions) {
-     while(true) {
-         const PointerVariable* rhsPointer=dynamic_cast<const PointerVariable*>(rhs);
-         if(rhsPointer == nullptr) break;
-         const PointerVariable* lhsPointer=dynamic_cast<const PointerVariable*>(lhs);
-         if(lhsPointer == nullptr) break;
+                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                                map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
+    while(true) {
+        const PointerVariable* rhsPointer=dynamic_cast<const PointerVariable*>(rhs);
+        if(rhsPointer == nullptr) break;
+        const PointerVariable* lhsPointer=dynamic_cast<const PointerVariable*>(lhs);
+        if(lhsPointer == nullptr) break;
 
-         //Only for Pointer variables ptr_ptr_p, ptr_p
-         vector<pair<const Definition*, bool>> rhsDefinitions;
-         auto rhsDefinitionIt = outDefinitions.find(rhsPointer);
-         if(rhsDefinitionIt != outDefinitions.end()) {
-             rhsDefinitions = outDefinitions.at(rhsPointer);
-             cout<<" found rhsDefinitions RHS pointer " << *rhsPointer <<
-                   " rhsDefinitions size " << rhsDefinitions.size()<<endl;
-         }
-         else {
-             cout <<"not found rhsDefinitions RHS pointer" << *rhsPointer <<endl;
-         }
+        //Only for Pointer variables ptr_ptr_p, ptr_p
+        vector<pair<const Definition*, bool>> rhsDefinitions;
+        auto rhsDefinitionIt = outDefinitions.find(rhsPointer);
+        if(rhsDefinitionIt != outDefinitions.end()) {
+            rhsDefinitions = outDefinitions.at(rhsPointer);
+            cout<<" found rhsDefinitions RHS pointer " << *rhsPointer <<
+               " rhsDefinitions size " << rhsDefinitions.size()<<endl;
+        }
+        else {
+            cout <<"not found rhsDefinitions RHS pointer" << *rhsPointer <<endl;
+        }
 
-         auto definitionIt = outDefinitions.find(lhsPointer);
-         if(definitionIt != outDefinitions.end()) {
-             auto& definitions = outDefinitions.at(lhsPointer);
-             definitions.clear();
-             definitions = /*std::move*/(rhsDefinitions);
-             cout<<" replaced definition of lhs " <<*lhsPointer <<
-                " rhsDefinitions size " <<definitions.size() <<endl;
-         }
-         else {
-             cout<<" added definition lhs " <<*lhsPointer << " outDefinitions size " << outDefinitions.size()<<endl;
-             outDefinitions.insert_or_assign(lhsPointer, rhsDefinitions);
-         }
+        auto definitionIt = outDefinitions.find(lhsPointer);
+        if(definitionIt != outDefinitions.end()) {
+            auto& definitions = outDefinitions.at(lhsPointer);
+            definitions.clear();
+            definitions = /*std::move*/(rhsDefinitions);
+            cout<<" replaced definition of lhs " <<*lhsPointer <<
+            " rhsDefinitions size " <<definitions.size() <<endl;
+        }
+        else {
+            cout<<" added definition lhs " <<*lhsPointer << " outDefinitions size " << outDefinitions.size()<<endl;
+            outDefinitions.insert_or_assign(lhsPointer, rhsDefinitions);
+        }
 
-         rhs = rhsPointer->getPointsTo();
-         assert(rhs != nullptr);
-         lhs = lhsPointer->getPointsTo();
-         assert(lhs != nullptr);
-     }
+        rhs = rhsPointer->getPointsTo();
+        assert(rhs != nullptr);
+        lhs = lhsPointer->getPointsTo();
+        assert(lhs != nullptr);
+
+        updateVariableGroup(lhs, rhs, outDefinitions, outVariableGroups);
+    }
+    if(lhs->getExprType() == VARIABLE) {
+        copyDefinitionsFromVar(lhs, rhs, outDefinitions, outVariableGroups);
+    }
 }
 
 void copyNodesFromPointerVar(const Variable* lhs, const Variable* rhs, AssignmentNode* assignNode,
                                 map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
-                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions) {
+                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                                map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
     while(true) {
         assert(rhs != nullptr);
         assert(lhs != nullptr);
@@ -291,12 +436,13 @@ void copyNodesFromPointerVar(const Variable* lhs, const Variable* rhs, Assignmen
         lhs = lhsPointer->getPointsTo();
     }
     if(lhs->getExprType() == ExprType::STRUCTVARIABLE) {
-        visitBasicBlockHelper(lhs, rhs, assignNode, outVariableNodes, outDefinitions);
+        visitBasicBlockHelper(lhs, rhs, assignNode, outVariableNodes, outDefinitions, outVariableGroups);
     }
 }
 
 void copyDefinitionsFromStructVar(const Variable* lhs, const Variable* rhs,
-                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions) {
+                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                                map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
     const StructVariable* rhsStruct=static_cast<const StructVariable*>(rhs);
     const vector<const Variable*> rhsMemVars = rhsStruct->getMemVars();
 
@@ -335,7 +481,8 @@ void copyDefinitionsFromStructVar(const Variable* lhs, const Variable* rhs,
 
 void copyNodesFromStructVar(const Variable* lhs, const Variable* rhs, AssignmentNode* assignNode,
                                 map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
-                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions) {
+                                map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                                map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
     const StructVariable* rhsStruct=static_cast<const StructVariable*>(rhs);
     const vector<const Variable*> rhsMemVars = rhsStruct->getMemVars();
 
@@ -372,7 +519,7 @@ void copyNodesFromStructVar(const Variable* lhs, const Variable* rhs, Assignment
             outVariableNodes.insert_or_assign(lhsMemVar, rhsNodes);
         }
         if(lhsMemVar->getExprType() == ExprType::STRUCTVARIABLE || lhsMemVar->getExprType() == ExprType::POINTERVARIABLE) {
-            visitBasicBlockHelper(lhs, rhs, assignNode, outVariableNodes, outDefinitions);
+            visitBasicBlockHelper(lhs, rhs, assignNode, outVariableNodes, outDefinitions, outVariableGroups);
         }
     }
 }
@@ -427,8 +574,9 @@ void copyNodesForAddressOfOperator(const Expr* rhsExpr, AssignmentNode* assignNo
 }
 
 void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNode* assignNode,
-                                                 map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
-                                                 map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions) {
+                             map<const Variable*, vector<AssignmentNode*>>& outVariableNodes,
+                             map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                             map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
     vector<const Expr*> RHSVariables;
     assert(value);
     value->getRHSVariables(RHSVariables);
@@ -448,6 +596,27 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
             cout<<" added var " <<*var << " " << *assignNode <<endl;
             outVariableNodes.insert_or_assign(var, v);
         }
+        switch(value->getExprType()) {
+            case ExprType::CONSTANT: {
+                const Constant* constant = static_cast<const Constant*>(value);
+                copyDefinitionsToVar(var, constant->getDefinition(), outDefinitions);
+            }
+            break;
+            case ExprType::DEFINITION: {
+                 const Definition* rhsDefinition = static_cast<const Definition*>(value);
+                 copyDefinitionsToVar(var, rhsDefinition, outDefinitions);
+            }
+            break;
+            default: {
+                if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
+                cout <<"rhs pointer variable " <<endl;
+                const Expr* rhsExpr = RHSVariables[0];
+                const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
+                if(rhs==nullptr) { cout << "pointer assignment rhs cast error " <<endl; break; }
+                copyDefinitionsFromVarGroup(var, rhs, outDefinitions, outVariableGroups);
+                copyDefinitionsFromVar(var, rhs, outDefinitions, outVariableGroups);
+            }
+        }// end switch
     }
     else if(var->getExprType() == ExprType::POINTERVARIABLE || value->getExprType()==ExprType::DELETEFNCALL) {
         switch(value->getExprType()) {
@@ -480,17 +649,15 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
             break;
             case ExprType::MALLOCFNCALL: {
                     const MallocFnCall* mallocFnCall = static_cast<const MallocFnCall*>(value);
-                    const Definition* rhsDefinition = mallocFnCall->getDefinition();
-                    const vector<const Definition*>& pointsToDefinitions = rhsDefinition->getPointsToDefinitions();
-                    copyDefinitionsToPointerVar(var, pointsToDefinitions, outDefinitions);
+                    const PointerDefinition* rhsDefinition = mallocFnCall->getDefinition();
+                    copyDefinitionsToPointerVar(var, rhsDefinition, outDefinitions);
                     copyNodesToPointerVar(var, assignNode, outVariableNodes);
                 }
             break;
             case ExprType::ARRAYDEFINITION:
             case ExprType::DEFINITION: {
-                const Definition* rhsDefinition = static_cast<const Definition*>(value);
-                const vector<const Definition*>& pointsToDefinitions = rhsDefinition->getPointsToDefinitions();
-                copyDefinitionsToPointerVar(var, pointsToDefinitions, outDefinitions);
+                const PointerDefinition* rhsDefinition = static_cast<const PointerDefinition*>(value);
+                copyDefinitionsToPointerVar(var, rhsDefinition, outDefinitions);
                 copyNodesToPointerVar(var, assignNode, outVariableNodes);
             }
             break;
@@ -502,8 +669,7 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
                     case ExprType::MALLOCFNCALL: {
                              const MallocFnCall* mallocFnCall = static_cast<const MallocFnCall*>(rightOp);
                              const Definition* rhsDefinition = mallocFnCall->getDefinition();
-                             const vector<const Definition*>& pointsToDefinitions = rhsDefinition->getPointsToDefinitions();
-                             copyDefinitionsToPointerVar(var, pointsToDefinitions, outDefinitions);
+                             copyDefinitionsToPointerVar(var, rhsDefinition, outDefinitions);
                              copyNodesToPointerVar(var, assignNode, outVariableNodes);
                     }
                     break;
@@ -532,8 +698,8 @@ CopyPointerVariables:
                const Expr* rhsExpr = RHSVariables[0];
                const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
                if(rhs==nullptr) { cout << "pointer assignment rhs cast error " <<endl; break; }
-                copyDefinitionsFromPointerVar(var, rhs, outDefinitions);
-                copyNodesFromPointerVar(var, rhs, assignNode, outVariableNodes, outDefinitions);
+                copyDefinitionsFromPointerVar(var, rhs, outDefinitions, outVariableGroups);
+                copyNodesFromPointerVar(var, rhs, assignNode, outVariableNodes, outDefinitions, outVariableGroups);
            }
         } //switch end
     }
@@ -541,7 +707,7 @@ CopyPointerVariables:
         switch(value->getExprType()) {
             case ExprType::DEFINITION: {
                  const Definition* rhsDefinition = static_cast<const Definition*>(value);
-                 const vector<const Definition*>& pointsToDefinitions = rhsDefinition->getPointsToDefinitions();
+                 const vector<const Definition*>& pointsToDefinitions = rhsDefinition->getMemDefinitions();
                  copyDefinitionsToStructVar(var, pointsToDefinitions, outDefinitions);
                  copyNodesToStructVar(var, assignNode, outVariableNodes);
             }
@@ -552,17 +718,19 @@ CopyPointerVariables:
                 const Expr* rhsExpr = RHSVariables[0];
                 const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
                 if(rhs==nullptr) { cout << "pointer assignment rhs cast error " <<endl; break; }
-                copyDefinitionsFromStructVar(var, rhs, outDefinitions);
-                copyNodesFromStructVar(var, rhs, assignNode, outVariableNodes, outDefinitions);
+                copyDefinitionsFromStructVar(var, rhs, outDefinitions, outVariableGroups);
+                copyNodesFromStructVar(var, rhs, assignNode, outVariableNodes, outDefinitions, outVariableGroups);
             }
         }// end switch
     }
 }
 
 VariableInitCheckVisitor::VariableInitCheckVisitor(map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>>& inVariableNodes,
-                                                   map<BasicBlock*, map<const Variable*, vector<pair<const Definition*, bool>>>>& inDefinitions) {
+                                                   map<BasicBlock*, map<const Variable*, vector<pair<const Definition*, bool>>>>& inDefinitions,
+                                                   map<BasicBlock*, map<const Definition*, vector<vector<const Variable*>>>>& inVariableGroups) {
     p_inVariableNodes = std::move(inVariableNodes);
     p_inDefinitions = std::move(inDefinitions);
+    p_inVariableGroups = std::move(inVariableGroups);
 }
 
 VariableInitCheckVisitor::~VariableInitCheckVisitor() {
@@ -572,6 +740,7 @@ VariableInitCheckVisitor::~VariableInitCheckVisitor() {
 void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
     map<const Variable*, vector<AssignmentNode*>> outVariableNodes = p_inVariableNodes.at(basicBlock);
     map<const Variable*, vector<pair<const Definition*, bool>>> outDefinitions = p_inDefinitions.at(basicBlock);
+    map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups = p_inVariableGroups.at(basicBlock);
 
     cout <<"Beginning of Block: variableNodes size " <<outVariableNodes.size() <<endl <<endl;
     bool found = false;
@@ -679,6 +848,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                     }
                 }
                 else {
+                    cout <<"Definition not found " <<endl;
                     found = false;
                 }
             }
@@ -691,7 +861,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                 strncat(r.errorMessage,m,strlen(m));
                 strncat(r.errorMessage,name,strlen(name));
                 r.errorMessage[strlen(m)+strlen(name)] = '\0';
-                cout << "Error message: " <<r.errorMessage << " " <<*variable <<endl <<endl;
+                cout << "Error message: " <<r.errorMessage << " " <<*variable <<" " <<variable <<endl <<endl;
                 p_results.push_back(r);
             }
         }
@@ -702,7 +872,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
             if (var==nullptr) { cout <<"var null cast error " <<endl; continue; }
             cout <<"LHS variable " << **variableIt <<" LHS Var size " << LHSVariables.size()
                 << " RHS Var size "<<RHSVariables.size() <<endl;
-            visitBasicBlockHelper(var, value, assignNode, outVariableNodes, outDefinitions);
+            visitBasicBlockHelper(var, value, assignNode, outVariableNodes, outDefinitions, outVariableGroups);
         }
     }
     cout <<"End of Block: variableNodes size " <<outVariableNodes.size() <<" definitions size " <<

@@ -859,10 +859,15 @@ AssignStmt* InstrParser::parseInitDeclarator(Block* block) {
     }
     else {
         if(declType == DeclType::ARRAYDECL) {
-            value = new ArrayDefinition(false);
+            value = new ArrayDefinition(true);
         }
-        else {
-            value = new Definition(false);
+        else if(declType == DeclType::VARDECL) {
+            if(var->getIdentifierType() == IdentifierType::POINTERIDENTIFIER) {
+                value = new PointerDefinition(false);
+            }
+            else {
+                value = new Definition(false);
+            }
         }
     }
     assignStmt = new AssignStmt(DECL, var, value);
