@@ -1,15 +1,15 @@
 //array traversal
 #include <cstdio>
-void printArray(int *arr) {
+void printArray(int *arr2) {
     for(int i=0; i<5; i=i+1) {
         //printf("%d", arr[i]);
     }
     return;
 }
 
-void populateArray(int *arr) {
+void populateArray(int *arr1) {
     for(int i=0; i<5; i=i+1) {
-        arr[i] =i;
+        arr1[i] =i;
     }
     return;
 }

@@ -32,7 +32,9 @@ void fun(int **i) {
     }
 }
 int main(int argc) {
-    int **m;
-    *m = argc;
+    int **m=malloc(8);
+    int a=2;
+    *m = malloc(8);
+    *(*m) = a;
     fun(m) ;
 }

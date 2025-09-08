@@ -1,4 +1,4 @@
-// Function pointer assigned addressOf function name
+// Function pointer assigned function name
 void fun(int **i) {
     int a = 2*3 ;
     int b = 2;

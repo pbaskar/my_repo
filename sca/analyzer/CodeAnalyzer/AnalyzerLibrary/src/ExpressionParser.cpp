@@ -146,7 +146,8 @@ Expr* ExpressionParser::parsePrimaryExpression() {
     return primaryExpr;
 }
 
-void ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprPrime, ExprType& type) {
+Status ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprPrime, ExprType& type) {
+    Status status = SUCCESS;
     char o = p_exprTokenizer.nextChar(true);
     if(o == '(') {
         type = FUNCTIONCALL;
@@ -164,7 +165,7 @@ void ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprPri
         Expr* operand = !postFixExprPrime.empty() ?  postFixExprPrime.back() : nullptr;
         DereferenceOperator* dereferenceOperator = new DereferenceOperator("Deref", operand);
         postFixExprPrime.push_back(dereferenceOperator);
-
+        parsePostFixExpressionPrime(postFixExprPrime, type);
     }
     else if (o == '.') {
         type = DOTOPERATOR;
@@ -172,7 +173,7 @@ void ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprPri
         Expr* expr = parsePrimaryExpression();
         Identifier* identifier = dynamic_cast<Identifier*>(expr);
         if(!identifier) {
-            cout << "Non identifier in dot operator " <<endl; return;
+            cout << "Non identifier in dot operator " <<endl; return status;
         }
         Expr* postFixExpr = nullptr;
 
@@ -194,7 +195,7 @@ void ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprPri
         Expr* expr = parsePrimaryExpression();
         Identifier* identifier = dynamic_cast<Identifier*>(expr);
         if(!identifier) {
-            cout << "Non identifier in dot operator " <<endl; return;
+            cout << "Non identifier in dot operator " <<endl; return status;
         }
         Expr* postFixExpr = nullptr;
 
@@ -208,12 +209,14 @@ void ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprPri
         }
         postFixExprPrime.push_back(postFixExpr);
     }
+    return status;
 }
 
 Expr* ExpressionParser::parsePostFixExpression() {
     Expr* primaryExpr = parsePrimaryExpression();
     Expr* postFixExpr = nullptr;
 
+    //cout <<"primaryexpr " <<*primaryExpr <<endl;
     if(!primaryExpr)
         return nullptr;
     ExprType type=ExprType::INVALID;
@@ -249,7 +252,7 @@ Expr* ExpressionParser::parsePostFixExpression() {
             postFixExpr = dotOperator;
             break;
         }
-    case POINTEROPERATOR: {
+        case POINTEROPERATOR: {
             DotOperator* dotOperator = static_cast<DotOperator*>(postFixExprPrime.front());
             Identifier* identifier = dynamic_cast<Identifier*>(primaryExpr);
             if(!identifier) {
@@ -295,7 +298,7 @@ Expr* ExpressionParser::parseAssignmentExpression() {
     Expr* leftOp = parseUnaryExpression();
     char op = p_exprTokenizer.nextChar(true);
     if(op == '\0') {
-        cout <<"unary expresson " <<leftOp <<endl;
+        //cout <<"unary expresson " <<leftOp <<endl;
         return leftOp;
     }
 

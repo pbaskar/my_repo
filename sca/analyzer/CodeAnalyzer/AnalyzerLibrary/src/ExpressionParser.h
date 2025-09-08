@@ -10,6 +10,7 @@
 
 #include "ExpressionTokenizer.h"
 #include "SymbolTable.h"
+#include "Results.h"
 
 class ExpressionParser {
 public:
@@ -22,7 +23,7 @@ public:
     Expr* parseAssignmentExpression();
     Expr* parseUnaryExpression();
     Expr* parsePostFixExpression();
-    void parsePostFixExpressionPrime(vector<Expr*>& postFixExprPrime, ExprType& type);
+    Status parsePostFixExpressionPrime(vector<Expr*>& postFixExprPrime, ExprType& type);
     Expr* parsePrimaryExpression();
     void parseArgumentExpressionList(vector<Expr*>& argumentExprList);
     Expr* parseMultiplicativeExpression();

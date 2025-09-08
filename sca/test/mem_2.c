@@ -1,0 +1,25 @@
+#include<cstdio>
+
+int allocate(int **r) {
+	int **q;
+	int *c=malloc(8);
+	int *b;
+	b=c;
+	if(r) {
+		q = malloc(8);
+	}
+	else {
+		int j;
+	}
+	delete(q);
+	*r = b;
+	r=q;
+}
+
+
+int main() {
+	int **p = malloc(8);
+	int a;
+	allocate(p);
+	a = *(*p);
+}

@@ -223,7 +223,6 @@ void updateVariableGroup(const Variable* lhs, const Variable* rhs,
                          map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
     //find definition of rhs in the map and entry that has rhs, add lhs to that entry of variablegroup
     //if not present, create one
-    //find definition of lhs in the map and entry that has lhs, remove lhs from entry of variable group if present
     auto rhsDefinitionIt = outDefinitions.find(rhs);
     if(rhsDefinitionIt == outDefinitions.end()) return;
     vector<pair<const Definition*, bool>>& defPairs = rhsDefinitionIt->second;
@@ -239,12 +238,6 @@ void updateVariableGroup(const Variable* lhs, const Variable* rhs,
                     outVariables.push_back(lhs);
                     added = true;
                 }
-
-                auto variableLhsIt = std::find(outVariables.begin(), outVariables.end(),lhs);
-                if(variableLhsIt != outVariables.end()) {
-                    outVariables.erase(variableLhsIt);
-                }
-
             }
             if(!added) { //new variable group for existing definition
                 vector<const Variable*> newVariables;
@@ -263,6 +256,57 @@ void updateVariableGroup(const Variable* lhs, const Variable* rhs,
             outVariableGroups.insert(defPair);
         }
     }
+
+    //find definition of lhs in the map and entry that has lhs, remove lhs from entry of variable group if present
+    auto lhsDefinitionIt = outDefinitions.find(lhs);
+    if(lhsDefinitionIt == outDefinitions.end()) return;
+    vector<pair<const Definition*, bool>>& lhsDefPairs = lhsDefinitionIt->second;
+    for(int j=0; j<lhsDefPairs.size(); j++) {
+        auto variableGroupsIt = outVariableGroups.find(lhsDefPairs[j].first);
+        if(variableGroupsIt != outVariableGroups.end()) {
+            bool added = false;
+            vector<vector<const Variable*>>& outVariableGroup = (variableGroupsIt->second);
+            for(auto variableGroupIt=outVariableGroup.begin(); variableGroupIt != outVariableGroup.end(); variableGroupIt++) {
+                vector<const Variable*>& outVariables = *variableGroupIt;
+
+                auto variableLhsIt = std::find(outVariables.begin(), outVariables.end(),lhs);
+                if(variableLhsIt != outVariables.end()) {
+                    outVariables.erase(variableLhsIt);
+                    if(outVariables.empty()) {
+                        outVariableGroup.erase(variableGroupIt);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void updateVariableGroupDef(const vector<const Variable*>& outVariables, const Variable* rhs,
+                            map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                            map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
+    //add variable group to the entry corresponding to rhs definition in outVariableGroup
+
+    auto rhsDefinitionIt = outDefinitions.find(rhs);
+    if(rhsDefinitionIt == outDefinitions.end()) { cout << "rhs no def found " <<endl; return; }
+    vector<pair<const Definition*, bool>>& rhsDefPairs = rhsDefinitionIt->second;
+    cout <<"rhs def pairs " <<rhsDefPairs.size() <<endl;
+    for(int j=0; j<rhsDefPairs.size(); j++) {
+        auto variableGroupsIt = outVariableGroups.find(rhsDefPairs[j].first);
+        cout <<"outVariableGroups " <<outVariableGroups.size() << " " <<outVariableGroups.begin()->first <<" " <<rhsDefPairs[j].first <<endl;
+        if(variableGroupsIt != outVariableGroups.end()) {
+            vector<vector<const Variable*>>& outVariableGroup = (variableGroupsIt->second);
+            cout <<"outVariable Group " <<outVariableGroup.size() <<endl;
+            outVariableGroup.push_back(outVariables);
+            break;
+        } else {
+            vector<vector<const Variable*>> outVariableGroup;
+            outVariableGroup.push_back(outVariables);
+            pair<const Definition*, vector<vector<const Variable*>>> p(rhsDefPairs[j].first, outVariableGroup);
+            outVariableGroups.insert(p);
+        }
+    }
+
 }
 
 void copyDefinitionsFromVar(const Variable* lhs, const Variable* rhs,
@@ -273,7 +317,7 @@ void copyDefinitionsFromVar(const Variable* lhs, const Variable* rhs,
     auto rhsDefinitionIt = outDefinitions.find(rhs);
     if(rhsDefinitionIt != outDefinitions.end()) {
         rhsDefinitions = outDefinitions.at(rhs);
-        cout<<" found rhsDefinitions RHS pointer " << *rhs <<
+        cout<<" found rhsDefinitions RHS variable " << *rhs <<
            " rhsDefinitions size " << rhsDefinitions.size()<<endl;
     }
     else {
@@ -308,15 +352,21 @@ void copyDefinitionsFromVarGroup(const Variable* lhs, const Variable* rhs,
         if(variableGroupsIt != outVariableGroups.end()) {
             vector<vector<const Variable*>>& outVariableGroup = (variableGroupsIt->second);
             //cout <<"outVariable Group " <<outVariableGroup.size() <<endl;
-            for(int i=0; i<outVariableGroup.size(); i++) {
-                vector<const Variable*>& outVariables = outVariableGroup[i];
+            for(int i=0; i<outVariableGroup.size();) {
+                vector<const Variable*> outVariables = outVariableGroup[i];
+                updateVariableGroupDef(outVariables, rhs, outDefinitions, outVariableGroups);
                 auto variableLhsIt = std::find(outVariables.begin(), outVariables.end(),lhs);
                 if(variableLhsIt != outVariables.end()) {
                     //cout <<"outVariables " <<outVariables.size() <<endl;
+                    outVariableGroup.erase(outVariableGroup.begin()+i);
                     for(int k=0; k<outVariables.size(); k++) {
                         copyDefinitionsFromVar(outVariables[k], rhs, outDefinitions, outVariableGroups);
-                        //cout <<"copy definitions from var " << *(outVariables[k]) <<endl;
+                        cout <<"copy definitions from var " << *(outVariables[k]) <<endl;
                     }
+                    break;
+                }
+                else {
+                    i++;
                 }
             }
         }
@@ -334,13 +384,20 @@ void copyDefinitionsFromPointerVarGroup(const Variable* lhs, const Variable* rhs
         auto variableGroupsIt = outVariableGroups.find(defPairs[j].first);
         if(variableGroupsIt != outVariableGroups.end()) {
             vector<vector<const Variable*>>& outVariableGroup = (variableGroupsIt->second);
-            for(int i=0; i<outVariableGroup.size(); i++) {
-                vector<const Variable*>& outVariables = outVariableGroup[i];
+            for(int i=0; i < outVariableGroup.size();) {
+                vector<const Variable*> outVariables = outVariableGroup[i];
+                updateVariableGroupDef(outVariables, rhs, outDefinitions, outVariableGroups);
                 auto variableLhsIt = std::find(outVariables.begin(), outVariables.end(),lhs);
                 if(variableLhsIt != outVariables.end()) {
+                    outVariableGroup.erase(outVariableGroup.begin()+i);
                     for(int k=0; k<outVariables.size(); k++) {
                         copyDefinitionsFromPointerVar(outVariables[k], rhs, outDefinitions, outVariableGroups);
+                        cout <<"copy definitions from pointer var " << *(outVariables[k]) <<endl;
                     }
+                    break;
+                }
+                else {
+                    i++;
                 }
             }
         }
@@ -602,17 +659,54 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
                 copyDefinitionsToVar(var, constant->getDefinition(), outDefinitions);
             }
             break;
+            case ExprType::OPERATOR: {
+                const Operator* binaryOperator = static_cast<const Operator*>(value);
+                copyDefinitionsToVar(var, binaryOperator->getDefinition(), outDefinitions);
+            }
+            break;
+            case ExprType::UNARYOPERATOR: {
+                const UnaryOperator* unaryOperator = static_cast<const UnaryOperator*>(value);
+                copyDefinitionsToVar(var, unaryOperator->getDefinition(), outDefinitions);
+            }
+            break;
             case ExprType::DEFINITION: {
                  const Definition* rhsDefinition = static_cast<const Definition*>(value);
                  copyDefinitionsToVar(var, rhsDefinition, outDefinitions);
             }
             break;
+            case ExprType::ASSIGNOPERATOR: {
+                const AssignOperator* rhs = static_cast<const AssignOperator*>(value);
+                const Expr* rightOp = rhs->getRightOp();
+                assert(rightOp != nullptr);
+                switch(rightOp->getExprType()) {
+                    case ExprType::CONSTANT: {
+                        const Constant* constant = static_cast<const Constant*>(rightOp);
+                        copyDefinitionsToVar(var, constant->getDefinition(), outDefinitions);
+                    }
+                    break;
+                    case ExprType::OPERATOR: {
+                        const Operator* binaryOperator = static_cast<const Operator*>(rightOp);
+                        copyDefinitionsToVar(var, binaryOperator->getDefinition(), outDefinitions);
+                    }
+                    break;
+                    case ExprType::UNARYOPERATOR: {
+                        const UnaryOperator* unaryOperator = static_cast<const UnaryOperator*>(rightOp);
+                        copyDefinitionsToVar(var, unaryOperator->getDefinition(), outDefinitions);
+                    }
+                    break;
+                    default:
+                        goto CopyVariables;
+                    break;
+                }
+            }
+            break;
+CopyVariables:
             default: {
-                if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
-                cout <<"rhs pointer variable " <<endl;
+                if(RHSVariables.empty()) { cout <<"RHS variables empty"<<endl; break; }
+                cout <<"rhs variable " <<endl;
                 const Expr* rhsExpr = RHSVariables[0];
                 const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
-                if(rhs==nullptr) { cout << "pointer assignment rhs cast error " <<endl; break; }
+                if(rhs==nullptr) { cout << "var rhs cast error " <<endl; break; }
                 copyDefinitionsFromVarGroup(var, rhs, outDefinitions, outVariableGroups);
                 copyDefinitionsFromVar(var, rhs, outDefinitions, outVariableGroups);
             }
@@ -621,7 +715,7 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
     else if(var->getExprType() == ExprType::POINTERVARIABLE || value->getExprType()==ExprType::DELETEFNCALL) {
         switch(value->getExprType()) {
             case ExprType::DELETEFNCALL: {
-               if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
+               if(RHSVariables.empty()) { cout <<"RHS variables empty"<<endl; break; }
                const Expr* rhsExpr = RHSVariables[0];
                const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
                if(rhs==nullptr) { cout << "pointer assignment rhs cast error " <<endl; break; }
@@ -654,6 +748,7 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
                     copyNodesToPointerVar(var, assignNode, outVariableNodes);
                 }
             break;
+            case ExprType::POINTERDEFINITION:
             case ExprType::ARRAYDEFINITION:
             case ExprType::DEFINITION: {
                 const PointerDefinition* rhsDefinition = static_cast<const PointerDefinition*>(value);
@@ -674,7 +769,7 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
                     }
                     break;
                     case ExprType::ADDRESSOFOPERATOR: {
-                        if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
+                        if(RHSVariables.empty()) { cout <<"RHS variables empty"<<endl; break; }
                         const Expr* rhsExpr = RHSVariables[0];
                         assert(rhsExpr != nullptr);
                         copyNodesForAddressOfOperator(rhsExpr, assignNode, outVariableNodes, outDefinitions);
@@ -684,7 +779,7 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
                 } //switch end
             }
             case ExprType::ADDRESSOFOPERATOR: {
-                if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
+                if(RHSVariables.empty()) { cout <<"RHS variables empty"<<endl; break; }
                 const Expr* rhsExpr = RHSVariables[0];
                 assert(rhsExpr != nullptr);
                 copyNodesForAddressOfOperator(var, assignNode, outVariableNodes, outDefinitions);
@@ -693,13 +788,14 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
             //PointerVariable, Dereference Operator, AddressOfOperator
 CopyPointerVariables:
             default: {
-               if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
+               if(RHSVariables.empty()) { cout <<"RHS variables empty"<<endl; break; }
                cout <<"rhs pointer variable " <<endl;
                const Expr* rhsExpr = RHSVariables[0];
                const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
                if(rhs==nullptr) { cout << "pointer assignment rhs cast error " <<endl; break; }
-                copyDefinitionsFromPointerVar(var, rhs, outDefinitions, outVariableGroups);
-                copyNodesFromPointerVar(var, rhs, assignNode, outVariableNodes, outDefinitions, outVariableGroups);
+               copyDefinitionsFromPointerVarGroup(var, rhs, outDefinitions, outVariableGroups);
+               copyDefinitionsFromPointerVar(var, rhs, outDefinitions, outVariableGroups);
+               copyNodesFromPointerVar(var, rhs, assignNode, outVariableNodes, outDefinitions, outVariableGroups);
            }
         } //switch end
     }
@@ -713,7 +809,7 @@ CopyPointerVariables:
             }
             break;
             default: {
-                if(RHSVariables.empty()) { cout <<"RHS variables empty"; break; }
+                if(RHSVariables.empty()) { cout <<"RHS variables empty"<<endl; break; }
                 cout <<"rhs pointer variable " <<endl;
                 const Expr* rhsExpr = RHSVariables[0];
                 const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
@@ -770,7 +866,8 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
         const Variable* var = assignNode->getVariable();
         if(var) {
             LHSVariables.push_back(var);
-            if(value->getExprType() == ExprType::DEFINITION) {
+            if(value->getExprType() == ExprType::DEFINITION ||
+                    value->getExprType() == ExprType::POINTERDEFINITION) {
                 const Definition* def = static_cast<const Definition*>(value);
                 if(!def->isValid()) {
                     const char* m = "Not defined ";
@@ -781,13 +878,13 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                     strncat(r.errorMessage,m,strlen(m));
                     strncat(r.errorMessage,name,strlen(name));
                     r.errorMessage[strlen(m)+strlen(name)] = '\0';
-                    cout <<"Error message: Declaration " <<r.errorMessage << " " <<*var <<endl<<endl;
+                    cout <<endl<<endl<<"Error message: Declaration " <<r.errorMessage << " " <<*var <<endl;
                     p_results.push_back(r);
                 }
             }
         }
 
-        cout <<"RHS value " << *value <<" variables count " <<RHSVariables.size() <<endl;
+        cout <<endl <<endl <<"RHS value " << *value <<" variables count " <<RHSVariables.size() <<endl;
 
 
         //Check nodes and definitions for invalid assignments and definitions

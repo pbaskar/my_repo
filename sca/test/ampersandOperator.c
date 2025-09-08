@@ -36,7 +36,7 @@ void fun(int **i) {
 }
 int main(int argc) {
     int a;
-    int *k=malloc(8);
+    int **k=malloc(8);
     int **m=*(&k);
     fun(m) ;
     delete(k);

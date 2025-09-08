@@ -91,8 +91,8 @@ void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, map<const Variable
                 auto inVariableGroupIt = inVariableGroups.find(variableGroupIt->first);
                 if(inVariableGroupIt != inVariableGroups.end()) {
                     auto& inVariableGroups_r = inVariableGroupIt->second;
-                    inVariableGroups_r.insert(inVariableGroups_r.end(),inVariableGroupIt->second.begin(),
-                                                     inVariableGroupIt->second.end());
+                    inVariableGroups_r.insert(inVariableGroups_r.end(),variableGroupIt->second.begin(),
+                                                     variableGroupIt->second.end());
                     sort(inVariableGroups_r.begin(), inVariableGroups_r.end());
                     auto it = unique(inVariableGroups_r.begin(), inVariableGroups_r.end());
                     inVariableGroups_r.resize(distance(inVariableGroups_r.begin(), it));
@@ -100,7 +100,15 @@ void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, map<const Variable
                     cout << "Meet :: VariableGroup appended " <<*(inVariableGroupIt->first) <<" size " <<inVariableGroups_r.size()<<endl;
                 }
                 else {
-                    cout << "Meet :: VariableGroup added " <<*(variableGroupIt->first)<<endl;
+                    cout << "Meet :: VariableGroup added " <<*(variableGroupIt->first)
+                         <<" " <<variableGroupIt->second.size() <<endl;
+                    if(variableGroupIt->second.size() > 0) {
+                        cout << "first " <<variableGroupIt->second[0].size() <<endl;
+                        for(const Variable* var : variableGroupIt->second[0]) {
+                            cout <<*var <<", ";
+                        }
+                        cout <<endl;
+                    }
                     inVariableGroups[variableGroupIt->first] = variableGroupIt->second;
                 }
             }

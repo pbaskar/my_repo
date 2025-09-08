@@ -9,7 +9,7 @@ void fun(int i) {
     int g = 0;
     int **p;
     int *q;
-    *p = *q;
+    *p = q;
     sum = a*b+c ;
     while(2) {
         sum = a+b+c+*(*p);

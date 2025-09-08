@@ -19,7 +19,6 @@ enum ExprType {
     DEFINITION,
     POINTERDEFINITION,
     ARRAYDEFINITION,
-    STRUCTDEFINITION,
     CONSTANT,
     VARIABLE,
     FUNCTIONVARIABLE,
@@ -66,125 +65,6 @@ public:
         expr.print(os);
         return os;
     }
-};
-
-class Operator : public Expr {
-public:
-    Operator(Expr* l, char o, Expr* r): p_left(l), p_op(o), p_right(r) {}
-    virtual ~Operator() {
-        delete p_left;
-        delete p_right;
-    }
-    virtual ExprType getExprType() const { return OPERATOR; }
-    void setLeftOp(Expr* left) { p_left = left; }
-    void setRightOp(Expr* right) { p_right = right; }
-    void setOp(char op) { p_op = op; }
-    virtual void print(ostream& os) const{
-        os<< *p_left <<p_op << " " <<*p_right;
-    }
-    virtual void getRHSVariables(vector<const Expr*>& variables) const {
-        p_left->getRHSVariables(variables);
-        p_right->getRHSVariables(variables);
-    }
-    virtual void getLHS(vector<const Expr*>& variables) const {
-        p_left->getLHS(variables);
-        p_right->getLHS(variables);
-    }
-    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {
-        p_left->getDerefIdentifiers(derefIdentifiers);
-        p_right->getDerefIdentifiers(derefIdentifiers);
-    }
-    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
-        p_left->getFunctionCalls(functionCalls);
-        p_right->getFunctionCalls(functionCalls);
-    }
-    virtual void populateVariable(SymbolTable* symbolTable) {
-        p_left->populateVariable(symbolTable);
-        p_right->populateVariable(symbolTable);
-    }
-    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable, const Expr* structVar=nullptr) {
-        return p_left->populateDerefVariable(symbolTable);
-    }
-    virtual const char* getPointedName() {
-        return p_left->getPointedName();
-    }
-private:
-    Expr* p_left;
-    char p_op;
-    Expr* p_right;
-};
-
-class AssignOperator : public Expr {
-public:
-    AssignOperator(Expr* l, char o, Expr* r): p_left(l), p_op(o), p_right(r) {}
-    virtual ~AssignOperator() {
-        delete p_left;
-        delete p_right;
-    }
-    virtual ExprType getExprType() const { return ASSIGNOPERATOR; }
-    void setLeftOp(Expr* left) { p_left = left; }
-    void setRightOp(Expr* right) { p_right = right; }
-    const Expr* getLeftOp() const { return p_left; }
-    const Expr* getRightOp() const { return p_right; }
-    Expr* toSimplifyRightOp() { return p_right; }
-    void setOp(char op) { p_op = op; }
-    virtual void print(ostream& os) const{
-        os<< *p_left <<p_op << " " <<*p_right;
-    }
-    virtual void getRHSVariables(vector<const Expr*>& variables) const {
-        p_right->getRHSVariables(variables);
-    }
-    virtual void getLHS(vector<const Expr*>& variables) const {
-        variables.push_back(p_left);
-    }
-    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {
-        p_left->getDerefIdentifiers(derefIdentifiers);
-        p_right->getDerefIdentifiers(derefIdentifiers);
-    }
-    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
-        p_left->getFunctionCalls(functionCalls);
-        p_right->getFunctionCalls(functionCalls);
-    }
-    virtual void populateVariable(SymbolTable* symbolTable) {
-        p_left->populateVariable(symbolTable);
-        p_right->populateVariable(symbolTable);
-    }
-private:
-    Expr* p_left;
-    char p_op;
-    Expr* p_right;
-};
-
-class UnaryOperator : public Expr {
-public:
-    UnaryOperator(char o, Expr* r): p_op(o), p_right(r) {}
-    virtual ~UnaryOperator() {
-        delete p_right;
-    }
-    virtual ExprType getExprType() const { return UNARYOPERATOR; }
-    void setRightOp(Expr* right) { p_right = right; }
-    void setOp(char op) { p_op = op; }
-    virtual void print(ostream& os) const{
-        os<< p_op <<*p_right;
-    }
-    virtual void getRHSVariables(vector<const Expr*>& variables) const {
-        p_right->getRHSVariables(variables);
-    }
-    virtual void getLHS(vector<const Expr*>& variables) const {
-        p_right->getLHS(variables);
-    }
-    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {
-        p_right->getDerefIdentifiers(derefIdentifiers);
-    }
-    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
-        p_right->getFunctionCalls(functionCalls);
-    }
-    virtual void populateVariable(SymbolTable* symbolTable) {
-        p_right->populateVariable(symbolTable);
-    }
-private:
-    char p_op;
-    Expr* p_right;
 };
 
 class Definition : public Expr {
@@ -235,6 +115,135 @@ public:
     }
     virtual ExprType getExprType() const { return ARRAYDEFINITION; }
 private:
+};
+
+class Operator : public Expr {
+public:
+    Operator(Expr* l, char o, Expr* r): p_left(l), p_op(o), p_right(r) {
+        p_definition = new Definition(true);
+    }
+    virtual ~Operator() {
+        delete p_left;
+        delete p_right;
+        delete p_definition;
+    }
+    virtual ExprType getExprType() const { return OPERATOR; }
+    const Definition* getDefinition() const { return p_definition; }
+    void setLeftOp(Expr* left) { p_left = left; }
+    void setRightOp(Expr* right) { p_right = right; }
+    void setOp(char op) { p_op = op; }
+    virtual void print(ostream& os) const{
+        os<< *p_left <<p_op << " " <<*p_right;
+    }
+    virtual void getRHSVariables(vector<const Expr*>& variables) const {
+        p_left->getRHSVariables(variables);
+        p_right->getRHSVariables(variables);
+    }
+    virtual void getLHS(vector<const Expr*>& variables) const {
+        p_left->getLHS(variables);
+        p_right->getLHS(variables);
+    }
+    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {
+        p_left->getDerefIdentifiers(derefIdentifiers);
+        p_right->getDerefIdentifiers(derefIdentifiers);
+    }
+    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
+        p_left->getFunctionCalls(functionCalls);
+        p_right->getFunctionCalls(functionCalls);
+    }
+    virtual void populateVariable(SymbolTable* symbolTable) {
+        p_left->populateVariable(symbolTable);
+        p_right->populateVariable(symbolTable);
+    }
+    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable, const Expr* structVar=nullptr) {
+        return p_left->populateDerefVariable(symbolTable);
+    }
+    virtual const char* getPointedName() {
+        return p_left->getPointedName();
+    }
+private:
+    Expr* p_left;
+    char p_op;
+    Expr* p_right;
+    Definition* p_definition;
+};
+
+class AssignOperator : public Expr {
+public:
+    AssignOperator(Expr* l, char o, Expr* r): p_left(l), p_op(o), p_right(r) {}
+    virtual ~AssignOperator() {
+        delete p_left;
+        delete p_right;
+    }
+    virtual ExprType getExprType() const { return ASSIGNOPERATOR; }
+    void setLeftOp(Expr* left) { p_left = left; }
+    void setRightOp(Expr* right) { p_right = right; }
+    const Expr* getLeftOp() const { return p_left; }
+    const Expr* getRightOp() const { return p_right; }
+    Expr* toSimplifyRightOp() { return p_right; }
+    void setOp(char op) { p_op = op; }
+    virtual void print(ostream& os) const{
+        os<< *p_left <<p_op << " " <<*p_right;
+    }
+    virtual void getRHSVariables(vector<const Expr*>& variables) const {
+        p_right->getRHSVariables(variables);
+    }
+    virtual void getLHS(vector<const Expr*>& variables) const {
+        variables.push_back(p_left);
+    }
+    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {
+        p_left->getDerefIdentifiers(derefIdentifiers);
+        p_right->getDerefIdentifiers(derefIdentifiers);
+    }
+    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
+        p_left->getFunctionCalls(functionCalls);
+        p_right->getFunctionCalls(functionCalls);
+    }
+    virtual void populateVariable(SymbolTable* symbolTable) {
+        p_left->populateVariable(symbolTable);
+        p_right->populateVariable(symbolTable);
+    }
+private:
+    Expr* p_left;
+    char p_op;
+    Expr* p_right;
+};
+
+class UnaryOperator : public Expr {
+public:
+    UnaryOperator(char o, Expr* r): p_op(o), p_right(r) {
+        p_definition = new Definition(true);
+    }
+    virtual ~UnaryOperator() {
+        delete p_right;
+        delete p_definition;
+    }
+    virtual ExprType getExprType() const { return UNARYOPERATOR; }
+    const Definition* getDefinition() const { return p_definition; }
+    void setRightOp(Expr* right) { p_right = right; }
+    void setOp(char op) { p_op = op; }
+    virtual void print(ostream& os) const{
+        os<< p_op <<*p_right;
+    }
+    virtual void getRHSVariables(vector<const Expr*>& variables) const {
+        p_right->getRHSVariables(variables);
+    }
+    virtual void getLHS(vector<const Expr*>& variables) const {
+        p_right->getLHS(variables);
+    }
+    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) {
+        p_right->getDerefIdentifiers(derefIdentifiers);
+    }
+    virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
+        p_right->getFunctionCalls(functionCalls);
+    }
+    virtual void populateVariable(SymbolTable* symbolTable) {
+        p_right->populateVariable(symbolTable);
+    }
+private:
+    char p_op;
+    Expr* p_right;
+    Definition* p_definition;
 };
 
 class Variable : public Expr {
