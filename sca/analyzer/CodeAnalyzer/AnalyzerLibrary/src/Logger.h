@@ -39,6 +39,10 @@ public:
         return &logger;
     }
 
+    static ofstream& getDebugStreamInstance() {
+        static ofstream p_debug;
+        return p_debug;
+    }
     static void logMessage(ErrorCode errorCode, int args, ...);
 
 private:

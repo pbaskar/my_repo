@@ -14,7 +14,7 @@ using namespace std;
 Logger::Logger() {
     // TODO Auto-generated constructor stub
     p_of.open("error.log");
-    cout <<"debug log created " <<p_of.is_open() <<endl;
+    cout <<"error log created " <<p_of.is_open() <<endl;
 }
 
 Logger::~Logger() {

@@ -12,6 +12,7 @@
 #include "ControlFlowGraph.h"
 using namespace std;
 #include "analyzer.h"
+#include "Logger.h"
 
 Analyzer::Analyzer() {
     // TODO Auto-generated constructor stub
@@ -47,6 +48,8 @@ Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead) {
 
 Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
     //char* fileName = "C:\\workspace\\my_repo\\sca\\test\\instructions.c";
+    Logger::getDebugStreamInstance().open("debug.log");
+    Logger::getDebugStreamInstance() << "Logging..." <<endl;
     InstrParser instrParser;
     Status s = instrParser.parseFile(fileName);
 
@@ -93,5 +96,6 @@ Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
     instrParser.clear();
     cout << "********************************** InstrParser Clear done ****************************************" <<endl;
     cout.flush();
+    Logger::getDebugStreamInstance().close();
     return s;
 }
