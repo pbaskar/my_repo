@@ -11,7 +11,7 @@
 using namespace std;
 
 static const char delimiters[] = { '=', ';', '(', ')', '{', '}', ',', '[', ']' };
-Tokenizer::Tokenizer() : p_pos(0) {
+Tokenizer::Tokenizer() : p_pos(0), p_lineNum(0) {
     // TODO Auto-generated constructor stub
 
 }
@@ -26,6 +26,10 @@ int Tokenizer::getPos() const {
 
 void Tokenizer::setPos(int pos) {
     p_pos = pos;
+}
+
+int Tokenizer::getLineNum() const {
+    return p_lineNum;
 }
 
 Status Tokenizer::openFile(const char* fileName) {
@@ -48,6 +52,7 @@ Status Tokenizer::nextLine() {
             p_line[0] = '\0';
             return status;
         }
+        p_lineNum++;
         i=0;
         while(p_line[i]==' ' || p_line[i] == '\t') i++;
     } while (p_line[i] == '\0' || p_line[i] == '/' && p_line[i+1] == '/' || p_line[i] == '#');

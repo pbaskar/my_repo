@@ -187,9 +187,9 @@ public:
 
 class AssignStmt : public Stmt {
 public:
-    AssignStmt(StmtType type): Stmt(type), p_var(0), p_value(0), p_dataType(0) {}
+    AssignStmt(StmtType type): Stmt(type), p_var(0), p_value(0), p_dataType(0), p_lineNum(0) {}
     AssignStmt(StmtType type, IdentifierName* var, Expr* value) :
-        Stmt(type), p_var(var), p_value(value), p_dataType(0){
+        Stmt(type), p_var(var), p_value(value), p_dataType(0), p_lineNum(0){
     }
     virtual ~AssignStmt() {
         if(p_var)
@@ -203,6 +203,7 @@ public:
         if(p_var) os << "Assign statement: name " <<*p_var << " type " << p_type;
         if(p_value) os << " value " << *p_value << " value exprType " << p_value->getExprType();
         if(p_dataType) os << " data type " <<p_dataType <<endl;
+        os << " line num " << p_lineNum <<endl;
     }
     void setVar(IdentifierName* var) { p_var = var; }
     void setValue(Expr* value) { p_value = value; }
@@ -210,11 +211,14 @@ public:
     Type* getDataType() const { return p_dataType; }
     const IdentifierName* getVar() const { return p_var; }
     const Expr* getValue() const { return p_value; }
+    void setLineNum(int lineNum) { p_lineNum = lineNum; }
+    const int getLineNum() const { return p_lineNum; }
     Expr* toSimplify() { return p_value; }
 private:
     IdentifierName* p_var;
     Expr* p_value;
     Type* p_dataType;
+    int p_lineNum;
 };
 
 class Block {

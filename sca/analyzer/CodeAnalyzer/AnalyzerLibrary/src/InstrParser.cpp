@@ -144,6 +144,7 @@ Status InstrParser::parseBlock(Block* block) {
     p_exprParser.setSymbolTable(block->getSymbolTable());
     p_tokenizer.nextLine();
     vector<AssignStmt*> declList;
+    int lineNum =  p_tokenizer.getLineNum();
     status = parseDeclarationList(block, declList);
 
     //make variables from Identifer names for declaration list
@@ -154,6 +155,7 @@ Status InstrParser::parseBlock(Block* block) {
         Variable* var = makeVariableFromIdentifierName(block, identifierName, type);
         block->getSymbolTable()->addSymbol(var);
         if(!var) return Status::FAILURE;
+        assignStmt->setLineNum(lineNum);
         block->addStatement(assignStmt);
     }
 
@@ -297,6 +299,7 @@ Status InstrParser::parseAssign(Block* block) {
     char* next = p_tokenizer.nextWordUntil(endDelim, sizeof(endDelim));
     if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseAssign:", "value"); return FIRST_MISMATCH; }
 
+    int lineNum = p_tokenizer.getLineNum();
     vector<Expr*> values = p_exprParser.parseExpressionList(next);
     delete next;
 
@@ -308,6 +311,7 @@ Status InstrParser::parseAssign(Block* block) {
         AssignStmt* stmt = new AssignStmt(ASSIGN);
         block->addStatement(stmt);
         stmt->setValue(value);
+        stmt->setLineNum(lineNum);
     }
 
     p_tokenizer.nextLine();

@@ -44,17 +44,19 @@ private:
 
 class AssignmentNode : public Node {
 public:
-    AssignmentNode() : p_var(0), p_value(0) { }
-    AssignmentNode(const Variable* var, const Expr* value) : p_var(var), p_value(value) { }
+    AssignmentNode() : p_var(0), p_value(0), p_lineNum(0) { }
+    AssignmentNode(const Variable* var, const Expr* value, const int lineNum=0) : p_var(var), p_value(value),
+        p_lineNum(lineNum) { }
     virtual NodeType type() const { return ASSIGNMENT; }
     virtual ~AssignmentNode() {
         //delete p_var;
         //delete p_value;
     }
     virtual void print(ostream& os) const {
-        if(p_var) os << "name " << *p_var;
+        os << "Line " << p_lineNum << " : ";
+        if(p_var) os << *p_var <<" = ";
         if(p_value)
-            os <<" value " <<*p_value <<" ";
+            os <<*p_value <<" ";
     }
     bool operator==(const AssignmentNode& other) {
         return p_var == other.p_var;
@@ -65,6 +67,7 @@ public:
 private:
     const Variable* p_var;
     const Expr* p_value;
+    const int p_lineNum;
 };
 
 class ConditionNode : public Node {

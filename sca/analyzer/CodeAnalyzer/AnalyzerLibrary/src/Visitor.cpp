@@ -9,6 +9,7 @@
 #include<cstring>
 #include<vector>
 #include<map>
+#include<sstream>
 
 #include <algorithm>
 #include "Visitor.h"
@@ -870,7 +871,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                     value->getExprType() == ExprType::POINTERDEFINITION) {
                 const Definition* def = static_cast<const Definition*>(value);
                 if(!def->isValid()) {
-                    const char* m = "Not defined ";
+                    /*const char* m = "Not defined ";
                     const char* name = var->getName();
                     Result r;
                     r.errorMessage = new char[strlen(m)+strlen(name)+1];
@@ -878,8 +879,8 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                     strncat(r.errorMessage,m,strlen(m));
                     strncat(r.errorMessage,name,strlen(name));
                     r.errorMessage[strlen(m)+strlen(name)] = '\0';
-                    cout <<endl<<endl<<"Error message: Declaration " <<r.errorMessage << " " <<*var <<endl;
-                    p_results.push_back(r);
+                    cout <<endl<<endl<<"Declaration " <<r.errorMessage << " " <<*var <<endl;
+                    p_results.push_back(r);*/
                 }
             }
         }
@@ -906,7 +907,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                                 const Definition* def = static_cast<const Definition*>(nodeValue);
                                 if(!def->isValid()) {
                                     cout <<endl <<"Invalid assignment: var " <<*variable<< " value = " <<*value <<endl;
-                                    found = false;
+                                    //found = false;
                                     break;
                                 }
                             }
@@ -916,7 +917,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                                 const Definition* def = mallocFnCall->getDefinition();
                                 if(!def->isValid()) {
                                     cout <<endl <<"Invalid assignment: var " <<*variable<< " value = " <<*value <<endl;
-                                    found = false;
+                                    //found = false;
                                     break;
                                 }
                             }
@@ -924,12 +925,12 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                     }
                 } else {
                     cout <<endl <<"Variable has no assignment node " <<endl;
-                    found = false;
+                    //found = false;
                 }
             }
             else {
                 cout <<endl <<"Variable has no entry in VariableNodes " <<endl;
-                found = false;
+                //found = false;
             }
             map<const Variable*, vector<pair<const Definition*, bool>>>::iterator outDefinitionIt = outDefinitions.find(variable);
             if(outDefinitionIt != outDefinitions.end()) {
@@ -950,15 +951,17 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                 }
             }
             if(!found) {
-                const char* m = "Not defined ";
-                const char* name = variable->getName();
+                const char* m = "Undefined variable ";
+                stringstream ss;
+                ss << variable->getName() << " in " << *assignNode;
+                string s = ss.str();
+                const char* name = s.c_str();
                 Result r;
-                r.errorMessage = new char[strlen(m)+strlen(name)+1];
+                r.errorMessage = new char[strlen(m)+ strlen(name) +1];
                 r.errorMessage[0] = '\0';
                 strncat(r.errorMessage,m,strlen(m));
                 strncat(r.errorMessage,name,strlen(name));
                 r.errorMessage[strlen(m)+strlen(name)] = '\0';
-                cout << "Error message: " <<r.errorMessage << " " <<*variable <<" " <<variable <<endl <<endl;
                 p_results.push_back(r);
             }
         }

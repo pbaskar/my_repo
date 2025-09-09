@@ -13,11 +13,13 @@ using namespace std;
 
 Logger::Logger() {
     // TODO Auto-generated constructor stub
-
+    p_of.open("error.log");
+    cout <<"debug log created " <<p_of.is_open() <<endl;
 }
 
 Logger::~Logger() {
     // TODO Auto-generated destructor stub
+    p_of.close();
 }
 
 void Logger::logMessage(ErrorCode errorCode, int num, ...) {
@@ -51,9 +53,10 @@ void Logger::logMessage(ErrorCode errorCode, int num, ...) {
 
     va_end(argsList);
 
+    ofstream& of = getInstance()->getOfstream();
     for(char c: output) {
         if (c== '\0') break;
-        cout << c;
+        of << c;
     }
-    cout <<endl;
+    of <<endl;
 }

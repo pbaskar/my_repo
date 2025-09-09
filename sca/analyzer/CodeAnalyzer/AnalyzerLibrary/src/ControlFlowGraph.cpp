@@ -92,7 +92,8 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             if(identifierName)
                 var = block->getSymbolTable()->fetchVariable(identifierName->getName());
             const Expr* value = assignStmt->getValue();
-            AssignmentNode* newNode = new AssignmentNode(var, value);
+            const int lineNum = assignStmt->getLineNum();
+            AssignmentNode* newNode = new AssignmentNode(var, value, lineNum);
             cout << "Assignment Node: " << *newNode <<endl;
             //cout <<block->getSubStatements().size() <<endl;
 

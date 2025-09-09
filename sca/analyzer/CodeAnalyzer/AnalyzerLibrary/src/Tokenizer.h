@@ -25,10 +25,12 @@ public:
     void closeFile();
     void setPos(int pos);
     int getPos() const;
+    int getLineNum() const;
 
 private:
     char p_line[256];
     int p_pos;
+    int p_lineNum;
 
     FileReader fr;
 };

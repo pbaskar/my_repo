@@ -8,6 +8,8 @@
 #ifndef LOGGER_H_
 #define LOGGER_H_
 #include<cstdarg>
+#include<fstream>
+using namespace std;
 
 enum ErrorCode {
     CHAR_INVALID,
@@ -31,8 +33,16 @@ class Logger {
 public:
     Logger();
     virtual ~Logger();
+    ofstream& getOfstream() { return p_of; }
+    static Logger* getInstance() {
+        static Logger logger;
+        return &logger;
+    }
 
     static void logMessage(ErrorCode errorCode, int args, ...);
+
+private:
+    ofstream p_of;
 };
 
 #endif /* LOGGER_H_ */

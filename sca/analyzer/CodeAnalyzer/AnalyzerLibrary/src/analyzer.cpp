@@ -79,6 +79,15 @@ Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
     cout << "********************************** output cfg done ****************************************" <<endl;
     cfg.variableInitCheck(results);
     cout << "********************************** Variable Init Check done ****************************************" <<endl;
+    ofstream of("output.log");
+    if(of.is_open()) {
+        for(Result r : results) {
+            of <<r.errorMessage <<endl;
+            delete(r.errorMessage);
+        }
+        of.close();
+    }
+    cout << "********************************** Output result done ****************************************" <<endl;
     cfg.clear();
     cout << "********************************** CFG Clear done ****************************************" <<endl;
     instrParser.clear();
