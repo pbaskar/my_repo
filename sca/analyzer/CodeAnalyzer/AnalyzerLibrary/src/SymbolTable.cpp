@@ -40,7 +40,7 @@ Variable* SymbolTable::addSymbol(const char* name, VarType varType) {
     if(var) { //error
     }
     var = new Variable(name, varType);
-    cout <<"Variable symbol added " <<name <<endl;
+    Logger::getDebugStreamInstance() <<"Variable symbol added " <<name <<endl;
     SymbolTableEntry* symbolTableEntry = new SymbolTableEntry(var, INT, 0);
     p_symbolEntries.push_back(symbolTableEntry);
     return var;
@@ -55,10 +55,10 @@ Variable* SymbolTable::addSymbol(Variable* newVar) {
         }
     }
     if(var) { //error
-        cout <<"Adding duplicate variable into symbol table " <<endl;
+        Logger::getDebugStreamInstance() <<"Adding duplicate variable into symbol table " <<endl;
         assert(false);
     }
-    cout <<"Variable symbol added " <<newVar->getName() <<endl;
+    Logger::getDebugStreamInstance() <<"Variable symbol added " <<newVar->getName() <<endl;
     SymbolTableEntry* symbolTableEntry = new SymbolTableEntry(newVar, INT, 0);
     p_symbolEntries.push_back(symbolTableEntry);
     return var;
@@ -89,7 +89,7 @@ void SymbolTable::addFnSymbol(const char* name) {
 
 void SymbolTable::setFunctionDeclBlock(FunctionDeclBlock* fnDeclBlock) {
     if(!fnDeclBlock) {
-        cout << "SymbolTable::setFunctionDeclBlock null " <<endl;
+        Logger::getDebugStreamInstance() << "SymbolTable::setFunctionDeclBlock null " <<endl;
         return; //error
     }
     const char* name = fnDeclBlock->getName();
@@ -153,7 +153,7 @@ FnSymbolTableEntry::~FnSymbolTableEntry() {
 
 FunctionDeclBlock* FnSymbolTableEntry::fetchFunctionDeclBlock(const char* name) {
     //p_functionDeclBlock could be null until populated while building cfg
-    //cout <<"FnSymbolTableEntry::fetchFunctionDeclBlock " <<p_functionDeclBlock <<endl;
+    //Logger::getDebugStreamInstance() <<"FnSymbolTableEntry::fetchFunctionDeclBlock " <<p_functionDeclBlock <<endl;
     if(p_functionDeclBlock && p_functionDeclBlock->match(name)) return p_functionDeclBlock;
     return 0;
 }

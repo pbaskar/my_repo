@@ -37,7 +37,7 @@ void TraverserOne::traverseIfElseBlock(IfElseBlock* ifElseBlock) {
     BasicBlock* next(0);
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -49,7 +49,7 @@ void TraverserOne::traverseIfElseBlock(IfElseBlock* ifElseBlock) {
     lastBlock = ifElseBlock->getElseLast();
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -69,7 +69,7 @@ void TraverserOne::traverseWhileBlock(WhileBlock* whileBlock) {
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -87,7 +87,7 @@ void TraverserOne::traverseForBlock(ForBlock* forBlock) {
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -105,7 +105,7 @@ void TraverserOne::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBloc
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();

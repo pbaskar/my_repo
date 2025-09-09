@@ -10,6 +10,7 @@
 #include<cstring>
 #include<iostream>
 #include<vector>
+#include "Logger.h"
 
 class SymbolTable;
 class Variable;

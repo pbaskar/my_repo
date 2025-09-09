@@ -20,7 +20,7 @@ Status ControlFlowGraph::buildCFG(const Block* block) {
     Status status = SUCCESS;
     p_head = new BasicBlock(block->getSymbolTable());
     BasicBlock* currBlock = p_head;
-    cout <<"head " <<currBlock <<endl;
+    Logger::getDebugStreamInstance() <<"head " <<currBlock <<endl;
     status = buildBlock(currBlock, block);
     return status;
 }
@@ -73,7 +73,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
         case JUMP: {
             JumpStmt* jumpStmt = static_cast<JumpStmt*>(stmt);
             JumpNode* jumpNode = new JumpNode(jumpStmt->getJumpType());
-            cout <<" Jump Node: "<< jumpNode <<endl;
+            Logger::getDebugStreamInstance() <<" Jump Node: "<< jumpNode <<endl;
             if(beginNewBlock) {
                 beginNewBlock = false;
                 BasicBlock* newBlock = new BasicBlock(block->getSymbolTable());
@@ -94,8 +94,8 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             const Expr* value = assignStmt->getValue();
             const int lineNum = assignStmt->getLineNum();
             AssignmentNode* newNode = new AssignmentNode(var, value, lineNum);
-            cout << "Assignment Node: " << *newNode <<endl;
-            //cout <<block->getSubStatements().size() <<endl;
+            Logger::getDebugStreamInstance() << "Assignment Node: " << *newNode <<endl;
+            //Logger::getDebugStreamInstance() <<block->getSubStatements().size() <<endl;
 
             if(beginNewBlock) {
                 beginNewBlock = false;
@@ -115,7 +115,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 
             IfStmt* ifStmt = static_cast<IfStmt*>(stmt);
             ConditionNode* ifNode = new ConditionNode(ifStmt->getCondition());
-            cout << "If Node: " << *ifNode << " " <<block->getSubStatements().size() <<endl;
+            Logger::getDebugStreamInstance() << "If Node: " << *ifNode << " " <<block->getSubStatements().size() <<endl;
 
             first = new BasicBlock(ifStmt->getBlock()->getSymbolTable());
             first->addNode(ifNode);
@@ -126,7 +126,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             const IfStmt* elseStmt = ifStmt->getElse();
             if(elseStmt) {
                 ConditionNode* elseNode = new ConditionNode(elseStmt->getCondition());
-                cout << "Else Node: " << *elseNode << " " <<block->getSubStatements().size() <<endl;
+                Logger::getDebugStreamInstance() << "Else Node: " << *elseNode << " " <<block->getSubStatements().size() <<endl;
 
                 elseFirst = new BasicBlock(elseStmt->getBlock()->getSymbolTable());
                 elseFirst->addNode(elseNode);
@@ -152,7 +152,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
 
             WhileStmt* whileStmt = static_cast<WhileStmt*>(stmt);
             ConditionNode* whileNode = new ConditionNode(whileStmt->getCondition());
-            cout << "While Node: " << *whileNode << " " <<block->getSubStatements().size() <<endl;
+            Logger::getDebugStreamInstance() << "While Node: " << *whileNode << " " <<block->getSubStatements().size() <<endl;
 
             first = new BasicBlock(whileStmt->getBlock()->getSymbolTable());
             first->addNode(whileNode);
@@ -183,7 +183,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
                 const Expr* value = initStmt->getValue();
                 AssignmentNode* initNode = new AssignmentNode(var, value);
                 first->addNode(initNode);
-                cout << "For:init " << initNode << " " <<block->getSubStatements().size() <<endl;
+                Logger::getDebugStreamInstance() << "For:init " << initNode << " " <<block->getSubStatements().size() <<endl;
             }
 
             const Expr* forCondition = forStmt->getCondition();
@@ -192,7 +192,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             last = condition;
             if(forCondition) {
                 AssignmentNode* conditionNode = new AssignmentNode(nullptr, forCondition);
-                cout << "For:condition " << conditionNode << " " <<block->getSubStatements().size() <<endl;
+                Logger::getDebugStreamInstance() << "For:condition " << conditionNode << " " <<block->getSubStatements().size() <<endl;
                 condition->addNode(conditionNode);
             }
 
@@ -204,7 +204,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             last = forPostBlock;
             if(forPostExpr) {
                 AssignmentNode* postExprNode = new AssignmentNode(nullptr, forPostExpr);
-                cout << "For:postExpr " << postExprNode << " " <<block->getSubStatements().size() <<endl;
+                Logger::getDebugStreamInstance() << "For:postExpr " << postExprNode << " " <<block->getSubStatements().size() <<endl;
                 forPostBlock->addNode(postExprNode);
             }
 
@@ -235,7 +235,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
                 Variable* var = functionDeclStmt->getBlock()->getSymbolTable()->fetchVariable(identifierName->getName());
                 functionDeclBlock->addFormalArgument(var);
             }
-            cout << "Function Decl Block: " << functionDeclBlock->getName() << " " <<block->getSubStatements().size() <<endl;
+            Logger::getDebugStreamInstance() << "Function Decl Block: " << functionDeclBlock->getName() << " " <<block->getSubStatements().size() <<endl;
             block->getSymbolTable()->setFunctionDeclBlock(functionDeclBlock);
             beginNewBlock = true;
         }
@@ -254,25 +254,25 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
                 if(fnVar) {
                     const vector<const Expr*>& fnIdentifiers = fnVar->getFunctionIdentifiers();
                     if(fnIdentifiers.empty()) {
-                        cout << "Function pointer has no function assigned " <<identifier->getName() <<endl;
+                        Logger::getDebugStreamInstance() << "Function pointer has no function assigned " <<identifier->getName() <<endl;
                         continue;
                     }
                     functionCallBlock = new FunctionCallBlock(0,identifier);
                     for(int i=0; i<fnIdentifiers.size(); i++) {
                         const Variable* identifier = static_cast<const Variable*>(fnIdentifiers[i]);
                         fnDecl = p_head->fetchFunctionDeclBlock(identifier->getName());
-                        if(fnDecl == nullptr) { cout <<"function declaration block not found " <<identifier->getName() << endl; return FAILURE; }
+                        if(fnDecl == nullptr) { Logger::getDebugStreamInstance() <<"function declaration block not found " <<identifier->getName() << endl; return FAILURE; }
                         makeFunctionCallInstance(functionCallInstance, functionCallStmt, fnDecl, block);
                         functionCallBlock->addInstance(functionCallInstance);
                     }
                 }
                 else {
-                    cout <<"CFG: function pointer dereference does not contain function variable " <<*expr <<endl;
+                    Logger::getDebugStreamInstance() <<"CFG: function pointer dereference does not contain function variable " <<*expr <<endl;
                 }
             }
             else {
                 fnDecl = p_head->fetchFunctionDeclBlock(identifier->getName());
-                if(fnDecl == nullptr) { cout <<"function declaration block not found " <<endl; return FAILURE; }
+                if(fnDecl == nullptr) { Logger::getDebugStreamInstance() <<"function declaration block not found " <<endl; return FAILURE; }
                 makeFunctionCallInstance(functionCallInstance, functionCallStmt, fnDecl, block);
                 functionCallBlock = new FunctionCallBlock(0,identifier);
                 functionCallBlock->addInstance(functionCallInstance);
@@ -280,11 +280,11 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             currBlock->setNext(functionCallBlock);
             currBlock = functionCallBlock;
             beginNewBlock = true;
-            cout <<"Function Call Block: "  <<identifier->getName() << " " <<block->getSubStatements().size()<<endl;
+            Logger::getDebugStreamInstance() <<"Function Call Block: "  <<identifier->getName() << " " <<block->getSubStatements().size()<<endl;
         }
         break;
         default: {
-            cout <<"error " <<endl;
+            Logger::getDebugStreamInstance() <<"error " <<endl;
         }
         break;
         }
@@ -308,7 +308,7 @@ void ControlFlowGraph::variableInitCheck(vector<Result>& results) {
     map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>> inVariableNodes = computeReachingDefsVisitor.getInVariableNodes();
     map<BasicBlock*, map<const Variable*, vector<pair<const Definition*, bool>>>> inDefinitions = computeReachingDefsVisitor.getInDefinitions();
     map<BasicBlock*, map<const Definition*, vector<vector<const Variable*>>>> inVariableGroups = computeReachingDefsVisitor.getInVariableGroups();
-    cout << "********************************** Compute Reaching Defs done ****************************************" <<endl;
+    Logger::getDebugStreamInstance() << "********************************** Compute Reaching Defs done ****************************************" <<endl;
     VariableInitCheckVisitor variableInitCheckVisitor(inVariableNodes, inDefinitions, inVariableGroups);
     variableInitCheckVisitor.visitCFG(p_head);
     results = variableInitCheckVisitor.getResults();

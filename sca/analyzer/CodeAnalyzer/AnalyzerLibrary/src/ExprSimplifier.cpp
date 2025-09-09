@@ -97,7 +97,7 @@ Status ExprSimplifier::populateDefinitions(const Variable* lhs, Expr* value) {
     }
     else if(lhs->getExprType() == ExprType::STRUCTVARIABLE) {
         assert(value);
-        //cout <<"Expression simplification struct variable  " <<lhs->getName() <<endl;
+        //Logger::getDebugStreamInstance() <<"Expression simplification struct variable  " <<lhs->getName() <<endl;
         switch(value->getExprType()) {
             case ExprType::DEFINITION: {
                 Definition* definition = static_cast<Definition*>(value);
@@ -134,8 +134,8 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
         case DECL:
         case ASSIGN: {
             AssignStmt* assignStmt = static_cast<AssignStmt*>(stmt);
-            cout << "Assign Stmt: " <<*stmt <<endl;
-            //cout << " no of substatements " <<block->getSubStatements().size() <<endl;
+            Logger::getDebugStreamInstance() << "Assign Stmt: " <<*stmt <<endl;
+            //Logger::getDebugStreamInstance() << " no of substatements " <<block->getSubStatements().size() <<endl;
             Expr* value = assignStmt->toSimplify();
 
             if(value) {
@@ -151,7 +151,7 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
                     const FunctionCall* functionCallExpr = static_cast<const FunctionCall*>(functionCalls[i]);
                     FunctionCallStmt* functionCallStmt = new FunctionCallStmt(FUNC_CALL, functionCallExpr->getName(),
                                                                               functionCallExpr->getArguments());
-                    cout <<"Function call stmt inserted for Name "<<functionCallExpr->getName() << " Name ExprType " <<
+                    Logger::getDebugStreamInstance() <<"Function call stmt inserted for Name "<<functionCallExpr->getName() << " Name ExprType " <<
                            functionCallExpr->getName()->getExprType() <<endl;
                     it = stmtList.insert(it, functionCallStmt);
                     it++;
@@ -169,7 +169,7 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
                     if(!lhsVars.empty()) {
                         const Identifier* identifier = static_cast<const Identifier*>(lhsVars[0]);
                         assert(identifier);
-                        cout <<"Identifier name, associated variable " <<identifier->getName() <<" " <<identifier->getVariable() <<endl;
+                        Logger::getDebugStreamInstance() <<"Identifier name, associated variable " <<identifier->getName() <<" " <<identifier->getVariable() <<endl;
                         //lhs can hold Dotoperator which has no associated variable
                         lhs = identifier->getVariable();
                     }
@@ -188,7 +188,7 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
                 vector<const Expr*> fnIdentifiers;
                 if(!lhs || lhs->getVarType() != VarType::FUNCTION) continue;
                 value->getRHSVariables(fnIdentifiers);
-                if(fnIdentifiers.empty()) {  cout <<"Bad function name assigned to function pointer " <<identifierName->getName() <<endl; continue; }
+                if(fnIdentifiers.empty()) {  Logger::getDebugStreamInstance() <<"Bad function name assigned to function pointer " <<identifierName->getName() <<endl; continue; }
                 assert(fnIdentifiers[0]);
                 rhs = static_cast<const Variable*>(fnIdentifiers[0]);
 
@@ -202,7 +202,7 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
                 }
                 const FunctionVariable* functionVariable = dynamic_cast<const FunctionVariable*>(lhs);
                 if(functionVariable == nullptr) {
-                    cout <<"Function pointer has no valid function Variable " <<identifierName->getName() <<endl;
+                    Logger::getDebugStreamInstance() <<"Function pointer has no valid function Variable " <<identifierName->getName() <<endl;
                     continue;
                 }
                 assert(rhs);
@@ -213,7 +213,7 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
         case IF:
         case ELSE: {
             IfStmt* ifStmt = static_cast<IfStmt*>(stmt);
-            cout << "If Stmt: no of substatements " <<block->getSubStatements().size() <<endl;
+            Logger::getDebugStreamInstance() << "If Stmt: no of substatements " <<block->getSubStatements().size() <<endl;
             Expr* condition = ifStmt->toSimplifyCondition();
             if(condition) {
                 condition->populateVariable(block->getSymbolTable());
@@ -222,14 +222,14 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
 
             const IfStmt* elseStmt = ifStmt->getElse();
             if(elseStmt) {
-                cout << "Else Stmt: no of substatements " << " " <<block->getSubStatements().size() <<endl;
+                Logger::getDebugStreamInstance() << "Else Stmt: no of substatements " << " " <<block->getSubStatements().size() <<endl;
                 status = simplifyBlock(elseStmt->getBlock());
             }
         }
         break;
         case WHILE: {
             WhileStmt* whileStmt = static_cast<WhileStmt*>(stmt);
-            cout << "While Stmt: no of substatements " <<block->getSubStatements().size() <<endl;
+            Logger::getDebugStreamInstance() << "While Stmt: no of substatements " <<block->getSubStatements().size() <<endl;
             SymbolTable* whileSymbolTable = whileStmt->getBlock()->getSymbolTable();
             Expr* condition = whileStmt->toSimplifyCondition();
             if(condition) {
@@ -240,7 +240,7 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
         break;
         case FOR: {
             ForStmt* forStmt = static_cast<ForStmt*>(stmt);
-            cout << "For Stmt: no of substatements " <<block->getSubStatements().size() <<endl;
+            Logger::getDebugStreamInstance() << "For Stmt: no of substatements " <<block->getSubStatements().size() <<endl;
             SymbolTable* forSymbolTable = forStmt->getBlock()->getSymbolTable();
             Expr* initExpr = forStmt->toSimplifyInitExpr();
             if(initExpr) {
@@ -259,12 +259,12 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
         break;
         case FUNC_DECL: {
             FunctionDeclStmt* functionDeclStmt = static_cast<FunctionDeclStmt*>(stmt);
-            cout << "Func Decl Stmt: no of substatements " <<block->getSubStatements().size() <<endl;
+            Logger::getDebugStreamInstance() << "Func Decl Stmt: no of substatements " <<block->getSubStatements().size() <<endl;
             status = simplifyBlock(functionDeclStmt->getBlock());
         }
         break;
         default: {
-            cout <<"error " <<endl;
+            Logger::getDebugStreamInstance() <<"error " <<endl;
         }
         break;
         }

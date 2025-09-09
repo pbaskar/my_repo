@@ -121,9 +121,9 @@ public:
     }
     virtual void print() {
         for(Node* n: nodeList) {
-            cout <<*n <<" ";
+            Logger::getDebugStreamInstance() <<*n <<" ";
         }
-        cout<<endl;
+        Logger::getDebugStreamInstance()<<endl;
     }
     /*Variable* addSymbol(const char* name) {
         return p_symbolTable->addSymbol(name);
@@ -241,11 +241,11 @@ public:
     }
     void addFormalArgument(Variable* var) { p_formalArguments.push_back(var); }
     virtual void print() {
-        cout << "Function name " << p_name << " formal arguments ";
+        Logger::getDebugStreamInstance() << "Function name " << p_name << " formal arguments ";
         for(Variable* v : p_formalArguments) {
-            cout << *v << " ";
+            Logger::getDebugStreamInstance() << *v << " ";
         }
-        cout<<endl;
+        Logger::getDebugStreamInstance()<<endl;
     }
 private:
     const char* p_name;
@@ -264,11 +264,11 @@ public:
     const char* getName() const { return p_name; }
     void addActualArgument(Expr* expr) { p_actualArguments.push_back(expr); }
     virtual void print() {
-        cout << "Function name " << p_name << " actual arguments ";
+        Logger::getDebugStreamInstance() << "Function name " << p_name << " actual arguments ";
         for(Expr* e : p_actualArguments) {
-            cout << *e << " ";
+            Logger::getDebugStreamInstance() << *e << " ";
         }
-        cout <<endl;
+        Logger::getDebugStreamInstance() <<endl;
     }
 private:
     const char* p_name;
@@ -293,11 +293,11 @@ public:
         return strcmp(p_name, name) ==0;
     }*/
     virtual void print() {
-        cout << "Function Call " << p_name << " has Instances " <<endl;
+        Logger::getDebugStreamInstance() << "Function Call " << p_name << " has Instances " <<endl;
         for(int i=0; i<p_fnCallInstances.size(); i++) {
             p_fnCallInstances[i]->print();
         }
-        cout <<endl;
+        Logger::getDebugStreamInstance() <<endl;
     }
     const Expr* getName() const { return p_name; }
     BasicBlock* getLast() { return p_last; }

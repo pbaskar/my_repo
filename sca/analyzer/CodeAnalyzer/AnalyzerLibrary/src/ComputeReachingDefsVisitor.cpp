@@ -22,7 +22,7 @@ void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, map<const Variable
                                       map<const Definition*, vector<vector<const Variable*>>>& inVariableGroups) {
 
     const vector<BasicBlock*>& predecessors = basicBlock->getPredecessors();
-    cout <<"Beginning of meet :: predecessors count " <<predecessors.size() <<endl;
+    Logger::getDebugStreamInstance() <<"Beginning of meet :: predecessors count " <<predecessors.size() <<endl;
     if(!predecessors.empty()) {
         auto predecessorIt = predecessors.begin();
         while(predecessorIt != predecessors.end()) {
@@ -37,7 +37,7 @@ void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, map<const Variable
                 continue;
             const map<const Variable*, vector<AssignmentNode*>>& variableNodes = p_outVariableNodes.at(*predecessorIt);
             for(auto variableNodeIt = variableNodes.begin(); variableNodeIt != variableNodes.end(); variableNodeIt++) {
-                //cout << "Meet1 :: Variable " <<*(variableNodeIt->first) <<endl;
+                //Logger::getDebugStreamInstance() << "Meet1 :: Variable " <<*(variableNodeIt->first) <<endl;
 
                 auto inVariableNodesIt = inVariableNodes.find(variableNodeIt->first);
                 if(inVariableNodesIt != inVariableNodes.end()) {
@@ -47,12 +47,12 @@ void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, map<const Variable
                     sort(inVariableNodes_r.begin(), inVariableNodes_r.end());
                     auto it = unique(inVariableNodes_r.begin(), inVariableNodes_r.end());
                     inVariableNodes_r.resize(distance(inVariableNodes_r.begin(), it));
-                    for(auto assign : inVariableNodes_r) { cout <<"assign node " <<assign <<endl; }
-                    cout << "Meet :: Variable appended " <<*(variableNodeIt->first)
+                    for(auto assign : inVariableNodes_r) { Logger::getDebugStreamInstance() <<"assign node " <<assign <<endl; }
+                    Logger::getDebugStreamInstance() << "Meet :: Variable appended " <<*(variableNodeIt->first)
                          <<" size " <<inVariableNodes_r.size()<<endl;
                 }
                 else {
-                    cout << "Meet :: Variable added " <<*(variableNodeIt->first)<<endl;
+                    Logger::getDebugStreamInstance() << "Meet :: Variable added " <<*(variableNodeIt->first)<<endl;
                     inVariableNodes[variableNodeIt->first] = variableNodeIt->second;
                 }
             }
@@ -62,7 +62,7 @@ void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, map<const Variable
                 continue;
             const map<const Variable*, vector<pair<const Definition*, bool>>>& definitions = p_outDefinitions.at(*predecessorIt);
             for(auto definitionIt = definitions.begin(); definitionIt != definitions.end(); definitionIt++) {
-                cout << "Meet1 :: Definition " <<*(definitionIt->first) <<endl;
+                Logger::getDebugStreamInstance() << "Meet1 :: Definition " <<*(definitionIt->first) <<endl;
 
                 auto inDefinitionsIt = inDefinitions.find(definitionIt->first);
                 if(inDefinitionsIt != inDefinitions.end()) {
@@ -72,11 +72,11 @@ void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, map<const Variable
                     sort(inDefinitions_r.begin(), inDefinitions_r.end());
                     auto it = unique(inDefinitions_r.begin(), inDefinitions_r.end());
                     inDefinitions_r.resize(distance(inDefinitions_r.begin(), it));
-                    for(auto assign : inDefinitions_r) { cout <<"assign  " <<assign.first <<endl; }
-                    cout << "Meet :: Definition appended " <<*(definitionIt->first) <<" size " <<inDefinitions_r.size()<<endl;
+                    for(auto assign : inDefinitions_r) { Logger::getDebugStreamInstance() <<"assign  " <<assign.first <<endl; }
+                    Logger::getDebugStreamInstance() << "Meet :: Definition appended " <<*(definitionIt->first) <<" size " <<inDefinitions_r.size()<<endl;
                 }
                 else {
-                    cout << "Meet :: Definition added " <<*(definitionIt->first)<<endl;
+                    Logger::getDebugStreamInstance() << "Meet :: Definition added " <<*(definitionIt->first)<<endl;
                     inDefinitions[definitionIt->first] = definitionIt->second;
                 }
             }
@@ -86,7 +86,7 @@ void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, map<const Variable
                 continue;
             const map<const Definition*, vector<vector<const Variable*>>>& variableGroups = p_outVariableGroups.at(*predecessorIt);
             for(auto variableGroupIt = variableGroups.begin(); variableGroupIt != variableGroups.end(); variableGroupIt++) {
-                cout << "Meet1 :: VariableGroup " <<*(variableGroupIt->first) <<endl;
+                Logger::getDebugStreamInstance() << "Meet1 :: VariableGroup " <<*(variableGroupIt->first) <<endl;
 
                 auto inVariableGroupIt = inVariableGroups.find(variableGroupIt->first);
                 if(inVariableGroupIt != inVariableGroups.end()) {
@@ -96,18 +96,18 @@ void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, map<const Variable
                     sort(inVariableGroups_r.begin(), inVariableGroups_r.end());
                     auto it = unique(inVariableGroups_r.begin(), inVariableGroups_r.end());
                     inVariableGroups_r.resize(distance(inVariableGroups_r.begin(), it));
-                    for(const auto& variableGroup : inVariableGroups_r) { cout <<"assign  " <<variableGroup.size() <<endl; }
-                    cout << "Meet :: VariableGroup appended " <<*(inVariableGroupIt->first) <<" size " <<inVariableGroups_r.size()<<endl;
+                    for(const auto& variableGroup : inVariableGroups_r) { Logger::getDebugStreamInstance() <<"assign  " <<variableGroup.size() <<endl; }
+                    Logger::getDebugStreamInstance() << "Meet :: VariableGroup appended " <<*(inVariableGroupIt->first) <<" size " <<inVariableGroups_r.size()<<endl;
                 }
                 else {
-                    cout << "Meet :: VariableGroup added " <<*(variableGroupIt->first)
+                    Logger::getDebugStreamInstance() << "Meet :: VariableGroup added " <<*(variableGroupIt->first)
                          <<" " <<variableGroupIt->second.size() <<endl;
                     if(variableGroupIt->second.size() > 0) {
-                        cout << "first " <<variableGroupIt->second[0].size() <<endl;
+                        Logger::getDebugStreamInstance() << "first " <<variableGroupIt->second[0].size() <<endl;
                         for(const Variable* var : variableGroupIt->second[0]) {
-                            cout <<*var <<", ";
+                            Logger::getDebugStreamInstance() <<*var <<", ";
                         }
-                        cout <<endl;
+                        Logger::getDebugStreamInstance() <<endl;
                     }
                     inVariableGroups[variableGroupIt->first] = variableGroupIt->second;
                 }
@@ -123,14 +123,14 @@ void ComputeReachingDefsVisitor::meet(BasicBlock* basicBlock, map<const Variable
 
     p_inVariableGroups.erase(basicBlock);
     p_inVariableGroups[basicBlock] = inVariableGroups;
-    cout <<"End of meet variableNodes size " <<inVariableNodes.size() << " definitions size " <<inDefinitions.size() <<endl;
+    Logger::getDebugStreamInstance() <<"End of meet variableNodes size " <<inVariableNodes.size() << " definitions size " <<inDefinitions.size() <<endl;
 }
 
 void ComputeReachingDefsVisitor::detectChange(map<BasicBlock*, map<const Variable*, vector<AssignmentNode*>>>& variableNodesAllBlocks,
                                               BasicBlock* basicBlock,
                                               const map<const Variable*, vector<AssignmentNode*>>& newAllVariableNodes)
 {
-    cout <<"Beginning of detectChange " <<endl;
+    Logger::getDebugStreamInstance() <<"Beginning of detectChange " <<endl;
     if(variableNodesAllBlocks.find(basicBlock) != variableNodesAllBlocks.end()) {
         map<const Variable*, vector<AssignmentNode*>>& oldAllVariableNodes = variableNodesAllBlocks.at(basicBlock);
         for(const auto& newAllVariableNode : newAllVariableNodes) {
@@ -138,7 +138,7 @@ void ComputeReachingDefsVisitor::detectChange(map<BasicBlock*, map<const Variabl
             const vector<AssignmentNode*>& newVariableNodes = newAllVariableNode.second;
             if(oldAllVariableNodes.find(variable) == oldAllVariableNodes.end()) {
                 p_variableNodesChanged = true;
-                cout <<"end of detectchange " <<*variable <<endl;
+                Logger::getDebugStreamInstance() <<"end of detectchange " <<*variable <<endl;
                 return;
             }
             vector<AssignmentNode*>& oldVariableNodes = oldAllVariableNodes.at(variable);
@@ -149,13 +149,13 @@ void ComputeReachingDefsVisitor::detectChange(map<BasicBlock*, map<const Variabl
                 }
                 else {
                     p_variableNodesChanged = true;
-                    cout <<"end of detectchange " <<*variable <<endl;
+                    Logger::getDebugStreamInstance() <<"end of detectchange " <<*variable <<endl;
                     return;
                 }
             }
             if(!oldVariableNodes.empty()) {
                 p_variableNodesChanged = true;
-                cout <<"end of detectchange " <<*variable <<endl;
+                Logger::getDebugStreamInstance() <<"end of detectchange " <<*variable <<endl;
                 return;
             }
             else
@@ -166,14 +166,14 @@ void ComputeReachingDefsVisitor::detectChange(map<BasicBlock*, map<const Variabl
     }
     else
         p_variableNodesChanged = true;
-    cout <<"End of detectChange:: variable changed " <<p_variableNodesChanged <<endl;
+    Logger::getDebugStreamInstance() <<"End of detectChange:: variable changed " <<p_variableNodesChanged <<endl;
 }
 
 void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
     map<const Variable*, vector<AssignmentNode*>> outVariableNodes = p_inVariableNodes.at(basicBlock);
     map<const Variable*, vector<pair<const Definition*, bool>>> outDefinitions = p_inDefinitions.at(basicBlock);
     map<const Definition*, vector<vector<const Variable*>>> outVariableGroups = p_inVariableGroups.at(basicBlock);
-    cout <<"Beginning of Block: variableNodes size " <<outVariableNodes.size() <<" " << outDefinitions.size()<<endl <<endl;
+    Logger::getDebugStreamInstance() <<"Beginning of Block: variableNodes size " <<outVariableNodes.size() <<" " << outDefinitions.size()<<endl <<endl;
 
     const vector<Node*>& nodeList = basicBlock->getNodeList();
     for(Node* node: nodeList) {
@@ -187,7 +187,7 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
         else {
             continue;
         }
-        cout <<"RHS value " << *value <<" size " <<RHSVariables.size()<<" lhs var " <<assignNode->getVariable() <<endl;
+        Logger::getDebugStreamInstance() <<"RHS value " << *value <<" size " <<RHSVariables.size()<<" lhs var " <<assignNode->getVariable() <<endl;
 
         //Save variables in assignNode both LHS and RHSVariables
         vector<const Expr*> LHSIdentifiers;
@@ -206,8 +206,8 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
 
         for(auto variableIt = LHSVariables.begin(); variableIt != LHSVariables.end(); variableIt++) {
             const Variable* var = dynamic_cast<const Variable*>(*variableIt);
-            if (var==nullptr) { cout <<"var null cast error " <<endl; continue; }
-            cout <<"LHS variable " << **variableIt <<" LHS Var size " << LHSVariables.size()
+            if (var==nullptr) { Logger::getDebugStreamInstance() <<"var null cast error " <<endl; continue; }
+            Logger::getDebugStreamInstance() <<"LHS variable " << **variableIt <<" LHS Var size " << LHSVariables.size()
                 << " RHS Var size "<<RHSVariables.size() <<endl;
             visitBasicBlockHelper(var, value, assignNode, outVariableNodes, outDefinitions, outVariableGroups);
         }
@@ -219,7 +219,7 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
     p_outDefinitions[basicBlock] = outDefinitions;
     p_outVariableGroups.erase(basicBlock);
     p_outVariableGroups[basicBlock] = outVariableGroups;
-    cout <<"End of Block: variableNodes size " <<outVariableNodes.size() <<" basicBlock " <<basicBlock <<
+    Logger::getDebugStreamInstance() <<"End of Block: variableNodes size " <<outVariableNodes.size() <<" basicBlock " <<basicBlock <<
            "definitions size " <<outDefinitions.size() <<endl <<endl;
 }
 
@@ -231,13 +231,13 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
     map<const Variable*, vector<AssignmentNode*>> variableNodes = p_inVariableNodes.at(ifElseBlock);
     map<const Variable*, vector<pair<const Definition*, bool>>> definitions = p_inDefinitions.at(ifElseBlock);
     map<const Definition*, vector<vector<const Variable*>>> variableGroups = p_inVariableGroups.at(ifElseBlock);
-    cout <<"Beginning of IfElseBlock: variableNodes size " <<variableNodes.size() << " definitions size "
+    Logger::getDebugStreamInstance() <<"Beginning of IfElseBlock: variableNodes size " <<variableNodes.size() << " definitions size "
         <<definitions.size() <<endl <<endl;
     meet(ifElseBlock->getIfFirst(), variableNodes, definitions, variableGroups);
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -245,7 +245,7 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
         block = next;
         assert(block != nullptr);
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         meet(block);
@@ -258,7 +258,7 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
         lastBlock = ifElseBlock->getElseLast();
         while(block != lastBlock) {
             if(block->getType() == JUMPBLOCK) {
-                cout <<"Unreachable code following jump " <<endl;
+                Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
                 break;
             }
             next = block->getNext();
@@ -287,7 +287,7 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
     p_outVariableGroups.erase(ifElseBlock);
     p_outVariableGroups[ifElseBlock] = outVariableGroups;
 
-    cout <<"End of IfElseBlock: variableNodes size " <<outVariableNodes.size() <<" definitions size " <<outDefinitions.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"End of IfElseBlock: variableNodes size " <<outVariableNodes.size() <<" definitions size " <<outDefinitions.size() <<endl <<endl;
 }
 
 void ComputeReachingDefsVisitor::visitWhileBlock(WhileBlock* whileBlock) {
@@ -298,12 +298,12 @@ void ComputeReachingDefsVisitor::visitWhileBlock(WhileBlock* whileBlock) {
     map<const Variable*, vector<AssignmentNode*>> variableNodes = p_inVariableNodes.at(whileBlock);
     map<const Variable*, vector<pair<const Definition*, bool>>> definitions = p_inDefinitions.at(whileBlock);
     map<const Definition*, vector<vector<const Variable*>>> variableGroups = p_inVariableGroups.at(whileBlock);
-    cout <<"Beginning of WhileBlock: variableNodes size " <<variableNodes.size() <<" definitions size " << definitions.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"Beginning of WhileBlock: variableNodes size " <<variableNodes.size() <<" definitions size " << definitions.size() <<endl <<endl;
     meet(block, variableNodes, definitions, variableGroups);
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -327,7 +327,7 @@ void ComputeReachingDefsVisitor::visitWhileBlock(WhileBlock* whileBlock) {
     p_outVariableGroups.erase(whileBlock);
     p_outVariableGroups[whileBlock] = outVariableGroups;
 
-    cout <<"End of WhileBlock: variableNodes size " <<outVariableNodes.size() <<" " << definitions.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"End of WhileBlock: variableNodes size " <<outVariableNodes.size() <<" " << definitions.size() <<endl <<endl;
 }
 
 void ComputeReachingDefsVisitor::visitForBlock(ForBlock* forBlock) {
@@ -338,12 +338,12 @@ void ComputeReachingDefsVisitor::visitForBlock(ForBlock* forBlock) {
     map<const Variable*, vector<AssignmentNode*>> variableNodes = p_inVariableNodes.at(forBlock);
     map<const Variable*, vector<pair<const Definition*, bool>>> definitions = p_inDefinitions.at(forBlock);
     map<const Definition*, vector<vector<const Variable*>>> variableGroups = p_inVariableGroups.at(forBlock);
-    cout <<"Beginning of ForBlock: variableNodes size " <<variableNodes.size() <<" " << definitions.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"Beginning of ForBlock: variableNodes size " <<variableNodes.size() <<" " << definitions.size() <<endl <<endl;
     meet(block, variableNodes, definitions, variableGroups);
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -367,7 +367,7 @@ void ComputeReachingDefsVisitor::visitForBlock(ForBlock* forBlock) {
     p_outVariableGroups.erase(forBlock);
     p_outVariableGroups[forBlock] = outVariableGroups;
 
-    cout <<"End of forBlock: variableNodes size " <<outVariableNodes.size() <<" definitions size " << outDefinitions.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"End of forBlock: variableNodes size " <<outVariableNodes.size() <<" definitions size " << outDefinitions.size() <<endl <<endl;
 }
 
 void ComputeReachingDefsVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
@@ -379,13 +379,13 @@ void ComputeReachingDefsVisitor::visitFunctionDeclBlock(FunctionDeclBlock* funct
     map<const Variable*, vector<pair<const Definition*, bool>>> definitions = p_inDefinitions.at(functionDeclBlock);
     map<const Definition*, vector<vector<const Variable*>>> variableGroups = p_inVariableGroups.at(functionDeclBlock);
 
-    cout <<"Beginning of FunctionDeclBlock: variableNodes size " <<variableNodes.size() <<" definitions size "
+    Logger::getDebugStreamInstance() <<"Beginning of FunctionDeclBlock: variableNodes size " <<variableNodes.size() <<" definitions size "
         << definitions.size() <<endl <<endl;
     meet(functionDeclBlock->getFirst(), variableNodes, definitions, variableGroups);
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -409,7 +409,7 @@ void ComputeReachingDefsVisitor::visitFunctionDeclBlock(FunctionDeclBlock* funct
     p_outVariableGroups.erase(functionDeclBlock);
     p_outVariableGroups[functionDeclBlock] = outVariableGroups;
 
-    cout <<"End of FunctionDeclBlock: variableNodes size " <<outVariableNodes.size() <<" definitions size "
+    Logger::getDebugStreamInstance() <<"End of FunctionDeclBlock: variableNodes size " <<outVariableNodes.size() <<" definitions size "
         <<outDefinitions.size() <<endl <<endl;
 }
 
@@ -418,7 +418,7 @@ void ComputeReachingDefsVisitor::visitFunctionCallBlock(FunctionCallBlock* funct
     map<const Variable*, vector<pair<const Definition*, bool>>> definitions = p_inDefinitions.at(functionCallBlock);
     map<const Definition*, vector<vector<const Variable*>>> variableGroups = p_inVariableGroups.at(functionCallBlock);
 
-    cout <<"Beginning of FunctionCallBlock: variableNodes size " <<variableNodes.size() <<" definitions size "
+    Logger::getDebugStreamInstance() <<"Beginning of FunctionCallBlock: variableNodes size " <<variableNodes.size() <<" definitions size "
         << definitions.size() <<endl <<endl;
     vector<FunctionCallInstance*>& functionCallInstances = functionCallBlock->getFnCallInstances();
     for(int i=0; i<functionCallInstances.size(); i++) {
@@ -452,12 +452,12 @@ void ComputeReachingDefsVisitor::visitFunctionCallBlock(FunctionCallBlock* funct
     p_outVariableGroups.erase(functionCallBlock);
     p_outVariableGroups[functionCallBlock] = outVariableGroups;
 
-    cout <<"End of FunctionCallBlock: variableNodes size " <<outVariableNodes.size() <<" definitions size "
+    Logger::getDebugStreamInstance() <<"End of FunctionCallBlock: variableNodes size " <<outVariableNodes.size() <<" definitions size "
         << outDefinitions.size() <<endl <<endl;
 }
 
 void ComputeReachingDefsVisitor::visitCFG(BasicBlock* block) {
-    cout <<"Beginning of CFG: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"Beginning of CFG: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
     BasicBlock* next(0);
     BasicBlock* curr(block);
     int numIt = 0;
@@ -471,10 +471,10 @@ void ComputeReachingDefsVisitor::visitCFG(BasicBlock* block) {
             curr->acceptVisitor(*this);
             curr = next;
         }
-        cout <<"variable changed " <<p_variableNodesChanged <<endl;
+        Logger::getDebugStreamInstance() <<"variable changed " <<p_variableNodesChanged <<endl;
         //if(numIt >=2 ) break;
     //}
-    cout <<"End of CFG: variableNodes size " <<p_outVariableNodes.size() << " definitions size "
+    Logger::getDebugStreamInstance() <<"End of CFG: variableNodes size " <<p_outVariableNodes.size() << " definitions size "
         << p_outDefinitions.size()
         << " Iterations " << numIt <<endl <<endl;
 }

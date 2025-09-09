@@ -12,16 +12,16 @@ void FunctionVariable::print(ostream& os) const {
 
 void Identifier::populateVariable(SymbolTable* symbolTable) {
     p_variable = symbolTable->fetchVariable(p_name);
-    cout << "Identifier::populateVariable populated " << p_name <<" " <<p_variable <<endl;
+    Logger::getDebugStreamInstance() << "Identifier::populateVariable populated " << p_name <<" " <<p_variable <<endl;
 }
 
 const Expr* Identifier::populateDerefVariable(SymbolTable* symbolTable, const Expr* structVar) {
     if(structVar) {
         setVariable(static_cast<const Variable*>(structVar));
-        cout << "Identifier::populateDerefVariable populated " << p_name <<" " << p_variable <<endl;
+        Logger::getDebugStreamInstance() << "Identifier::populateDerefVariable populated " << p_name <<" " << p_variable <<endl;
         return structVar;
     }
-    cout << "Identifier::populateDerefVariable populated " << p_name <<" " << p_variable <<endl;
+    Logger::getDebugStreamInstance() << "Identifier::populateDerefVariable populated " << p_name <<" " << p_variable <<endl;
     return symbolTable->fetchVariable(p_name);
 }
 
@@ -38,7 +38,7 @@ const Expr* Identifier::populateStructVariable(SymbolTable* symbolTable, const E
     }
     setVariable(memStructVar);
     assert(memStructVar);
-    cout <<"Identifier::populateStructVariable "<<*memStructVar <<endl;
+    Logger::getDebugStreamInstance() <<"Identifier::populateStructVariable "<<*memStructVar <<endl;
     return memStructVar;
 }
 
@@ -49,11 +49,11 @@ const Expr* DereferenceOperator::populateDerefVariable(SymbolTable* symbolTable,
         const Variable* pointsTo = pointerVariable->getPointsTo();
         Identifier::setName(pointsTo->getName());
         Identifier::setVariable(pointsTo);
-        cout <<"DerefOperator::populatederefvariable populated " << pointsTo <<endl;
+        Logger::getDebugStreamInstance() <<"DerefOperator::populatederefvariable populated " << pointsTo <<endl;
         return pointsTo;
     }
     else {
-        cout <<"PopulateDerefVariable error " <<p_right->getExprType() <<endl; //error
+        Logger::getDebugStreamInstance() <<"PopulateDerefVariable error " <<p_right->getExprType() <<endl; //error
     }
     return nullptr;
 }
@@ -71,7 +71,7 @@ const Expr* DereferenceOperator::populateStructVariable(SymbolTable* symbolTable
     }
     memStructVar = populateDerefVariable(symbolTable, memStructVar);
     assert(memStructVar);
-    cout <<"DereferenceOperator::populateStructVariable "<<*memStructVar <<endl;
+    Logger::getDebugStreamInstance() <<"DereferenceOperator::populateStructVariable "<<*memStructVar <<endl;
     return memStructVar;
 }
 
@@ -80,7 +80,7 @@ const Expr* DotOperator::populateDerefVariable(SymbolTable* symbolTable, const E
     if(leftVar == nullptr) return leftVar;
     const Expr* pointedToVar = p_right->populateStructVariable(symbolTable, leftVar);
     assert(pointedToVar);
-    cout<<"DotOperator::populateDerefVariable " <<*pointedToVar <<endl;
+    Logger::getDebugStreamInstance()<<"DotOperator::populateDerefVariable " <<*pointedToVar <<endl;
     return pointedToVar;
 }
 
@@ -99,7 +99,7 @@ const Expr* DotOperator::populateStructVariable(SymbolTable* symbolTable, const 
     p_left->populateDerefVariable(symbolTable, memStructVar);
     memStructVar = p_right->populateStructVariable(symbolTable, memStructVar);
     assert(memStructVar);
-    cout <<"DotOperator::populateStructVariable "<<*memStructVar <<endl;
+    Logger::getDebugStreamInstance() <<"DotOperator::populateStructVariable "<<*memStructVar <<endl;
     return memStructVar;
 }
 
@@ -107,7 +107,7 @@ const Expr* AddressOfOperator::populateDerefVariable(SymbolTable* symbolTable, c
     const Variable* pointsTo = dynamic_cast<const Variable*>(p_right->populateDerefVariable(symbolTable));
     if(pointsTo) {
         if(pointsTo->getExprType() == ExprType::ADDRESSOFVARIABLE) {
-            cout <<"Invalid address of operator usage " <<pointsTo->getName() <<endl;
+            Logger::getDebugStreamInstance() <<"Invalid address of operator usage " <<pointsTo->getName() <<endl;
             return nullptr;
         }
         const char* name = pointsTo->getName();
@@ -135,12 +135,12 @@ const Expr* AddressOfOperator::populateDerefVariable(SymbolTable* symbolTable, c
             Variable* addressOf = new AddressOfVariable(newName, VarType::POINTER, pointsTo);
             symbolTable->addSymbol(addressOf);
             Identifier::setVariable(addressOf);
-            cout <<"addressOf variable populated " << addressOf <<endl;
+            Logger::getDebugStreamInstance() <<"addressOf variable populated " << addressOf <<endl;
             return addressOf;
         }
     }
     else {
-        cout <<"AddressOfOperator::populateDerefVariable pointsTo downcast to var failure " <<endl;
+        Logger::getDebugStreamInstance() <<"AddressOfOperator::populateDerefVariable pointsTo downcast to var failure " <<endl;
     }
     return nullptr;
 }

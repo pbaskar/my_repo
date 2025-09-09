@@ -42,7 +42,7 @@ char ExpressionTokenizer::nextChar(bool peek) {
     char next = p_expressionStr[p_pos];
     if(!peek && next != '\0')
         p_pos++;
-    //cout << "nextchar " << p_pos;
+    //Logger::getDebugStreamInstance() << "nextchar " << p_pos;
     return next;
 }
 
@@ -82,7 +82,7 @@ char* ExpressionTokenizer::nextWord(ExprType& type, bool peek) {
     }
     if(!peek)
         p_pos = p ;
-    cout <<"Expression Tokenizer:: next word " <<p <<"  " <<token <<endl;
+    Logger::getDebugStreamInstance() <<"Expression Tokenizer:: next word " <<p <<"  " <<token <<endl;
     return token;
 }
 

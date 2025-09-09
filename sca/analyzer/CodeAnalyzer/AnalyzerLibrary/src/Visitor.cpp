@@ -96,11 +96,11 @@ void copyDefinitionsToVar(const Variable* lhs, const Definition* pointsToDefinit
         auto& definitions = outDefinitions.at(lhs);
         definitions.clear();
         definitions.push_back(pointsToDefinitionPair);
-        cout<<" replaced definition of lhs " <<*lhs <<
+        Logger::getDebugStreamInstance()<<" replaced definition of lhs " <<*lhs <<
            " rhsDefinitions size " <<definitions.size() <<endl;
     }
     else {
-        cout<<" added definition lhs " <<*lhs << " outDefinitions size " << outDefinitions.size()<<endl;
+        Logger::getDebugStreamInstance()<<" added definition lhs " <<*lhs << " outDefinitions size " << outDefinitions.size()<<endl;
         vector<pair<const Definition*, bool>> v;
         v.push_back(pointsToDefinitionPair);
         outDefinitions.insert_or_assign(lhs, v);
@@ -121,11 +121,11 @@ void copyDefinitionsToPointerVar(const Variable* lhs, const Definition* pointsTo
             auto& definitions = outDefinitions.at(lhsPointer);
             definitions.clear();
             definitions.push_back(pointsToDefinitionPair);
-            cout<<" replaced definition of lhs " <<*lhsPointer <<
+            Logger::getDebugStreamInstance()<<" replaced definition of lhs " <<*lhsPointer <<
                " rhsDefinitions size " <<definitions.size() <<endl;
         }
         else {
-            cout<<" added definition lhs " <<*lhsPointer << " outDefinitions size " << outDefinitions.size()<<endl;
+            Logger::getDebugStreamInstance()<<" added definition lhs " <<*lhsPointer << " outDefinitions size " << outDefinitions.size()<<endl;
             vector<pair<const Definition*, bool>> v;
             v.push_back(pointsToDefinitionPair);
             outDefinitions.insert_or_assign(lhsPointer, v);
@@ -155,11 +155,11 @@ void copyNodesToPointerVar(const Variable* lhs, AssignmentNode* assignNode,
             auto& nodes = outVariableNodes.at(lhs);
             nodes.clear();
             nodes.push_back(assignNode);
-            cout<<" replaced pointsto var " <<*lhs << " " <<*assignNode
+            Logger::getDebugStreamInstance()<<" replaced pointsto var " <<*lhs << " " <<*assignNode
                << " rhsNodes size " <<nodes.size() <<endl;
         }
         else {
-            cout<<" added pointsto var " <<*lhs << " " << *assignNode << " rhsNodes " <<assignNode <<endl;
+            Logger::getDebugStreamInstance()<<" added pointsto var " <<*lhs << " " << *assignNode << " rhsNodes " <<assignNode <<endl;
             vector<AssignmentNode*> v;
             v.push_back(assignNode);
             outVariableNodes.insert_or_assign(lhs, v);
@@ -207,11 +207,11 @@ void copyNodesToStructVar(const Variable* lhs, AssignmentNode* assignNode,
             auto& nodes = outVariableNodes.at(memVar);
             nodes.clear();
             nodes.push_back(assignNode);
-            cout<<" replaced pointsto var " <<*memVar << " " <<*assignNode
+            Logger::getDebugStreamInstance()<<" replaced pointsto var " <<*memVar << " " <<*assignNode
                << " rhsNodes size " <<nodes.size() <<endl;
         }
         else {
-            cout<<" added pointsto var " <<*memVar << " " << *assignNode << " rhsNodes " <<assignNode <<endl;
+            Logger::getDebugStreamInstance()<<" added pointsto var " <<*memVar << " " << *assignNode << " rhsNodes " <<assignNode <<endl;
             vector<AssignmentNode*> v;
             v.push_back(assignNode);
             outVariableNodes.insert_or_assign(memVar, v);
@@ -289,15 +289,15 @@ void updateVariableGroupDef(const vector<const Variable*>& outVariables, const V
     //add variable group to the entry corresponding to rhs definition in outVariableGroup
 
     auto rhsDefinitionIt = outDefinitions.find(rhs);
-    if(rhsDefinitionIt == outDefinitions.end()) { cout << "rhs no def found " <<endl; return; }
+    if(rhsDefinitionIt == outDefinitions.end()) { Logger::getDebugStreamInstance() << "rhs no def found " <<endl; return; }
     vector<pair<const Definition*, bool>>& rhsDefPairs = rhsDefinitionIt->second;
-    cout <<"rhs def pairs " <<rhsDefPairs.size() <<endl;
+    Logger::getDebugStreamInstance() <<"rhs def pairs " <<rhsDefPairs.size() <<endl;
     for(int j=0; j<rhsDefPairs.size(); j++) {
         auto variableGroupsIt = outVariableGroups.find(rhsDefPairs[j].first);
-        cout <<"outVariableGroups " <<outVariableGroups.size() << " " <<outVariableGroups.begin()->first <<" " <<rhsDefPairs[j].first <<endl;
+        Logger::getDebugStreamInstance() <<"outVariableGroups " <<outVariableGroups.size() << " " <<outVariableGroups.begin()->first <<" " <<rhsDefPairs[j].first <<endl;
         if(variableGroupsIt != outVariableGroups.end()) {
             vector<vector<const Variable*>>& outVariableGroup = (variableGroupsIt->second);
-            cout <<"outVariable Group " <<outVariableGroup.size() <<endl;
+            Logger::getDebugStreamInstance() <<"outVariable Group " <<outVariableGroup.size() <<endl;
             outVariableGroup.push_back(outVariables);
             break;
         } else {
@@ -318,11 +318,11 @@ void copyDefinitionsFromVar(const Variable* lhs, const Variable* rhs,
     auto rhsDefinitionIt = outDefinitions.find(rhs);
     if(rhsDefinitionIt != outDefinitions.end()) {
         rhsDefinitions = outDefinitions.at(rhs);
-        cout<<" found rhsDefinitions RHS variable " << *rhs <<
+        Logger::getDebugStreamInstance()<<" found rhsDefinitions RHS variable " << *rhs <<
            " rhsDefinitions size " << rhsDefinitions.size()<<endl;
     }
     else {
-        cout <<"not found rhsDefinitions RHS pointer" << *rhs <<endl;
+        Logger::getDebugStreamInstance() <<"not found rhsDefinitions RHS pointer" << *rhs <<endl;
     }
 
     auto definitionIt = outDefinitions.find(lhs);
@@ -330,11 +330,11 @@ void copyDefinitionsFromVar(const Variable* lhs, const Variable* rhs,
         auto& definitions = outDefinitions.at(lhs);
         definitions.clear();
         definitions = /*std::move*/(rhsDefinitions);
-        cout<<" replaced definition of lhs " <<*lhs <<"  "<<lhs <<
+        Logger::getDebugStreamInstance()<<" replaced definition of lhs " <<*lhs <<"  "<<lhs <<
         " rhsDefinitions size " <<definitions.size() <<endl;
     }
     else {
-        cout<<" added definition lhs " <<*lhs << " " <<lhs <<" outDefinitions size " << outDefinitions.size()<<endl;
+        Logger::getDebugStreamInstance()<<" added definition lhs " <<*lhs << " " <<lhs <<" outDefinitions size " << outDefinitions.size()<<endl;
         outDefinitions.insert_or_assign(lhs, rhsDefinitions);
     }
 }
@@ -344,25 +344,25 @@ void copyDefinitionsFromVarGroup(const Variable* lhs, const Variable* rhs,
                                         map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
     // find definition of lhs and entry that has lhs in the map and fetch all variables and recursively call this method.
     auto lhsDefinitionIt = outDefinitions.find(lhs);
-    if(lhsDefinitionIt == outDefinitions.end()) { cout << "no def found " <<endl; return; }
+    if(lhsDefinitionIt == outDefinitions.end()) { Logger::getDebugStreamInstance() << "no def found " <<endl; return; }
     vector<pair<const Definition*, bool>>& defPairs = lhsDefinitionIt->second;
-    cout <<"def pairs " <<defPairs.size() <<endl;
+    Logger::getDebugStreamInstance() <<"def pairs " <<defPairs.size() <<endl;
     for(int j=0; j<defPairs.size(); j++) {
         auto variableGroupsIt = outVariableGroups.find(defPairs[j].first);
-        //cout <<"outVariableGroups " <<outVariableGroups.size() << " " <<outVariableGroups.begin()->first <<" " <<defPairs[j].first <<endl;
+        //Logger::getDebugStreamInstance() <<"outVariableGroups " <<outVariableGroups.size() << " " <<outVariableGroups.begin()->first <<" " <<defPairs[j].first <<endl;
         if(variableGroupsIt != outVariableGroups.end()) {
             vector<vector<const Variable*>>& outVariableGroup = (variableGroupsIt->second);
-            //cout <<"outVariable Group " <<outVariableGroup.size() <<endl;
+            //Logger::getDebugStreamInstance() <<"outVariable Group " <<outVariableGroup.size() <<endl;
             for(int i=0; i<outVariableGroup.size();) {
                 vector<const Variable*> outVariables = outVariableGroup[i];
                 updateVariableGroupDef(outVariables, rhs, outDefinitions, outVariableGroups);
                 auto variableLhsIt = std::find(outVariables.begin(), outVariables.end(),lhs);
                 if(variableLhsIt != outVariables.end()) {
-                    //cout <<"outVariables " <<outVariables.size() <<endl;
+                    //Logger::getDebugStreamInstance() <<"outVariables " <<outVariables.size() <<endl;
                     outVariableGroup.erase(outVariableGroup.begin()+i);
                     for(int k=0; k<outVariables.size(); k++) {
                         copyDefinitionsFromVar(outVariables[k], rhs, outDefinitions, outVariableGroups);
-                        cout <<"copy definitions from var " << *(outVariables[k]) <<endl;
+                        Logger::getDebugStreamInstance() <<"copy definitions from var " << *(outVariables[k]) <<endl;
                     }
                     break;
                 }
@@ -393,7 +393,7 @@ void copyDefinitionsFromPointerVarGroup(const Variable* lhs, const Variable* rhs
                     outVariableGroup.erase(outVariableGroup.begin()+i);
                     for(int k=0; k<outVariables.size(); k++) {
                         copyDefinitionsFromPointerVar(outVariables[k], rhs, outDefinitions, outVariableGroups);
-                        cout <<"copy definitions from pointer var " << *(outVariables[k]) <<endl;
+                        Logger::getDebugStreamInstance() <<"copy definitions from pointer var " << *(outVariables[k]) <<endl;
                     }
                     break;
                 }
@@ -419,11 +419,11 @@ void copyDefinitionsFromPointerVar(const Variable* lhs, const Variable* rhs,
         auto rhsDefinitionIt = outDefinitions.find(rhsPointer);
         if(rhsDefinitionIt != outDefinitions.end()) {
             rhsDefinitions = outDefinitions.at(rhsPointer);
-            cout<<" found rhsDefinitions RHS pointer " << *rhsPointer <<
+            Logger::getDebugStreamInstance()<<" found rhsDefinitions RHS pointer " << *rhsPointer <<
                " rhsDefinitions size " << rhsDefinitions.size()<<endl;
         }
         else {
-            cout <<"not found rhsDefinitions RHS pointer" << *rhsPointer <<endl;
+            Logger::getDebugStreamInstance() <<"not found rhsDefinitions RHS pointer" << *rhsPointer <<endl;
         }
 
         auto definitionIt = outDefinitions.find(lhsPointer);
@@ -431,11 +431,11 @@ void copyDefinitionsFromPointerVar(const Variable* lhs, const Variable* rhs,
             auto& definitions = outDefinitions.at(lhsPointer);
             definitions.clear();
             definitions = /*std::move*/(rhsDefinitions);
-            cout<<" replaced definition of lhs " <<*lhsPointer <<
+            Logger::getDebugStreamInstance()<<" replaced definition of lhs " <<*lhsPointer <<
             " rhsDefinitions size " <<definitions.size() <<endl;
         }
         else {
-            cout<<" added definition lhs " <<*lhsPointer << " outDefinitions size " << outDefinitions.size()<<endl;
+            Logger::getDebugStreamInstance()<<" added definition lhs " <<*lhsPointer << " outDefinitions size " << outDefinitions.size()<<endl;
             outDefinitions.insert_or_assign(lhsPointer, rhsDefinitions);
         }
 
@@ -464,10 +464,10 @@ void copyNodesFromPointerVar(const Variable* lhs, const Variable* rhs, Assignmen
         auto pointsToRHSVariableNodeIt = outVariableNodes.find(rhs);
         if(pointsToRHSVariableNodeIt != outVariableNodes.end()) {
             rhsNodes = outVariableNodes.at(rhs);
-            cout<<" found rhsNodes " <<*lhs <<" " <<*rhs <<" rhsNodes size " << rhsNodes.size()<<endl;
+            Logger::getDebugStreamInstance()<<" found rhsNodes " <<*lhs <<" " <<*rhs <<" rhsNodes size " << rhsNodes.size()<<endl;
         }
         else {
-            cout <<"not found rhsNodes " << *rhs <<" " <<*rhs << endl;
+            Logger::getDebugStreamInstance() <<"not found rhsNodes " << *rhs <<" " <<*rhs << endl;
 
         }
 
@@ -476,11 +476,11 @@ void copyNodesFromPointerVar(const Variable* lhs, const Variable* rhs, Assignmen
             auto& nodes = outVariableNodes.at(lhs);
             nodes.clear();
             nodes = /*std::move*/(rhsNodes);
-            cout<<" replaced pointsto var " <<*lhs << " " << lhs <<" " <<rhs
+            Logger::getDebugStreamInstance()<<" replaced pointsto var " <<*lhs << " " << lhs <<" " <<rhs
                << " rhsNodes size " <<nodes.size() <<endl;
         }
         else {
-            cout<<" added pointsto var " <<*lhs << " " << *lhs <<" " <<*rhs << " rhsNodes size " <<rhsNodes.size()<<endl;
+            Logger::getDebugStreamInstance()<<" added pointsto var " <<*lhs << " " << *lhs <<" " <<*rhs << " rhsNodes size " <<rhsNodes.size()<<endl;
             outVariableNodes.insert_or_assign(lhs, rhsNodes);
         }
 
@@ -514,11 +514,11 @@ void copyDefinitionsFromStructVar(const Variable* lhs, const Variable* rhs,
         auto rhsDefinitionIt = outDefinitions.find(rhsMemVar);
         if(rhsDefinitionIt != outDefinitions.end()) {
             rhsDefinitions = outDefinitions.at(rhsMemVar);
-            cout<<" found rhsDefinitions RHS pointer " << *rhsMemVar <<
+            Logger::getDebugStreamInstance()<<" found rhsDefinitions RHS pointer " << *rhsMemVar <<
                   " rhsDefinitions size " << rhsDefinitions.size()<<endl;
         }
         else {
-            cout <<"not found rhsDefinitions RHS pointer" << *rhsMemVar <<endl;
+            Logger::getDebugStreamInstance() <<"not found rhsDefinitions RHS pointer" << *rhsMemVar <<endl;
         }
 
         const Variable* lhsMemVar = lhsMemVars[i];
@@ -527,11 +527,11 @@ void copyDefinitionsFromStructVar(const Variable* lhs, const Variable* rhs,
             auto& definitions = outDefinitions.at(lhsMemVar);
             definitions.clear();
             definitions = /*std::move*/(rhsDefinitions);
-            cout<<" replaced definition of lhs " <<*lhsMemVar <<
+            Logger::getDebugStreamInstance()<<" replaced definition of lhs " <<*lhsMemVar <<
                " rhsDefinitions size " <<definitions.size() <<endl;
         }
         else {
-            cout<<" added definition lhs " <<*lhsMemVar << " outDefinitions size " << outDefinitions.size()<<endl;
+            Logger::getDebugStreamInstance()<<" added definition lhs " <<*lhsMemVar << " outDefinitions size " << outDefinitions.size()<<endl;
             outDefinitions.insert_or_assign(lhsMemVar, rhsDefinitions);
         }
     }
@@ -554,10 +554,10 @@ void copyNodesFromStructVar(const Variable* lhs, const Variable* rhs, Assignment
         auto pointsToRHSVariableNodeIt = outVariableNodes.find(rhsMemVar);
         if(pointsToRHSVariableNodeIt != outVariableNodes.end()) {
             rhsNodes = outVariableNodes.at(rhsMemVar);
-            cout<<" found rhsNodes " <<*rhsMemVar <<" rhsNodes size " << rhsNodes.size()<<endl;
+            Logger::getDebugStreamInstance()<<" found rhsNodes " <<*rhsMemVar <<" rhsNodes size " << rhsNodes.size()<<endl;
         }
         else {
-            cout <<"not found rhsNodes " << *rhsMemVar << endl;
+            Logger::getDebugStreamInstance() <<"not found rhsNodes " << *rhsMemVar << endl;
 
         }
 
@@ -569,11 +569,11 @@ void copyNodesFromStructVar(const Variable* lhs, const Variable* rhs, Assignment
             auto& nodes = outVariableNodes.at(lhsMemVar);
             nodes.clear();
             nodes = /*std::move*/(rhsNodes);
-            cout<<" replaced pointsto var " <<*lhsMemVar << " " <<*rhsMemVar
+            Logger::getDebugStreamInstance()<<" replaced pointsto var " <<*lhsMemVar << " " <<*rhsMemVar
                << " rhsNodes size " <<nodes.size() <<endl;
         }
         else {
-            cout<<" added pointsto var " <<*lhsMemVar << " " << *rhsMemVar << " rhsNodes size " <<rhsNodes.size()<<endl;
+            Logger::getDebugStreamInstance()<<" added pointsto var " <<*lhsMemVar << " " << *rhsMemVar << " rhsNodes size " <<rhsNodes.size()<<endl;
             outVariableNodes.insert_or_assign(lhsMemVar, rhsNodes);
         }
         if(lhsMemVar->getExprType() == ExprType::STRUCTVARIABLE || lhsMemVar->getExprType() == ExprType::POINTERVARIABLE) {
@@ -595,13 +595,13 @@ void copyDefinitionsForAddressOfOperator(const Variable* var, const Expr* rhsExp
             auto& definitions = outDefinitions.at(rhs);
             definitions.clear();
             definitions.push_back(p);
-            cout<<" replaced definition of rhs " <<*rhs << " rhs definition valid " <<*rhsDefinition
+            Logger::getDebugStreamInstance()<<" replaced definition of rhs " <<*rhs << " rhs definition valid " <<*rhsDefinition
                 <<endl;
         }
         else {
             vector<pair<const Definition*, bool>> v;
             v.push_back(p);
-            cout<<" added definition rhs " <<*rhs
+            Logger::getDebugStreamInstance()<<" added definition rhs " <<*rhs
                << " outDefinitions size " << outDefinitions.size()<<endl;
             outDefinitions.insert_or_assign(rhs, v);
         }
@@ -617,15 +617,15 @@ void copyNodesForAddressOfOperator(const Expr* rhsExpr, AssignmentNode* assignNo
         auto variableNodeIt = outVariableNodes.find(rhs);
         if(variableNodeIt != outVariableNodes.end()) {
             auto& nodes = outVariableNodes.at(rhs);
-            cout <<"nodes size before clear " << nodes.size() <<endl;
+            Logger::getDebugStreamInstance() <<"nodes size before clear " << nodes.size() <<endl;
             nodes.clear();
             nodes.push_back(assignNode);
-            cout<<" replaced var " <<*rhs << " " <<*assignNode <<endl;
+            Logger::getDebugStreamInstance()<<" replaced var " <<*rhs << " " <<*assignNode <<endl;
         }
         else {
             vector<AssignmentNode*> v;
             v.push_back(assignNode);
-            cout<<" added var " <<*rhs << " " << *assignNode <<endl;
+            Logger::getDebugStreamInstance()<<" added var " <<*rhs << " " << *assignNode <<endl;
             outVariableNodes.insert_or_assign(rhs, v);
         }
     }
@@ -643,15 +643,15 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
         auto variableNodeIt = outVariableNodes.find(var);
         if(variableNodeIt != outVariableNodes.end()) {
             auto& nodes = outVariableNodes.at(var);
-            cout <<"nodes size before clear " << nodes.size() <<endl;
+            Logger::getDebugStreamInstance() <<"nodes size before clear " << nodes.size() <<endl;
             nodes.clear();
             nodes.push_back(assignNode);
-            cout<<" replaced var " <<*var << " " <<*assignNode <<endl;
+            Logger::getDebugStreamInstance()<<" replaced var " <<*var << " " <<*assignNode <<endl;
         }
         else {
             vector<AssignmentNode*> v;
             v.push_back(assignNode);
-            cout<<" added var " <<*var << " " << *assignNode <<endl;
+            Logger::getDebugStreamInstance()<<" added var " <<*var << " " << *assignNode <<endl;
             outVariableNodes.insert_or_assign(var, v);
         }
         switch(value->getExprType()) {
@@ -703,11 +703,11 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
             break;
 CopyVariables:
             default: {
-                if(RHSVariables.empty()) { cout <<"RHS variables empty"<<endl; break; }
-                cout <<"rhs variable " <<endl;
+                if(RHSVariables.empty()) { Logger::getDebugStreamInstance() <<"RHS variables empty"<<endl; break; }
+                Logger::getDebugStreamInstance() <<"rhs variable " <<endl;
                 const Expr* rhsExpr = RHSVariables[0];
                 const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
-                if(rhs==nullptr) { cout << "var rhs cast error " <<endl; break; }
+                if(rhs==nullptr) { Logger::getDebugStreamInstance() << "var rhs cast error " <<endl; break; }
                 copyDefinitionsFromVarGroup(var, rhs, outDefinitions, outVariableGroups);
                 copyDefinitionsFromVar(var, rhs, outDefinitions, outVariableGroups);
             }
@@ -716,10 +716,10 @@ CopyVariables:
     else if(var->getExprType() == ExprType::POINTERVARIABLE || value->getExprType()==ExprType::DELETEFNCALL) {
         switch(value->getExprType()) {
             case ExprType::DELETEFNCALL: {
-               if(RHSVariables.empty()) { cout <<"RHS variables empty"<<endl; break; }
+               if(RHSVariables.empty()) { Logger::getDebugStreamInstance() <<"RHS variables empty"<<endl; break; }
                const Expr* rhsExpr = RHSVariables[0];
                const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
-               if(rhs==nullptr) { cout << "pointer assignment rhs cast error " <<endl; break; }
+               if(rhs==nullptr) { Logger::getDebugStreamInstance() << "pointer assignment rhs cast error " <<endl; break; }
                auto definitionIt = outDefinitions.find(rhs);
                if(definitionIt != outDefinitions.end()) {
                    auto deletedDefinitionPairs = outDefinitions.at(rhs);
@@ -732,7 +732,7 @@ CopyVariables:
                            auto matched = find_if(deletedDefinitionPairs.begin(), deletedDefinitionPairs.end(), match);
                            if(matched != deletedDefinitionPairs.end()) {
                                itDef->second = false;
-                               cout <<"delete : set false to " <<itDef->second <<endl;
+                               Logger::getDebugStreamInstance() <<"delete : set false to " <<itDef->second <<endl;
                            }
                        }
                    }
@@ -770,7 +770,7 @@ CopyVariables:
                     }
                     break;
                     case ExprType::ADDRESSOFOPERATOR: {
-                        if(RHSVariables.empty()) { cout <<"RHS variables empty"<<endl; break; }
+                        if(RHSVariables.empty()) { Logger::getDebugStreamInstance() <<"RHS variables empty"<<endl; break; }
                         const Expr* rhsExpr = RHSVariables[0];
                         assert(rhsExpr != nullptr);
                         copyNodesForAddressOfOperator(rhsExpr, assignNode, outVariableNodes, outDefinitions);
@@ -780,7 +780,7 @@ CopyVariables:
                 } //switch end
             }
             case ExprType::ADDRESSOFOPERATOR: {
-                if(RHSVariables.empty()) { cout <<"RHS variables empty"<<endl; break; }
+                if(RHSVariables.empty()) { Logger::getDebugStreamInstance() <<"RHS variables empty"<<endl; break; }
                 const Expr* rhsExpr = RHSVariables[0];
                 assert(rhsExpr != nullptr);
                 copyNodesForAddressOfOperator(var, assignNode, outVariableNodes, outDefinitions);
@@ -789,11 +789,11 @@ CopyVariables:
             //PointerVariable, Dereference Operator, AddressOfOperator
 CopyPointerVariables:
             default: {
-               if(RHSVariables.empty()) { cout <<"RHS variables empty"<<endl; break; }
-               cout <<"rhs pointer variable " <<endl;
+               if(RHSVariables.empty()) { Logger::getDebugStreamInstance() <<"RHS variables empty"<<endl; break; }
+               Logger::getDebugStreamInstance() <<"rhs pointer variable " <<endl;
                const Expr* rhsExpr = RHSVariables[0];
                const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
-               if(rhs==nullptr) { cout << "pointer assignment rhs cast error " <<endl; break; }
+               if(rhs==nullptr) { Logger::getDebugStreamInstance() << "pointer assignment rhs cast error " <<endl; break; }
                copyDefinitionsFromPointerVarGroup(var, rhs, outDefinitions, outVariableGroups);
                copyDefinitionsFromPointerVar(var, rhs, outDefinitions, outVariableGroups);
                copyNodesFromPointerVar(var, rhs, assignNode, outVariableNodes, outDefinitions, outVariableGroups);
@@ -810,11 +810,11 @@ CopyPointerVariables:
             }
             break;
             default: {
-                if(RHSVariables.empty()) { cout <<"RHS variables empty"<<endl; break; }
-                cout <<"rhs pointer variable " <<endl;
+                if(RHSVariables.empty()) { Logger::getDebugStreamInstance() <<"RHS variables empty"<<endl; break; }
+                Logger::getDebugStreamInstance() <<"rhs pointer variable " <<endl;
                 const Expr* rhsExpr = RHSVariables[0];
                 const Variable* rhs = dynamic_cast<const Variable*>(rhsExpr);
-                if(rhs==nullptr) { cout << "pointer assignment rhs cast error " <<endl; break; }
+                if(rhs==nullptr) { Logger::getDebugStreamInstance() << "pointer assignment rhs cast error " <<endl; break; }
                 copyDefinitionsFromStructVar(var, rhs, outDefinitions, outVariableGroups);
                 copyNodesFromStructVar(var, rhs, assignNode, outVariableNodes, outDefinitions, outVariableGroups);
             }
@@ -839,7 +839,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
     map<const Variable*, vector<pair<const Definition*, bool>>> outDefinitions = p_inDefinitions.at(basicBlock);
     map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups = p_inVariableGroups.at(basicBlock);
 
-    cout <<"Beginning of Block: variableNodes size " <<outVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"Beginning of Block: variableNodes size " <<outVariableNodes.size() <<endl <<endl;
     bool found = false;
     const vector<Node*>& nodeList = basicBlock->getNodeList();
     for(Node* node: nodeList) {
@@ -879,20 +879,20 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                     strncat(r.errorMessage,m,strlen(m));
                     strncat(r.errorMessage,name,strlen(name));
                     r.errorMessage[strlen(m)+strlen(name)] = '\0';
-                    cout <<endl<<endl<<"Declaration " <<r.errorMessage << " " <<*var <<endl;
+                    Logger::getDebugStreamInstance() <<endl<<endl<<"Declaration " <<r.errorMessage << " " <<*var <<endl;
                     p_results.push_back(r);*/
                 }
             }
         }
 
-        cout <<endl <<endl <<"RHS value " << *value <<" variables count " <<RHSVariables.size() <<endl;
+        Logger::getDebugStreamInstance() <<endl <<endl <<"RHS value " << *value <<" variables count " <<RHSVariables.size() <<endl;
 
 
         //Check nodes and definitions for invalid assignments and definitions
         for(auto variableIt = RHSVariables.begin(); variableIt != RHSVariables.end(); variableIt++) {
             const Variable* variable = dynamic_cast<const Variable*>(*variableIt);
-            if (!variable) { cout <<"RHS cast error " <<variable <<endl; continue; }
-            else cout <<"rhs variable " << *variable <<endl;
+            if (!variable) { Logger::getDebugStreamInstance() <<"RHS cast error " <<variable <<endl; continue; }
+            else Logger::getDebugStreamInstance() <<"rhs variable " << *variable <<endl;
             found = true;
 
             map<const Variable*, vector<AssignmentNode*>>::iterator nodesIt = outVariableNodes.find(variable);
@@ -906,7 +906,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                                     nodeValue->getExprType() == ExprType::ARRAYDEFINITION) {
                                 const Definition* def = static_cast<const Definition*>(nodeValue);
                                 if(!def->isValid()) {
-                                    cout <<endl <<"Invalid assignment: var " <<*variable<< " value = " <<*value <<endl;
+                                    Logger::getDebugStreamInstance() <<endl <<"Invalid assignment: var " <<*variable<< " value = " <<*value <<endl;
                                     //found = false;
                                     break;
                                 }
@@ -916,7 +916,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                                 assert(mallocFnCall);
                                 const Definition* def = mallocFnCall->getDefinition();
                                 if(!def->isValid()) {
-                                    cout <<endl <<"Invalid assignment: var " <<*variable<< " value = " <<*value <<endl;
+                                    Logger::getDebugStreamInstance() <<endl <<"Invalid assignment: var " <<*variable<< " value = " <<*value <<endl;
                                     //found = false;
                                     break;
                                 }
@@ -924,12 +924,12 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                         }
                     }
                 } else {
-                    cout <<endl <<"Variable has no assignment node " <<endl;
+                    Logger::getDebugStreamInstance() <<endl <<"Variable has no assignment node " <<endl;
                     //found = false;
                 }
             }
             else {
-                cout <<endl <<"Variable has no entry in VariableNodes " <<endl;
+                Logger::getDebugStreamInstance() <<endl <<"Variable has no entry in VariableNodes " <<endl;
                 //found = false;
             }
             map<const Variable*, vector<pair<const Definition*, bool>>>::iterator outDefinitionIt = outDefinitions.find(variable);
@@ -938,15 +938,15 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                 if(!definitions.empty()) {
                     for(int i=0; i<definitions.size(); i++) {
                         if(!(definitions[i].second)) {
-                            cout <<"Invalid definition: var " <<*variable<< " value = " <<*value <<endl;
+                            Logger::getDebugStreamInstance() <<"Invalid definition: var " <<*variable<< " value = " <<*value <<endl;
                             found = false;
                             break;
                         }
-                        cout <<"definitions for var " <<*variable << " " <<definitions[i].first<<" " <<definitions[i].second <<endl;
+                        Logger::getDebugStreamInstance() <<"definitions for var " <<*variable << " " <<definitions[i].first<<" " <<definitions[i].second <<endl;
                     }
                 }
                 else {
-                    cout <<"Definition not found " <<endl;
+                    Logger::getDebugStreamInstance() <<"Definition not found " <<endl;
                     found = false;
                 }
             }
@@ -969,13 +969,13 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
         // compute result after each node inside basic block
         for(auto variableIt = LHSVariables.begin(); variableIt != LHSVariables.end(); variableIt++) {
             const Variable* var = dynamic_cast<const Variable*>(*variableIt);
-            if (var==nullptr) { cout <<"var null cast error " <<endl; continue; }
-            cout <<"LHS variable " << **variableIt <<" LHS Var size " << LHSVariables.size()
+            if (var==nullptr) { Logger::getDebugStreamInstance() <<"var null cast error " <<endl; continue; }
+            Logger::getDebugStreamInstance() <<"LHS variable " << **variableIt <<" LHS Var size " << LHSVariables.size()
                 << " RHS Var size "<<RHSVariables.size() <<endl;
             visitBasicBlockHelper(var, value, assignNode, outVariableNodes, outDefinitions, outVariableGroups);
         }
     }
-    cout <<"End of Block: variableNodes size " <<outVariableNodes.size() <<" definitions size " <<
+    Logger::getDebugStreamInstance() <<"End of Block: variableNodes size " <<outVariableNodes.size() <<" definitions size " <<
            outDefinitions.size() <<endl <<endl;
 }
 
@@ -999,13 +999,13 @@ void VariableInitCheckVisitor::intersect(vector<AssignmentNode*>& dest, vector<A
 }
 
 void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
-    cout <<"Beginning of IfElseBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"Beginning of IfElseBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
     BasicBlock* block = ifElseBlock->getIfFirst();
     BasicBlock* lastBlock = ifElseBlock->getIfLast();
     BasicBlock* next(0);
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -1019,7 +1019,7 @@ void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
         lastBlock = ifElseBlock->getElseLast();
         while(block != lastBlock) {
             if(block->getType() == JUMPBLOCK) {
-                cout <<"Unreachable code following jump " <<endl;
+                Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
                 break;
             }
             next = block->getNext();
@@ -1030,18 +1030,18 @@ void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
             block->acceptVisitor(*this);
         }
     }
-    cout <<"End of IfElseBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"End of IfElseBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::visitWhileBlock(WhileBlock* whileBlock) {
-    cout <<"Beginning of WhileBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"Beginning of WhileBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
     BasicBlock* block = whileBlock->getFirst();
     BasicBlock* lastBlock = whileBlock->getLast();
     BasicBlock* next(0);
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -1049,18 +1049,18 @@ void VariableInitCheckVisitor::visitWhileBlock(WhileBlock* whileBlock) {
         block = next;
     }
     block->acceptVisitor(*this);
-    cout <<"End of WhileBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"End of WhileBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::visitForBlock(ForBlock* forBlock) {
-    cout <<"Beginning of ForBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"Beginning of ForBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
     BasicBlock* block = forBlock->getFirst();
     BasicBlock* lastBlock = forBlock->getLast();
     BasicBlock* next(0);
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -1068,18 +1068,18 @@ void VariableInitCheckVisitor::visitForBlock(ForBlock* forBlock) {
         block = next;
     }
     block->acceptVisitor(*this);
-    cout <<"End of ForBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"End of ForBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
-    cout <<"Beginning of FunctionDeclBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"Beginning of FunctionDeclBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
     BasicBlock* block = functionDeclBlock->getFirst();
     BasicBlock* lastBlock = functionDeclBlock->getLast();
     BasicBlock* next(0);
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            cout <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -1087,11 +1087,11 @@ void VariableInitCheckVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functio
         block = next;
     }
     block->acceptVisitor(*this);
-    cout <<"End of FunctionDeclBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"End of FunctionDeclBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::visitFunctionCallBlock(FunctionCallBlock* functionCallBlock) {
-    cout <<"Beginning of FunctionCallBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"Beginning of FunctionCallBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
     vector<FunctionCallInstance*>& functionCallInstances = functionCallBlock->getFnCallInstances();
     for(int i=0; i<functionCallInstances.size(); i++) {
         FunctionCallInstance* fnCallInstance = functionCallInstances[i];
@@ -1104,16 +1104,16 @@ void VariableInitCheckVisitor::visitFunctionCallBlock(FunctionCallBlock* functio
         block = fnCallInstance->getLast();
         block->acceptVisitor(*this);
     }
-    cout <<"End of FunctionCallBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"End of FunctionCallBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }
 
 void VariableInitCheckVisitor::visitCFG(BasicBlock* block) {
-    cout <<"Beginning of CFG: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"Beginning of CFG: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
     BasicBlock* next(0);
     while(block) {
         next = block->getNext();
         block->acceptVisitor(*this);
         block = next;
     }
-    cout <<"End of CFG: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"End of CFG: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }

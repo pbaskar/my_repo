@@ -28,20 +28,20 @@ Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead) {
     Status s = instrParser.parseFile(fileName);
 
     if (s == FAILURE ) {
-        cout <<"Instructions file parsing failed " <<endl;
+        Logger::getDebugStreamInstance() <<"Instructions file parsing failed " <<endl;
         return s;
     }
-    cout << "********************************** Instructions file parsing done ****************************************" <<endl;
+    Logger::getDebugStreamInstance() << "********************************** Instructions file parsing done ****************************************" <<endl;
     ControlFlowGraph cfg;
     s = cfg.buildCFG(instrParser.getBlock());
 
     if (s == FAILURE ) {
-        cout <<"Building Control flow graph failed " <<endl;
+        Logger::getDebugStreamInstance() <<"Building Control flow graph failed " <<endl;
         return s;
     }
-    cout <<"********************************** Build cfg done **********************************" <<endl;
-    cout <<cfg <<endl;
-    cout << "********************************** output cfg done ****************************************" <<endl;
+    Logger::getDebugStreamInstance() <<"********************************** Build cfg done **********************************" <<endl;
+    Logger::getDebugStreamInstance() <<cfg <<endl;
+    Logger::getDebugStreamInstance() << "********************************** output cfg done ****************************************" <<endl;
     cfgHead = cfg.getHead();
     return s;
 }
@@ -54,34 +54,34 @@ Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
     Status s = instrParser.parseFile(fileName);
 
     if (s == FAILURE ) {
-        cout <<"Instructions file parsing failed " <<endl;
+        Logger::getDebugStreamInstance() <<"Instructions file parsing failed " <<endl;
         return s;
     }
-    cout << "********************************** Instructions file parsing done ****************************************" <<endl;
+    Logger::getDebugStreamInstance() << "********************************** Instructions file parsing done ****************************************" <<endl;
 
     ExprSimplifier exprSimplifier;
     s = exprSimplifier.simplify(instrParser.getBlock());
 
     if (s == FAILURE ) {
-        cout <<"Simplify expressions failed " <<endl;
+        Logger::getDebugStreamInstance() <<"Simplify expressions failed " <<endl;
         return s;
     }
 
-    cout << "********************************** Expression Simplification done ****************************************" <<endl;
+    Logger::getDebugStreamInstance() << "********************************** Expression Simplification done ****************************************" <<endl;
 
     ControlFlowGraph cfg;
     s = cfg.buildCFG(instrParser.getBlock());
 
     if (s == FAILURE ) {
-        cout <<"Building Control flow graph failed " <<endl;
+        Logger::getDebugStreamInstance() <<"Building Control flow graph failed " <<endl;
         return s;
     }
 
-    cout <<"********************************** Build cfg done **********************************" <<endl;
-    cout <<cfg <<endl;
-    cout << "********************************** output cfg done ****************************************" <<endl;
+    Logger::getDebugStreamInstance() <<"********************************** Build cfg done **********************************" <<endl;
+    Logger::getDebugStreamInstance() <<cfg <<endl;
+    Logger::getDebugStreamInstance() << "********************************** output cfg done ****************************************" <<endl;
     cfg.variableInitCheck(results);
-    cout << "********************************** Variable Init Check done ****************************************" <<endl;
+    Logger::getDebugStreamInstance() << "********************************** Variable Init Check done ****************************************" <<endl;
     ofstream of("output.log");
     if(of.is_open()) {
         for(Result r : results) {
@@ -90,12 +90,12 @@ Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
         }
         of.close();
     }
-    cout << "********************************** Output result done ****************************************" <<endl;
+    Logger::getDebugStreamInstance() << "********************************** Output result done ****************************************" <<endl;
     cfg.clear();
-    cout << "********************************** CFG Clear done ****************************************" <<endl;
+    Logger::getDebugStreamInstance() << "********************************** CFG Clear done ****************************************" <<endl;
     instrParser.clear();
-    cout << "********************************** InstrParser Clear done ****************************************" <<endl;
-    cout.flush();
+    Logger::getDebugStreamInstance() << "********************************** InstrParser Clear done ****************************************" <<endl;
+    Logger::getDebugStreamInstance().flush();
     Logger::getDebugStreamInstance().close();
     return s;
 }

@@ -70,8 +70,8 @@ Expr* ExpressionParser::parseAdditiveExpression() {
     Expr* leftOp = parseMultiplicativeExpression();
     char o = p_exprTokenizer.nextChar(true);
 
-    //cout <<"AdditiveExpr: op " <<o <<endl;
-    //if(o == '\0' || o == '=') { cout <<"return leftop " <<leftOp <<endl; return leftOp; }
+    //Logger::getDebugStreamInstance() <<"AdditiveExpr: op " <<o <<endl;
+    //if(o == '\0' || o == '=') { Logger::getDebugStreamInstance() <<"return leftop " <<leftOp <<endl; return leftOp; }
     if( o == '+' || o == '-') {
         p_exprTokenizer.nextChar();
         Expr* rightOp = parseAdditiveExpression();
@@ -83,10 +83,10 @@ Expr* ExpressionParser::parseAdditiveExpression() {
             oper = new Operator(leftOp,o,rightOp);
         }
     } else {
-        cout << "AdditiveExpression " <<leftOp <<endl;
+        Logger::getDebugStreamInstance() << "AdditiveExpression " <<leftOp <<endl;
         return leftOp;
     }
-    cout << "AdditiveExpression " <<oper <<endl;
+    Logger::getDebugStreamInstance() << "AdditiveExpression " <<oper <<endl;
     return oper;
 }
 
@@ -94,9 +94,9 @@ Expr* ExpressionParser::parseMultiplicativeExpression() {
     Expr* oper = nullptr;
     Expr* leftOp = parseUnaryExpression();
     char o = p_exprTokenizer.nextChar(true);
-    cout <<"MultiplicativeExpr: op " <<o <<endl;
+    Logger::getDebugStreamInstance() <<"MultiplicativeExpr: op " <<o <<endl;
 
-    //if(o == '\0' || o == '=') { cout <<"return leftop " <<leftOp <<endl; return leftOp; }
+    //if(o == '\0' || o == '=') { Logger::getDebugStreamInstance() <<"return leftop " <<leftOp <<endl; return leftOp; }
     if(o == '*' || o == '/') {
         p_exprTokenizer.nextChar();
 
@@ -111,7 +111,7 @@ Expr* ExpressionParser::parseMultiplicativeExpression() {
     } else {
         return leftOp;
     }
-    cout << "MultiplicativeExpression " <<oper <<endl;
+    Logger::getDebugStreamInstance() << "MultiplicativeExpression " <<oper <<endl;
     return oper;
 }
 
@@ -173,7 +173,7 @@ Status ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprP
         Expr* expr = parsePrimaryExpression();
         Identifier* identifier = dynamic_cast<Identifier*>(expr);
         if(!identifier) {
-            cout << "Non identifier in dot operator " <<endl; return status;
+            Logger::getDebugStreamInstance() << "Non identifier in dot operator " <<endl; return status;
         }
         Expr* postFixExpr = nullptr;
 
@@ -184,7 +184,7 @@ Status ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprP
             postFixExpr = new DotOperator(identifier, operand);
         } else {
             postFixExpr = new DotOperator(nullptr, identifier);
-            cout <<"Dot operator created " <<*identifier <<endl;
+            Logger::getDebugStreamInstance() <<"Dot operator created " <<*identifier <<endl;
         }
         postFixExprPrime.push_back(postFixExpr);
     }
@@ -195,7 +195,7 @@ Status ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprP
         Expr* expr = parsePrimaryExpression();
         Identifier* identifier = dynamic_cast<Identifier*>(expr);
         if(!identifier) {
-            cout << "Non identifier in dot operator " <<endl; return status;
+            Logger::getDebugStreamInstance() << "Non identifier in dot operator " <<endl; return status;
         }
         Expr* postFixExpr = nullptr;
 
@@ -216,7 +216,7 @@ Expr* ExpressionParser::parsePostFixExpression() {
     Expr* primaryExpr = parsePrimaryExpression();
     Expr* postFixExpr = nullptr;
 
-    //cout <<"primaryexpr " <<*primaryExpr <<endl;
+    //Logger::getDebugStreamInstance() <<"primaryexpr " <<*primaryExpr <<endl;
     if(!primaryExpr)
         return nullptr;
     ExprType type=ExprType::INVALID;
@@ -246,7 +246,7 @@ Expr* ExpressionParser::parsePostFixExpression() {
             DotOperator* dotOperator = static_cast<DotOperator*>(postFixExprPrime.front());
             Identifier* identifier = dynamic_cast<Identifier*>(primaryExpr);
             if(!identifier) {
-                cout << "Non identifier in dot operator " <<endl; break;
+                Logger::getDebugStreamInstance() << "Non identifier in dot operator " <<endl; break;
             }
             dotOperator->setLeftOp(identifier);
             postFixExpr = dotOperator;
@@ -256,7 +256,7 @@ Expr* ExpressionParser::parsePostFixExpression() {
             DotOperator* dotOperator = static_cast<DotOperator*>(postFixExprPrime.front());
             Identifier* identifier = dynamic_cast<Identifier*>(primaryExpr);
             if(!identifier) {
-                cout << "Non identifier in dot operator " <<endl; break;
+                Logger::getDebugStreamInstance() << "Non identifier in dot operator " <<endl; break;
             }
             dotOperator->setLeftOp(new DereferenceOperator("Deref", identifier));
             postFixExpr = dotOperator;
@@ -298,7 +298,7 @@ Expr* ExpressionParser::parseAssignmentExpression() {
     Expr* leftOp = parseUnaryExpression();
     char op = p_exprTokenizer.nextChar(true);
     if(op == '\0') {
-        //cout <<"unary expresson " <<leftOp <<endl;
+        //Logger::getDebugStreamInstance() <<"unary expresson " <<leftOp <<endl;
         return leftOp;
     }
 
@@ -313,7 +313,7 @@ Expr* ExpressionParser::parseAssignmentExpression() {
         else {
             assignExpr = new AssignOperator(leftOp,op,rightOp);
         }
-        cout <<"parseAssignmentExpression assignment " << assignExpr <<" " <<leftOp <<" " <<rightOp <<endl;
+        Logger::getDebugStreamInstance() <<"parseAssignmentExpression assignment " << assignExpr <<" " <<leftOp <<" " <<rightOp <<endl;
 
     } else {
         //backtrack:reset state
@@ -321,7 +321,7 @@ Expr* ExpressionParser::parseAssignmentExpression() {
         p_exprTokenizer.setPos(pos);
 
         assignExpr = parseAdditiveExpression();
-        cout <<"parseAssignmentExpression expression " << assignExpr <<endl;
+        Logger::getDebugStreamInstance() <<"parseAssignmentExpression expression " << assignExpr <<endl;
     }
     return assignExpr;
 }

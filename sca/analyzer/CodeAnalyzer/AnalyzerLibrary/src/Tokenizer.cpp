@@ -105,7 +105,7 @@ void Tokenizer::consumeWord() {
     int begin = p_pos;
     int wordLen = readNextWordLen(begin);
     p_pos = begin + wordLen;
-    //cout<<"consumed word " <<wordLen <<" " <<p_pos <<endl;
+    //Logger::getDebugStreamInstance()<<"consumed word " <<wordLen <<" " <<p_pos <<endl;
 }
 
 char* Tokenizer::nextWord(bool peek) {
@@ -118,7 +118,7 @@ char* Tokenizer::nextWord(bool peek) {
 
     if(!peek) {
         p_pos = begin + wordLen;
-        //cout<<"Tokenizer::nextWord::token " <<token <<" p_pos " <<p_pos<<" wordLen " <<wordLen <<endl;
+        //Logger::getDebugStreamInstance()<<"Tokenizer::nextWord::token " <<token <<" p_pos " <<p_pos<<" wordLen " <<wordLen <<endl;
     }
     return token;
 }

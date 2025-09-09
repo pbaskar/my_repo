@@ -7,6 +7,7 @@
 #include<cstring>
 #include<iostream>
 #include "FileReader.h"
+#include "Logger.h"
 
 FileReader::FileReader() {
     // TODO Auto-generated constructor stub
@@ -26,10 +27,10 @@ Status FileReader::openFile() {
     p_is.open(p_fileName);
     if(!p_is.is_open()) {
         status = FAILURE;
-        cout <<"File not opened " << p_fileName <<endl;
+        Logger::getDebugStreamInstance() <<"File not opened " << p_fileName <<endl;
     }
     else
-        cout <<"File opened " << p_fileName <<endl;
+        Logger::getDebugStreamInstance() <<"File opened " << p_fileName <<endl;
     return status;
 }
 
