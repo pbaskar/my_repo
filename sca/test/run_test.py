@@ -1,3 +1,3 @@
 	
 import subprocess
-subprocess.run(["CodeAnalyzer.exe","C:\workspace\my_repo\sca\\test\\ifelse.c"])
+subprocess.run(["DefChecker.exe","C:\workspace\my_repo\sca\\test\\ifelse.c"])
