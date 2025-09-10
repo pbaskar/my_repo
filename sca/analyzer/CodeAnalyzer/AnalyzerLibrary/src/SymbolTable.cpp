@@ -56,7 +56,7 @@ Variable* SymbolTable::addSymbol(Variable* newVar) {
     }
     if(var) { //error
         Logger::getDebugStreamInstance() <<"Adding duplicate variable into symbol table " <<endl;
-        assert(false);
+        return var;
     }
     Logger::getDebugStreamInstance() <<"Variable symbol added " <<newVar->getName() <<endl;
     SymbolTableEntry* symbolTableEntry = new SymbolTableEntry(newVar, INT, 0);

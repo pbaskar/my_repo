@@ -738,6 +738,7 @@ CopyVariables:
                    }
                }
                else {
+                   Logger::getDebugStreamInstance() << "Delete variable that has no definition " <<endl;
                    assert(false);
                }
             }
@@ -953,7 +954,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
             if(!found) {
                 const char* m = "Undefined variable ";
                 stringstream ss;
-                ss << variable->getName() << " in " << *assignNode;
+                ss << *variable << " in " << *assignNode;
                 string s = ss.str();
                 const char* name = s.c_str();
                 Result r;
