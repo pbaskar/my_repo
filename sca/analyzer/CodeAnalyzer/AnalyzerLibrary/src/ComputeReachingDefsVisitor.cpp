@@ -461,7 +461,7 @@ void ComputeReachingDefsVisitor::visitCFG(BasicBlock* block) {
     BasicBlock* next(0);
     BasicBlock* curr(block);
     int numIt = 0;
-    //while(p_variableNodesChanged) {
+    while(p_variableNodesChanged) {
         p_variableNodesChanged = false;
         curr = block;
         numIt++;
@@ -473,7 +473,7 @@ void ComputeReachingDefsVisitor::visitCFG(BasicBlock* block) {
         }
         Logger::getDebugStreamInstance() <<"variable changed " <<p_variableNodesChanged <<endl;
         //if(numIt >=2 ) break;
-    //}
+    }
     Logger::getDebugStreamInstance() <<"End of CFG: variableNodes size " <<p_outVariableNodes.size() << " definitions size "
         << p_outDefinitions.size()
         << " Iterations " << numIt <<endl <<endl;

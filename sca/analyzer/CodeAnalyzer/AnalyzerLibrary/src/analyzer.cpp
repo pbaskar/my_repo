@@ -49,7 +49,7 @@ Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead) {
 Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
     //char* fileName = "C:\\workspace\\my_repo\\sca\\test\\instructions.c";
     Logger::getDebugStreamInstance().open("debug.log");
-    Logger::getDebugStreamInstance() << "Logging..." <<endl;
+    Logger::getDebugStreamInstance() << endl << "Logging... " <<fileName <<endl;
     InstrParser instrParser;
     Status s = instrParser.parseFile(fileName);
 
@@ -82,8 +82,9 @@ Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
     Logger::getDebugStreamInstance() << "********************************** output cfg done ****************************************" <<endl;
     cfg.variableInitCheck(results);
     Logger::getDebugStreamInstance() << "********************************** Variable Init Check done ****************************************" <<endl;
-    ofstream of("output.log");
+    ofstream of("output.log", ios::app);
     if(of.is_open()) {
+        of<< endl << "Running... " <<fileName <<endl;
         for(Result r : results) {
             of <<r.errorMessage <<endl;
             delete(r.errorMessage);
