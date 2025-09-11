@@ -283,6 +283,23 @@ void updateVariableGroup(const Variable* lhs, const Variable* rhs,
     }
 }
 
+void updateVariableGroupDefOne(const vector<const Variable*>& outVariables, const Definition* rhs,
+                                  map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                                  map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
+    auto variableGroupsIt = outVariableGroups.find(rhs);
+    Logger::getDebugStreamInstance() <<"outVariableGroups " <<outVariableGroups.size() << " " <<outVariableGroups.begin()->first <<" " <<rhs <<endl;
+    if(variableGroupsIt != outVariableGroups.end()) {
+        vector<vector<const Variable*>>& outVariableGroup = (variableGroupsIt->second);
+        Logger::getDebugStreamInstance() <<"outVariable Group " <<outVariableGroup.size() <<endl;
+        outVariableGroup.push_back(outVariables);
+    } else {
+        vector<vector<const Variable*>> outVariableGroup;
+        outVariableGroup.push_back(outVariables);
+        pair<const Definition*, vector<vector<const Variable*>>> p(rhs, outVariableGroup);
+        outVariableGroups.insert(p);
+    }
+}
+
 void updateVariableGroupDef(const vector<const Variable*>& outVariables, const Variable* rhs,
                             map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
                             map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
@@ -293,21 +310,8 @@ void updateVariableGroupDef(const vector<const Variable*>& outVariables, const V
     vector<pair<const Definition*, bool>>& rhsDefPairs = rhsDefinitionIt->second;
     Logger::getDebugStreamInstance() <<"rhs def pairs " <<rhsDefPairs.size() <<endl;
     for(int j=0; j<rhsDefPairs.size(); j++) {
-        auto variableGroupsIt = outVariableGroups.find(rhsDefPairs[j].first);
-        Logger::getDebugStreamInstance() <<"outVariableGroups " <<outVariableGroups.size() << " " <<outVariableGroups.begin()->first <<" " <<rhsDefPairs[j].first <<endl;
-        if(variableGroupsIt != outVariableGroups.end()) {
-            vector<vector<const Variable*>>& outVariableGroup = (variableGroupsIt->second);
-            Logger::getDebugStreamInstance() <<"outVariable Group " <<outVariableGroup.size() <<endl;
-            outVariableGroup.push_back(outVariables);
-            break;
-        } else {
-            vector<vector<const Variable*>> outVariableGroup;
-            outVariableGroup.push_back(outVariables);
-            pair<const Definition*, vector<vector<const Variable*>>> p(rhsDefPairs[j].first, outVariableGroup);
-            outVariableGroups.insert(p);
-        }
+        updateVariableGroupDefOne(outVariables, rhsDefPairs[j].first, outDefinitions, outVariableGroups);
     }
-
 }
 
 void copyDefinitionsFromVar(const Variable* lhs, const Variable* rhs,
@@ -336,6 +340,41 @@ void copyDefinitionsFromVar(const Variable* lhs, const Variable* rhs,
     else {
         Logger::getDebugStreamInstance()<<" added definition lhs " <<*lhs << " " <<lhs <<" outDefinitions size " << outDefinitions.size()<<endl;
         outDefinitions.insert_or_assign(lhs, rhsDefinitions);
+    }
+}
+
+void copyDefinitionsToVarGroup(const Variable* lhs, const Definition* rhs,
+                                        map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
+                                        map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
+    // find definition of lhs and entry that has lhs in the map and fetch all variables and recursively call this method.
+    auto lhsDefinitionIt = outDefinitions.find(lhs);
+    if(lhsDefinitionIt == outDefinitions.end()) { Logger::getDebugStreamInstance() << "no def found " <<endl; return; }
+    vector<pair<const Definition*, bool>>& defPairs = lhsDefinitionIt->second;
+    Logger::getDebugStreamInstance() <<"def pairs " <<defPairs.size() <<endl;
+    for(int j=0; j<defPairs.size(); j++) {
+        auto variableGroupsIt = outVariableGroups.find(defPairs[j].first);
+        //Logger::getDebugStreamInstance() <<"outVariableGroups " <<outVariableGroups.size() << " " <<outVariableGroups.begin()->first <<" " <<defPairs[j].first <<endl;
+        if(variableGroupsIt != outVariableGroups.end()) {
+            vector<vector<const Variable*>>& outVariableGroup = (variableGroupsIt->second);
+            //Logger::getDebugStreamInstance() <<"outVariable Group " <<outVariableGroup.size() <<endl;
+            for(int i=0; i<outVariableGroup.size();) {
+                vector<const Variable*> outVariables = outVariableGroup[i];
+                updateVariableGroupDefOne(outVariables, rhs, outDefinitions, outVariableGroups);
+                auto variableLhsIt = std::find(outVariables.begin(), outVariables.end(),lhs);
+                if(variableLhsIt != outVariables.end()) {
+                    //Logger::getDebugStreamInstance() <<"outVariables " <<outVariables.size() <<endl;
+                    outVariableGroup.erase(outVariableGroup.begin()+i);
+                    for(int k=0; k<outVariables.size(); k++) {
+                        copyDefinitionsToVar(outVariables[k], rhs, outDefinitions);
+                        Logger::getDebugStreamInstance() <<"copy definitions from var " << *(outVariables[k]) <<endl;
+                    }
+                    break;
+                }
+                else {
+                    i++;
+                }
+            }
+        }
     }
 }
 
@@ -657,21 +696,25 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
         switch(value->getExprType()) {
             case ExprType::CONSTANT: {
                 const Constant* constant = static_cast<const Constant*>(value);
+                copyDefinitionsToVarGroup(var, constant->getDefinition(), outDefinitions, outVariableGroups);
                 copyDefinitionsToVar(var, constant->getDefinition(), outDefinitions);
             }
             break;
             case ExprType::OPERATOR: {
                 const Operator* binaryOperator = static_cast<const Operator*>(value);
+                copyDefinitionsToVarGroup(var, binaryOperator->getDefinition(), outDefinitions, outVariableGroups);
                 copyDefinitionsToVar(var, binaryOperator->getDefinition(), outDefinitions);
             }
             break;
             case ExprType::UNARYOPERATOR: {
                 const UnaryOperator* unaryOperator = static_cast<const UnaryOperator*>(value);
+                copyDefinitionsToVarGroup(var, unaryOperator->getDefinition(), outDefinitions, outVariableGroups);
                 copyDefinitionsToVar(var, unaryOperator->getDefinition(), outDefinitions);
             }
             break;
             case ExprType::DEFINITION: {
                  const Definition* rhsDefinition = static_cast<const Definition*>(value);
+                 copyDefinitionsToVarGroup(var, rhsDefinition, outDefinitions, outVariableGroups);
                  copyDefinitionsToVar(var, rhsDefinition, outDefinitions);
             }
             break;
@@ -682,16 +725,19 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
                 switch(rightOp->getExprType()) {
                     case ExprType::CONSTANT: {
                         const Constant* constant = static_cast<const Constant*>(rightOp);
+                        copyDefinitionsToVarGroup(var, constant->getDefinition(), outDefinitions, outVariableGroups);
                         copyDefinitionsToVar(var, constant->getDefinition(), outDefinitions);
                     }
                     break;
                     case ExprType::OPERATOR: {
                         const Operator* binaryOperator = static_cast<const Operator*>(rightOp);
+                        copyDefinitionsToVarGroup(var, binaryOperator->getDefinition(), outDefinitions, outVariableGroups);
                         copyDefinitionsToVar(var, binaryOperator->getDefinition(), outDefinitions);
                     }
                     break;
                     case ExprType::UNARYOPERATOR: {
                         const UnaryOperator* unaryOperator = static_cast<const UnaryOperator*>(rightOp);
+                        copyDefinitionsToVarGroup(var, unaryOperator->getDefinition(), outDefinitions, outVariableGroups);
                         copyDefinitionsToVar(var, unaryOperator->getDefinition(), outDefinitions);
                     }
                     break;

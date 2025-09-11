@@ -8,8 +8,9 @@ void fun(int i) {
     int e = 0;
     int g = 0;
     int *p;
-    int *q;
+    int *q = malloc(8);
     p = q;
+    *q = c;
     sum = a*b+c ;
     if( a+b ) {
         b=2;
@@ -27,7 +28,7 @@ void fun(int i) {
         }
     }
     while(2) {
-        sum = a+b+*p;
+        sum = a+b+*q;
     }
 }
 int main(int argc) {
