@@ -157,7 +157,8 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             first = new BasicBlock(whileStmt->getBlock()->getSymbolTable());
             first->addNode(whileNode);
 
-            last = first;
+            last = new BasicBlock(whileStmt->getBlock()->getSymbolTable());
+            first->setNext(last);
             status = buildBlock(last, whileStmt->getBlock());
 
             WhileBlock* whileBlock = new WhileBlock(0,first,last);

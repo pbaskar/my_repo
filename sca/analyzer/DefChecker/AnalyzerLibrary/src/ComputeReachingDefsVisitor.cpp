@@ -314,7 +314,7 @@ void ComputeReachingDefsVisitor::visitWhileBlock(WhileBlock* whileBlock) {
     }
     block->acceptVisitor(*this);
 
-    const map<const Variable*, vector<AssignmentNode*>>& outVariableNodes = p_outVariableNodes.at(whileBlock->getLast());
+    /*const map<const Variable*, vector<AssignmentNode*>>& outVariableNodes = p_outVariableNodes.at(whileBlock->getLast());
     detectChange(p_outVariableNodes, whileBlock, outVariableNodes);
     p_outVariableNodes.erase(whileBlock);
     p_outVariableNodes[whileBlock] = outVariableNodes;
@@ -325,9 +325,9 @@ void ComputeReachingDefsVisitor::visitWhileBlock(WhileBlock* whileBlock) {
 
     const map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups = p_outVariableGroups.at(whileBlock->getLast());
     p_outVariableGroups.erase(whileBlock);
-    p_outVariableGroups[whileBlock] = outVariableGroups;
+    p_outVariableGroups[whileBlock] = outVariableGroups;*/
 
-    Logger::getDebugStreamInstance() <<"End of WhileBlock: variableNodes size " <<outVariableNodes.size() <<" " << definitions.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"End of WhileBlock: variableNodes size ";// <<outVariableNodes.size() <<" " << definitions.size() <<endl <<endl;
 }
 
 void ComputeReachingDefsVisitor::visitForBlock(ForBlock* forBlock) {
@@ -354,7 +354,7 @@ void ComputeReachingDefsVisitor::visitForBlock(ForBlock* forBlock) {
     }
     block->acceptVisitor(*this);
 
-    const map<const Variable*, vector<AssignmentNode*>>& outVariableNodes = p_outVariableNodes.at(forBlock->getLast());
+    /*const map<const Variable*, vector<AssignmentNode*>>& outVariableNodes = p_outVariableNodes.at(forBlock->getLast());
     detectChange(p_outVariableNodes, forBlock, outVariableNodes);
     p_outVariableNodes.erase(forBlock);
     p_outVariableNodes[forBlock] = outVariableNodes;
@@ -365,9 +365,9 @@ void ComputeReachingDefsVisitor::visitForBlock(ForBlock* forBlock) {
 
     const map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups = p_outVariableGroups.at(forBlock->getLast());
     p_outVariableGroups.erase(forBlock);
-    p_outVariableGroups[forBlock] = outVariableGroups;
+    p_outVariableGroups[forBlock] = outVariableGroups;*/
 
-    Logger::getDebugStreamInstance() <<"End of forBlock: variableNodes size " <<outVariableNodes.size() <<" definitions size " << outDefinitions.size() <<endl <<endl;
+    Logger::getDebugStreamInstance() <<"End of forBlock: variableNodes size "; // <<outVariableNodes.size() <<" definitions size " << outDefinitions.size() <<endl <<endl;
 }
 
 void ComputeReachingDefsVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {

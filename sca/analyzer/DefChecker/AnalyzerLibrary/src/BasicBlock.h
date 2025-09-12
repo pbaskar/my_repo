@@ -141,7 +141,8 @@ public:
         p_symbolTable->clearFnSymbolEntries();
     }
     virtual void setNext(BasicBlock* next) {
-        p_next = next;
+        if(!p_next)
+            p_next = next;
         next->addPredecessor(this);
     }
     BasicBlock* getNext() { return p_next; }

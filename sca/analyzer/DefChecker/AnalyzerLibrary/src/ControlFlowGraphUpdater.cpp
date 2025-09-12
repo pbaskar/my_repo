@@ -90,6 +90,10 @@ void ControlFlowGraphUpdater::visitWhileBlock(WhileBlock* whileBlock) {
     BasicBlock* lastBlock = whileBlock->getLast();
     BasicBlock* next(0);
 
+    //exit after condition
+    assert(block);
+    block->setNext(whileBlock->getNext());
+
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
             Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
@@ -116,6 +120,10 @@ void ControlFlowGraphUpdater::visitForBlock(ForBlock* forBlock) {
     BasicBlock* block = forBlock->getFirst();
     BasicBlock* lastBlock = forBlock->getLast();
     BasicBlock* next(0);
+
+    //exit after condition
+    assert(block->getNext());
+    block->getNext()->setNext(forBlock->getNext());
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
