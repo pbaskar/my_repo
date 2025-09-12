@@ -1,4 +1,4 @@
-// Pointers - side effects on returning from other functions
+// return from function
 void fun(int **i) {
     int a = 2*3 ;
     int b = 2;
@@ -8,8 +8,8 @@ void fun(int **i) {
     int e = 0;
     int g = 0;
     int **p;
-    int *q;
-    int *r;
+    int *q=malloc(8);
+    int *r=malloc(8);
     p = i;
     sum = a*b+c ;
     while(2) {
@@ -36,8 +36,7 @@ void fun(int **i) {
 }
 int main(int argc) {
     int **m=malloc(8);
-    int *k;
+    int *k=malloc(8);
     fun(m) ;
-    delete(m);
-    k =*(*m);
+    *k =*(*m);
 }

@@ -1,6 +1,6 @@
 // for loop
 void fun(int i) {
-    int *p;
+    int *p=malloc(8);
     int sum;
     int a;
     int b;

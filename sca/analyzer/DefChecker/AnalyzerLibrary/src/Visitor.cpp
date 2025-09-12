@@ -359,10 +359,10 @@ void copyDefinitionsToVarGroup(const Variable* lhs, const Definition* rhs,
             //Logger::getDebugStreamInstance() <<"outVariable Group " <<outVariableGroup.size() <<endl;
             for(int i=0; i<outVariableGroup.size();) {
                 vector<const Variable*> outVariables = outVariableGroup[i];
-                updateVariableGroupDefOne(outVariables, rhs, outDefinitions, outVariableGroups);
                 auto variableLhsIt = std::find(outVariables.begin(), outVariables.end(),lhs);
                 if(variableLhsIt != outVariables.end()) {
                     //Logger::getDebugStreamInstance() <<"outVariables " <<outVariables.size() <<endl;
+                    updateVariableGroupDefOne(outVariables, rhs, outDefinitions, outVariableGroups);
                     outVariableGroup.erase(outVariableGroup.begin()+i);
                     for(int k=0; k<outVariables.size(); k++) {
                         copyDefinitionsToVar(outVariables[k], rhs, outDefinitions);

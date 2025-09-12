@@ -7,15 +7,17 @@ void fun(int i) {
     int d = 0;
     int e = 0;
     int g = 0;
-    int **p;
-    int *q;
+    int **p=malloc(8);
+    int *q=malloc(8);
     *p = q;
+
     sum = a*b+c ;
     while(2) {
         sum = a+b+c+*(*p);
         c=2;
     }
     *(*p) = *q;
+    *q=8;
     if( a+b ) {
         b=2;
         sum = a+d;

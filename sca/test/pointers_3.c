@@ -8,7 +8,7 @@ void fun(int **i) {
     int e = 0;
     int g = 0;
     int **p;
-    int *q;
+    int *q=malloc(8);
     p = i;
     sum = a*b+c ;
     while(2) {
