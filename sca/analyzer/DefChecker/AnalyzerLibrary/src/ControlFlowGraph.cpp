@@ -227,6 +227,10 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             last = first;
             status = buildBlock(last, functionDeclStmt->getBlock());
 
+            BasicBlock* lastBlock = new BasicBlock(functionDeclStmt->getBlock()->getSymbolTable());
+            last->setNext(lastBlock);
+            last = lastBlock;
+
             FunctionIdentifierName* functionIdentifierName = static_cast<FunctionIdentifierName*>(functionDeclStmt->getName());
             FunctionDeclBlock* functionDeclBlock = new FunctionDeclBlock(0,functionIdentifierName->getName(),first,last);
 

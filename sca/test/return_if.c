@@ -14,7 +14,8 @@ void fun(int i) {
         else {
             sum = a+e;
         }
-        sum = a+b;
+        c=8;
+        sum = a+b+c;
     }
     sum = a*b+c ;
 }

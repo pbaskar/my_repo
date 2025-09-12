@@ -394,9 +394,10 @@ void ComputeReachingDefsVisitor::visitFunctionDeclBlock(FunctionDeclBlock* funct
         assert(block != nullptr);
         meet(block);
     }
-    block->acceptVisitor(*this);
+    meet(lastBlock);
+    lastBlock->acceptVisitor(*this);
 
-    map<const Variable*, vector<AssignmentNode*>> outVariableNodes = p_outVariableNodes.at(functionDeclBlock->getLast());
+    map<const Variable*, vector<AssignmentNode*>> outVariableNodes = p_outVariableNodes.at(lastBlock);
     detectChange(p_outVariableNodes, functionDeclBlock, outVariableNodes);
     p_outVariableNodes.erase(functionDeclBlock);
     p_outVariableNodes[functionDeclBlock] = outVariableNodes;
