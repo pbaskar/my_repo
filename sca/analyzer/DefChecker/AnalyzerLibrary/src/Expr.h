@@ -324,7 +324,7 @@ public:
     }
     virtual void print(ostream& os) const{
         Variable::print(os);
-        os <<" member variables count "<<p_memVars.size();
+        //os <<" member variables count "<<p_memVars.size();
     }
     virtual void getRHSVariables(vector<const Expr*>& variables) const { variables.push_back(this); }
     virtual void getLHS(vector<const Expr*>& variables) const {}

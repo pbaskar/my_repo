@@ -2,14 +2,15 @@
 void fun(int **i) {
     int a = 2*3 ;
     int b = 2;
-    int c;
+    int c = 3;
     int sum = 0;
     int d = 0;
     int e = 0;
     int g = 0;
     int **p;
-    int *q;
-    int *r;
+    int *q = malloc(8);
+    int *r = malloc(8);
+    *r = 9;
     p = i;
     sum = a*b+c ;
     while(2) {
@@ -39,6 +40,6 @@ int main(int argc) {
     int **k=malloc(8);
     int **m=*(&k);
     fun(m) ;
-    delete(k);
-    k =*(*m);
+    free(k);
+    a =*(*m);
 }

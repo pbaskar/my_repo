@@ -228,7 +228,7 @@ Expr* ExpressionParser::parsePostFixExpression() {
                 Identifier* identifier = static_cast<Identifier*>(primaryExpr);
                 if(strcmp(identifier->getName(),"malloc")==0) {
                     postFixExpr = new MallocFnCall(primaryExpr, postFixExprPrime); break;
-                } else if(strcmp(identifier->getName(), "delete") == 0) {
+                } else if(strcmp(identifier->getName(), "free") == 0) {
                     postFixExpr = new DeleteFnCall(primaryExpr, postFixExprPrime); break;
                 }
             }

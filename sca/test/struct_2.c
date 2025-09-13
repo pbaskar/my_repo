@@ -4,8 +4,8 @@ struct s {
     int b;
 }
 int main(int argc) {
-    int **m;
+    int *m;
     struct s *s1;
     m=s1->a;
-    (*s1).a = 1;
+    (*s1).b = 1;
 }

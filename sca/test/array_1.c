@@ -5,6 +5,6 @@ void fun(int **i) {
     a=b[0];
 }
 int main(int argc) {
-    int **m;
+    int **m=malloc(8);
     fun(m);
 }

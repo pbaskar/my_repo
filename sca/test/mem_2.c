@@ -11,7 +11,7 @@ int allocate(int **r) {
 	else {
 		int j;
 	}
-	delete(q);
+	free(q);
 	*r = b;
 	r=q;
 }
