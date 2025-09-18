@@ -1,5 +1,6 @@
 #include "Expr.h"
 #include "SymbolTable.h"
+#include "Utils.h"
 #include<cassert>
 
 void FunctionVariable::print(ostream& os) const {
@@ -47,7 +48,8 @@ const Expr* DereferenceOperator::populateDerefVariable(SymbolTable* symbolTable,
                                                                                   (symbolTable, structVar));
     if(pointerVariable) {
         const Variable* pointsTo = pointerVariable->getPointsTo();
-        Identifier::setName(pointsTo->getName());
+        const char* p = Utils::makeWord(pointsTo->getName());
+        Identifier::setName(p);
         Identifier::setVariable(pointsTo);
         Logger::getDebugStreamInstance() <<"DerefOperator::populatederefvariable populated " << pointsTo <<endl;
         return pointsTo;
@@ -120,13 +122,15 @@ const Expr* AddressOfOperator::populateDerefVariable(SymbolTable* symbolTable, c
         //already in symboltable
         const Variable* addressOfVariable = symbolTable->fetchVariable(newName);
         if(addressOfVariable) {
-            Identifier::setName(addressOfVariable->getName());
+            const char* p = Utils::makeWord(addressOfVariable->getName());
+            Identifier::setName(p);
             Identifier::setVariable(addressOfVariable);
             return addressOfVariable;
         }
         const PointerVariable* pointerVariable = dynamic_cast<const PointerVariable*>(pointsTo->getAddress());
         if(pointerVariable) {
-            Identifier::setName(pointerVariable->getName());
+            const char* p = Utils::makeWord(pointerVariable->getName());
+            Identifier::setName(p);
             Identifier::setVariable(pointerVariable);
         }
         else {

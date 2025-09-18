@@ -250,7 +250,7 @@ private:
 class Variable : public Expr {
 public:
     Variable(const char* n, VarType type): p_name(n), p_type(type) {}
-    virtual ~Variable() { /*delete p_name;*/ } //Todo: release memory shared by ptr_ptr_p, ptr_p and p
+    virtual ~Variable() { /*delete p_name;*/ } // Memory deleted by IdentifierName
     virtual ExprType getExprType() const { return VARIABLE; }
     virtual VarType getVarType() const { return p_type; }
     void setName(const char* name) { p_name = name; }
@@ -314,7 +314,7 @@ public:
     StructVariable(const char* n, VarType type): Variable(n, type) {}
     virtual ~StructVariable() {
         for(const Variable* v : p_memVars) {
-            //delete v;
+            delete v;
         }
     }
     virtual ExprType getExprType() const { return STRUCTVARIABLE; }
@@ -356,7 +356,11 @@ private:
 class Identifier : public Expr {
 public:
     Identifier(const char* n): p_name(n) {}
-    virtual ~Identifier() { /*delete p_name;*/ } //Todo: release memory shared by dereference operator **p, *p and p
+    virtual ~Identifier() {
+        //cout <<" deleting " << p_name <<endl;
+        delete p_name;
+        //cout <<" done " <<endl;
+    }
     virtual ExprType getExprType() const { return IDENTIFIER; }
     void setName(const char* name) { p_name = name; }
     const char* getName() const { return p_name; }
@@ -432,7 +436,7 @@ private:
 
 class DotOperator : public Identifier {
 public:
-    DotOperator(Identifier* l, Identifier* r): Identifier("DotOp"), p_left(l), p_right(r) {}
+    DotOperator(const char* name, Identifier* l, Identifier* r): Identifier(name), p_left(l), p_right(r) {}
     virtual ~DotOperator() {
         delete p_left;
         delete p_right;

@@ -55,7 +55,11 @@ static const size_t dataTypesSize = sizeof(dataTypes)/sizeof(dataTypes[0]);
 class IdentifierName {
 public:
     IdentifierName(const char* n): p_name(n) {}
-    virtual ~IdentifierName() { /*delete p_name;*/ }
+    virtual ~IdentifierName() {
+        //cout <<"deleting " <<p_name <<endl;
+        delete p_name;
+        //cout <<"deleting done" <<endl;
+    }
     virtual DeclType getType() const { return DeclType::VARDECL; }
     virtual IdentifierType getIdentifierType() const { return IdentifierType::VARIDENTIFIER; }
     friend ostream& operator<<(ostream& os, IdentifierName& identifierName) {
@@ -400,7 +404,7 @@ public:
     StructDeclStmt(StmtType type): Stmt(type), p_name(0), p_block(0) {}
     virtual ~StructDeclStmt() {
         delete p_block;
-        delete p_name;
+        //delete p_name; /* deleted by StructType */
     }
     virtual void print(ostream& os) {
         os << " Struct decl name " << *p_name;

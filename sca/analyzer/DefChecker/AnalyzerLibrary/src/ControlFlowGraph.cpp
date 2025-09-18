@@ -273,6 +273,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
                 }
                 else {
                     Logger::getDebugStreamInstance() <<"CFG: function pointer dereference does not contain function variable " <<*expr <<endl;
+                    return FAILURE;
                 }
             }
             else {

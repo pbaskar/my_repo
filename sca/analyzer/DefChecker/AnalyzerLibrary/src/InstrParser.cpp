@@ -185,6 +185,7 @@ Status InstrParser::parseSelectionStmt(Block* block) {
     } else {
         status = FIRST_MISMATCH;
     }
+    delete(next);
     return status;
 }
 
@@ -202,6 +203,7 @@ Status InstrParser::parseIterationStmt(Block* block) {
     }else {
         status = FIRST_MISMATCH;
     }
+    delete(next);
     return status;
 }
 
@@ -707,7 +709,8 @@ Status InstrParser::parsePointer(Block* block, vector<PointerIdentifierName*>& i
     if(c=='*') {
         p_tokenizer.nextChar(); //consume *
         status = parsePointer(block, identifierList);
-        PointerIdentifierName* pointerIdentifier = new PointerIdentifierName("Pointer", nullptr);
+        const char* p = Utils::makeWord("Pointer");
+        PointerIdentifierName* pointerIdentifier = new PointerIdentifierName(p, nullptr);
         if(!identifierList.empty()) {
             pointerIdentifier->setPointsTo(identifierList.back());
         }
@@ -742,7 +745,8 @@ Status InstrParser::parseDirectDeclaratorPrime(Block* block, vector<IdentifierNa
             }
             p_tokenizer.nextChar(); //consume ]
             parseDirectDeclaratorPrime(block, directDeclaratorPrime, declType);
-            PointerIdentifierName* pointerIdentifierName = new PointerIdentifierName("Pointer",nullptr);
+            const char* p = Utils::makeWord("Pointer");
+            PointerIdentifierName* pointerIdentifierName = new PointerIdentifierName(p,nullptr);
             if(!directDeclaratorPrime.empty()) {
                 pointerIdentifierName->setPointsTo(directDeclaratorPrime.back());
             }
@@ -776,7 +780,8 @@ IdentifierName* InstrParser::parseDirectDeclarator(Block* block, DeclType& declT
         break;
             //function decl and pointer to function
         case FUNCTIONDECL: {
-                FunctionIdentifierName* functionIdentifierName = new FunctionIdentifierName(next->getName(), directDeclaratorPrime);
+                const char* p = Utils::makeWord(next->getName());
+                FunctionIdentifierName* functionIdentifierName = new FunctionIdentifierName(p, directDeclaratorPrime);
                 PointerIdentifierName* pointerIdentifierName = dynamic_cast<PointerIdentifierName*>(next);
                 if(pointerIdentifierName != nullptr) {
                     delete(pointerIdentifierName->getPointsTo());
@@ -793,7 +798,8 @@ IdentifierName* InstrParser::parseDirectDeclarator(Block* block, DeclType& declT
         //array and pointer to array represented as PointerIdentifierName. Assigned ARRAY_DEFINITION.
         case ARRAYDECL:
                 IdentifierName* arrayIdentifierName = directDeclaratorPrime.back();
-                arrayIdentifierName->setName(next->getName());
+                const char* p = Utils::makeWord(next->getName());
+                arrayIdentifierName->setName(p);
                 PointerIdentifierName* pointerToData = static_cast<PointerIdentifierName*>(directDeclaratorPrime.front());
                 PointerIdentifierName* pointerIdentifierName = dynamic_cast<PointerIdentifierName*>(next);
                 if(pointerIdentifierName != nullptr) {
@@ -820,7 +826,8 @@ IdentifierName* InstrParser::parseDeclarator(Block* block, DeclType& declType) {
         IdentifierName* directDeclarator = parseDirectDeclarator(block, declType);
         pointerNames.front()->setPointsTo(directDeclarator);
         declarator = pointerNames.back();
-        declarator->setName(directDeclarator->getName());
+        const char* p = Utils::makeWord(directDeclarator->getName());
+        declarator->setName(p);
      } else {
         declarator = parseDirectDeclarator(block, declType);
     }

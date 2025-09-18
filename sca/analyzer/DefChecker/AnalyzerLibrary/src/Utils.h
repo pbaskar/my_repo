@@ -13,8 +13,7 @@ class Utils {
 public:
     Utils();
     virtual ~Utils();
-
-
+    static const char* makeWord(const char* word);
 };
 
 #endif /* UTILS_H_ */

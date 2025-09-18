@@ -6,6 +6,7 @@
  */
 #include<iostream>
 #include "ExpressionParser.h"
+#include "Utils.h"
 
 using namespace std;
 
@@ -163,7 +164,8 @@ Status ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprP
         p_exprTokenizer.nextChar(); //consume ']'
 
         Expr* operand = !postFixExprPrime.empty() ?  postFixExprPrime.back() : nullptr;
-        DereferenceOperator* dereferenceOperator = new DereferenceOperator("Deref", operand);
+        const char* p = Utils::makeWord("Deref");
+        DereferenceOperator* dereferenceOperator = new DereferenceOperator(p, operand);
         postFixExprPrime.push_back(dereferenceOperator);
         parsePostFixExpressionPrime(postFixExprPrime, type);
     }
@@ -181,9 +183,11 @@ Status ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprP
         if(!postFixExprPrime.empty()) {
             DotOperator* operand = static_cast<DotOperator*>(postFixExprPrime.back());
             operand->setLeftOp(static_cast<Identifier*>(expr));
-            postFixExpr = new DotOperator(identifier, operand);
+            const char* dotOp = Utils::makeWord("DotOp");
+            postFixExpr = new DotOperator(dotOp, identifier, operand);
         } else {
-            postFixExpr = new DotOperator(nullptr, identifier);
+            const char* dotOp = Utils::makeWord("DotOp");
+            postFixExpr = new DotOperator(dotOp, nullptr, identifier);
             Logger::getDebugStreamInstance() <<"Dot operator created " <<*identifier <<endl;
         }
         postFixExprPrime.push_back(postFixExpr);
@@ -202,10 +206,13 @@ Status ExpressionParser::parsePostFixExpressionPrime(vector<Expr*>& postFixExprP
         parsePostFixExpressionPrime(postFixExprPrime, type);
         if(!postFixExprPrime.empty()) {
             DotOperator* operand = static_cast<DotOperator*>(postFixExprPrime.back());
-            operand->setLeftOp(new DereferenceOperator("Deref", expr));
-            postFixExpr = new DotOperator(identifier, operand);
+            const char* p = Utils::makeWord("Deref");
+            operand->setLeftOp(new DereferenceOperator(p, expr));
+            const char* dotOp = Utils::makeWord("DotOp");
+            postFixExpr = new DotOperator(dotOp, identifier, operand);
         } else {
-            postFixExpr = new DotOperator(nullptr, identifier);
+            const char* dotOp = Utils::makeWord("DotOp");
+            postFixExpr = new DotOperator(dotOp, nullptr, identifier);
         }
         postFixExprPrime.push_back(postFixExpr);
     }
@@ -258,7 +265,8 @@ Expr* ExpressionParser::parsePostFixExpression() {
             if(!identifier) {
                 Logger::getDebugStreamInstance() << "Non identifier in dot operator " <<endl; break;
             }
-            dotOperator->setLeftOp(new DereferenceOperator("Deref", identifier));
+            const char* p = Utils::makeWord("Deref");
+            dotOperator->setLeftOp(new DereferenceOperator(p, identifier));
             postFixExpr = dotOperator;
             break;
         }
@@ -276,14 +284,18 @@ Expr* ExpressionParser::parseUnaryExpression() {
         case '*':
             p_exprTokenizer.nextChar();
             operand = parsePostFixExpression();
-            if(operand)
-                unaryExpr = new DereferenceOperator("Deref",operand);
+            if(operand) {
+                const char* p = Utils::makeWord("Deref");
+                unaryExpr = new DereferenceOperator(p,operand);
+            }
             break;
         case '&':
             p_exprTokenizer.nextChar();
             operand = parsePostFixExpression();
-            if(operand)
-                unaryExpr = new AddressOfOperator("AddressOf", operand);
+            if(operand) {
+                const char* p = Utils::makeWord("AddressOf");
+                unaryExpr = new AddressOfOperator(p, operand);
+            }
         break;
         default:
             unaryExpr = parsePostFixExpression();
@@ -317,7 +329,7 @@ Expr* ExpressionParser::parseAssignmentExpression() {
 
     } else {
         //backtrack:reset state
-        //delete leftOp; - TODO: deleting the variable
+        delete leftOp;
         p_exprTokenizer.setPos(pos);
 
         assignExpr = parseAdditiveExpression();
