@@ -11,5 +11,6 @@ add_executable(DefChecker main.cpp)
 
 target_link_libraries(DefChecker AnalyzerLibrary)
 
-install(TARGETS DefChecker
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+#target_link_directories(DefChecker PRIVATE ${projectDir}\\out\\build\\AnalyzerLibrary)
+
+install(TARGETS DefChecker)
