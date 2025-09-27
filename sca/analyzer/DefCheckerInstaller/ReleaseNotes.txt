@@ -1,0 +1,14 @@
+DefChecker: version 1.0
+
+Features:
+Parses C file according to ANSI C standard specification, analyzes and outputs undefined variables.
+    1) Support for declaration statements
+    2) Support for assignment expressions consisting of binary operators[+-*/] and unary operator [*&]
+    3) Support for function declaration and function calls
+    4) Support for branching statements, if-else statements, break, continue, return
+    5) Support for loop statements, for and while
+    6) Support for arrays, pointer variables, addressOf operator, dereference operator and function pointers
+    7) Support for malloc and free
+    8) Support for struct type and pointer/dot [->.] access operators.
+
+
