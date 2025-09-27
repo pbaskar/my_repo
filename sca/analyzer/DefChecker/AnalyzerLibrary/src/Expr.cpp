@@ -118,7 +118,6 @@ const Expr* AddressOfOperator::populateDerefVariable(SymbolTable* symbolTable, c
         strncpy(newName, name, len);
         newName[len] = '&';
         newName[len+1] = '\0';
-
         //already in symboltable
         const Variable* addressOfVariable = symbolTable->fetchVariable(newName);
         if(addressOfVariable) {
@@ -134,8 +133,8 @@ const Expr* AddressOfOperator::populateDerefVariable(SymbolTable* symbolTable, c
             Identifier::setVariable(pointerVariable);
         }
         else {
-            Identifier::setName(newName);
             //add to symbol table
+            Identifier::setName(Utils::makeWord(newName));
             Variable* addressOf = new AddressOfVariable(newName, VarType::POINTER, pointsTo);
             symbolTable->addSymbol(addressOf);
             Identifier::setVariable(addressOf);

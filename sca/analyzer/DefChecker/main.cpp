@@ -14,6 +14,6 @@ int main(int argc, char *argv[])
     std::vector<Result> results;
     Status s = analyzer.execute(argv[1], results);
 
-    std::cout << "File name : " <<argv[1] <<", status = " <<s <<std::endl;
+    //std::cout << "File name : " <<argv[1] <<", status = " <<s <<std::endl;
     return 0;
 }

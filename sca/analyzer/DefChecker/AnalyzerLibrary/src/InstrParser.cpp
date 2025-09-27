@@ -156,6 +156,7 @@ Status InstrParser::parseBlock(Block* block) {
         block->getSymbolTable()->addSymbol(var);
         if(!var) return Status::FAILURE;
         assignStmt->setLineNum(lineNum);
+        lineNum++;
         block->addStatement(assignStmt);
     }
 
@@ -941,7 +942,10 @@ Status InstrParser::parseFunctionDecl(Block* block) {
     block->addStatement(stmt);
 
     const vector<Type*>& dataTypes = parseDeclarationSpecifiers(block);
-    assert(!dataTypes.empty());
+    if(dataTypes.empty()) {
+        Logger::logMessage(ErrorCode::NOT_PARSE,  2, "InstrParser::parseFunctionDecl:", "dataType");
+        return Status::FAILURE;
+    }
     DeclType declType;
     IdentifierName* identifier = parseDeclarator(block, declType);
     FunctionIdentifierName* functionIdentifierName = dynamic_cast<FunctionIdentifierName*>(identifier);

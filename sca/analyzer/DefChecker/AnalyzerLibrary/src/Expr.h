@@ -11,6 +11,7 @@
 #include<iostream>
 #include<vector>
 #include "Logger.h"
+#include "Utils.h"
 
 class SymbolTable;
 class Variable;
@@ -249,8 +250,10 @@ private:
 
 class Variable : public Expr {
 public:
-    Variable(const char* n, VarType type): p_name(n), p_type(type) {}
-    virtual ~Variable() { /*delete p_name;*/ } // Memory deleted by IdentifierName
+    Variable(const char* n, VarType type): Expr(), p_name(n), p_type(type), p_address(0) {}
+    Variable(const char* n, VarType type, const Variable* address) : p_name(n), p_type(type), p_address(address) {}
+    virtual ~Variable() { /*delete p_name;*/ //Logger::getDebugStreamInstance() << " variable destructor " << endl;
+    } // Memory deleted by IdentifierName
     virtual ExprType getExprType() const { return VARIABLE; }
     virtual VarType getVarType() const { return p_type; }
     void setName(const char* name) { p_name = name; }
@@ -294,7 +297,11 @@ private:
 class PointerVariable : public Variable {
 public:
     PointerVariable(const char* n, VarType type, const Variable* pointsTo): Variable(n, type), p_pointsTo(pointsTo) {}
-    virtual ~PointerVariable() { delete p_pointsTo; }
+    virtual ~PointerVariable() {
+        //Logger::getDebugStreamInstance() << "begin Pointer variable destructor "  <<endl;
+        delete p_pointsTo;
+        //Logger::getDebugStreamInstance() << "end Pointer variable destructor " << endl;
+    }
     virtual ExprType getExprType() const { return POINTERVARIABLE; }
     const Variable* getPointsTo() const { return p_pointsTo; }
     virtual void print(ostream& os) const{
@@ -344,18 +351,22 @@ public:
         Variable::print(os);
     }
     virtual ~AddressOfVariable() {
-        p_pointsTo = nullptr;
+        //Logger::getDebugStreamInstance() << "begin Address of variable destructor set to nullptr "  <<endl;
         delete p_definition;
+        p_pointsTo = nullptr;
+        //Logger::getDebugStreamInstance() << "end Address of variable destructor "  << endl;
     }
     virtual ExprType getExprType() const { return ADDRESSOFVARIABLE; }
     const Definition* getDefinition() const { return p_definition; }
+    const Variable* getPointsTo() const { return p_pointsTo; }
 private:
     const Definition* p_definition;
+    //const Variable* p_pointsTo;
 };
 
 class Identifier : public Expr {
 public:
-    Identifier(const char* n): p_name(n) {}
+    Identifier(const char* n): p_name(n), p_variable(0) {}
     virtual ~Identifier() {
         //cout <<" deleting " << p_name <<endl;
         delete p_name;

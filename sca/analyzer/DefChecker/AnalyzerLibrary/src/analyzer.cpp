@@ -89,6 +89,7 @@ Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
             of <<r.errorMessage <<endl;
             delete(r.errorMessage);
         }
+        of << "Finished: status = " << s << std::endl;
         of.close();
     }
     Logger::getDebugStreamInstance() << "********************************** Output result done ****************************************" <<endl;
@@ -99,8 +100,7 @@ Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
     Logger::getDebugStreamInstance().flush();
     Logger::getDebugStreamInstance().close();
 #ifdef NDEBUG
-    Logger::getDebugStreamInstance().open("debug.log");
-    Logger::getDebugStreamInstance().close();
+    std::remove("debug.log");
 #endif
     return s;
 }
