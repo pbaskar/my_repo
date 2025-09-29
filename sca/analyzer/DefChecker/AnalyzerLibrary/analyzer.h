@@ -18,7 +18,7 @@ public:
     Analyzer();
 	virtual ~Analyzer();
 
-    Status execute(const char* fileName, std::vector<Result>& results);
+    Status execute(const char* inputFile, const char* outputFile, std::vector<Result>& results);
     Status getCFG(const char* fileName, BasicBlock*& cfg);
 };
 

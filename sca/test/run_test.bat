@@ -1,1 +1,1 @@
-DefChecker.exe test\\ifelse.c
+DefChecker.exe -i test\\ifelse.c

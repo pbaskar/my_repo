@@ -10,6 +10,7 @@
 #include "InstrParser.h"
 #include "ExprSimplifier.h"
 #include "ControlFlowGraph.h"
+#include <ctime>
 using namespace std;
 #include "analyzer.h"
 #include "Logger.h"
@@ -46,12 +47,11 @@ Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead) {
     return s;
 }
 
-Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
-    //char* fileName = "C:\\workspace\\my_repo\\sca\\test\\instructions.c";
+Status Analyzer::execute(const char* inputFile, const char* outputFile, std::vector<Result>& results) {
     Logger::getDebugStreamInstance().open("debug.log");
-    Logger::getDebugStreamInstance() << endl << "Logging... " <<fileName <<endl;
+    Logger::getDebugStreamInstance() << endl << "Logging... " <<inputFile <<endl;
     InstrParser instrParser;
-    Status s = instrParser.parseFile(fileName);
+    Status s = instrParser.parseFile(inputFile);
 
     if (s == FAILURE ) {
         Logger::getDebugStreamInstance() <<"Instructions file parsing failed " <<endl;
@@ -82,9 +82,10 @@ Status Analyzer::execute(const char* fileName, std::vector<Result>& results) {
     Logger::getDebugStreamInstance() << "********************************** output cfg done ****************************************" <<endl;
     cfg.variableInitCheck(results);
     Logger::getDebugStreamInstance() << "********************************** Variable Init Check done ****************************************" <<endl;
-    ofstream of("output.log", ios::app);
+    ofstream of(outputFile, ios::app);
     if(of.is_open()) {
-        of<< endl << "Running... " <<fileName <<endl;
+        std::time_t currTime = std::time(nullptr);
+        of<< endl << "Running... " << inputFile << ", timestamp: " << std::asctime(std::localtime(&currTime)) << endl;
         for(Result r : results) {
             of <<r.errorMessage <<endl;
             delete(r.errorMessage);
