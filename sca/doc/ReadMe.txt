@@ -7,31 +7,22 @@ Parses C file and builds Control Flow Graph (CFG).
 Performs "Use before definition" check on the variables in the assignments in CFG.
 Produces list of undefined variables as output.
 
-Installed executable and libraries are available at CodeFinch\DefChecker
 Built using Visual Studio 2022 (64-bit) version 17.14.15
-Python version 3.11.5
 
 Prerequisites:
 1. Install Microsoft Visual C++ 2015-2022 Redistributable (x64).
 This is required dependency for running the DefChecker application.
+It is packaged along with the application.
+
+Documentation is available at https://github.com/pbaskar/my_repo/tree/master/sca/doc/
 
 Execute from commandline:
-1. Navigate to CodeFinch\DefChecker
-2. Run command: DefChecker.exe -i test\swap_num.c
-3. Pick a different test file from test\*.c and repeat step 2
-4. Check CodeFinch\DefChecker\output.log for results
-5. Test files are available at CodeFinch\DefChecker\test directory
-
-Output results to a different directory than installation directory:
-1. Run command: DefChecker.exe -i test\swap_num.c -o <folderpath>\<filename>.log
-2. Check <folderpath>\<filename>.log for results
-
-Execute using script:
-1. Navigate to CodeFinch\DefChecker
-2. Execute run_test.bat
-3. Execute run_tests.bat
-4. Check output.log for results
-5. Test files are available at CodeFinch\DefChecker\test directory
+1. Download samples.zip from https://github.com/pbaskar/my_repo/tree/master/sca/doc/
+2. Unzip samples.zip to C:\workspace folder or any other writable folder
+3. Open command prompt
+4. Run command: DefChecker -i C:\workspace\swap_num.c -o C:\workspace\
+5. Check C:\workspace\output.log for results
+6. More test files are available at https://github.com/pbaskar/my_repo/tree/master/sca/test directory
 
 Code snippets and expected result:
 
