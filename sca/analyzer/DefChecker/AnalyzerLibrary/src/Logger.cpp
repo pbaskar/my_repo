@@ -13,13 +13,20 @@ using namespace std;
 
 Logger::Logger() {
     // TODO Auto-generated constructor stub
-    p_of.open("error.log");
-    Logger::getDebugStreamInstance() <<"error log created " <<p_of.is_open() <<endl;
 }
 
 Logger::~Logger() {
     // TODO Auto-generated destructor stub
     p_of.close();
+}
+
+Status Logger::setErrorFile(const char* errorFile) {
+    p_of.open(errorFile);
+    if (!p_of.is_open()) {
+        cout << "could not open error log " << endl;
+        return FAILURE;
+    }
+    return SUCCESS;
 }
 
 void Logger::logMessage(ErrorCode errorCode, int num, ...) {

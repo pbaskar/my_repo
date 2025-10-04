@@ -9,6 +9,7 @@
 #define LOGGER_H_
 #include<cstdarg>
 #include<fstream>
+#include "Results.h"
 using namespace std;
 
 enum ErrorCode {
@@ -33,6 +34,7 @@ class Logger {
 public:
     Logger();
     virtual ~Logger();
+
     ofstream& getOfstream() { return p_of; }
     static Logger* getInstance() {
         static Logger logger;
@@ -43,6 +45,7 @@ public:
         static ofstream p_debug;
         return p_debug;
     }
+    Status setErrorFile(const char* errorFile);
     static void logMessage(ErrorCode errorCode, int args, ...);
 
 private:

@@ -1,44 +1,45 @@
-DefChecker.exe -i test\\f1.c
-DefChecker.exe -i test\\f2.c
-DefChecker.exe -i test\\f3.c
-DefChecker.exe -i test\\f4.c
-DefChecker.exe -i test\\f5.c
-DefChecker.exe -i test\\f6.c
-DefChecker.exe -i test\\instructions.c
-DefChecker.exe -i test\\instructions_1.c
-DefChecker.exe -i test\\instructions_2.c
-DefChecker.exe -i test\\instructions_3.c
-DefChecker.exe -i test\\ifelse.c
-DefChecker.exe -i test\\nested_ifelse.c
-DefChecker.exe -i test\\nested_if.c
-DefChecker.exe -i test\\nested_if_noelse.c
-DefChecker.exe -i test\\multi_assign.c
-DefChecker.exe -i test\\multi_assign_expr.c
-DefChecker.exe -i test\\while_break.c
-DefChecker.exe -i test\\while_continue.c
-DefChecker.exe -i test\\for_break.c
-DefChecker.exe -i test\\for_continue.c
-DefChecker.exe -i test\\forLoop.c
-DefChecker.exe -i test\\forLoop_1.c
-DefChecker.exe -i test\\return.c
-DefChecker.exe -i test\\return_if.c
-DefChecker.exe -i test\\pointers_1.c
-DefChecker.exe -i test\\pointers_2.c
-DefChecker.exe -i test\\pointers_3.c
-DefChecker.exe -i test\\pointers_4.c
-DefChecker.exe -i test\\functionPointer_1.c
-DefChecker.exe -i test\\functionPointer_2.c
-DefChecker.exe -i test\\functionPointer_3.c
-DefChecker.exe -i test\\functionPointer_4.c
-DefChecker.exe -i test\\array_1.c
-DefChecker.exe -i test\\array_2.c
-DefChecker.exe -i test\\array_3.c
-DefChecker.exe -i test\\struct_1.c
-DefChecker.exe -i test\\struct_2.c
-DefChecker.exe -i test\\struct_3.c
-DefChecker.exe -i test\\ampersandOperator.c
-DefChecker.exe -i test\\malloc.c
-DefChecker.exe -i test\\free.c
-DefChecker.exe -i test\\mem_1.c
-DefChecker.exe -i test\\mem_2.c
-DefChecker.exe -i test\\swap_num.c
+set outputPath=%1
+DefChecker.exe -i test\\f1.c -o %outputPath%
+DefChecker.exe -i test\\f2.c -o %outputPath%
+DefChecker.exe -i test\\f3.c -o %outputPath%
+DefChecker.exe -i test\\f4.c -o %outputPath%
+DefChecker.exe -i test\\f5.c -o %outputPath%
+DefChecker.exe -i test\\f6.c -o %outputPath%
+DefChecker.exe -i test\\instructions.c -o %outputPath%
+DefChecker.exe -i test\\instructions_1.c -o %outputPath%
+DefChecker.exe -i test\\instructions_2.c -o %outputPath%
+DefChecker.exe -i test\\instructions_3.c -o %outputPath%
+DefChecker.exe -i test\\ifelse.c -o %outputPath%
+DefChecker.exe -i test\\nested_ifelse.c -o %outputPath%
+DefChecker.exe -i test\\nested_if.c -o %outputPath%
+DefChecker.exe -i test\\nested_if_noelse.c -o %outputPath%
+DefChecker.exe -i test\\multi_assign.c -o %outputPath%
+DefChecker.exe -i test\\multi_assign_expr.c -o %outputPath%
+DefChecker.exe -i test\\while_break.c -o %outputPath%
+DefChecker.exe -i test\\while_continue.c -o %outputPath%
+DefChecker.exe -i test\\for_break.c -o %outputPath%
+DefChecker.exe -i test\\for_continue.c -o %outputPath%
+DefChecker.exe -i test\\forLoop.c -o %outputPath%
+DefChecker.exe -i test\\forLoop_1.c -o %outputPath%
+DefChecker.exe -i test\\return.c -o %outputPath%
+DefChecker.exe -i test\\return_if.c -o %outputPath%
+DefChecker.exe -i test\\pointers_1.c -o %outputPath%
+DefChecker.exe -i test\\pointers_2.c -o %outputPath%
+DefChecker.exe -i test\\pointers_3.c -o %outputPath%
+DefChecker.exe -i test\\pointers_4.c -o %outputPath%
+DefChecker.exe -i test\\functionPointer_1.c -o %outputPath%
+DefChecker.exe -i test\\functionPointer_2.c -o %outputPath%
+DefChecker.exe -i test\\functionPointer_3.c -o %outputPath%
+DefChecker.exe -i test\\functionPointer_4.c -o %outputPath%
+DefChecker.exe -i test\\array_1.c -o %outputPath%
+DefChecker.exe -i test\\array_2.c -o %outputPath%
+DefChecker.exe -i test\\array_3.c -o %outputPath%
+DefChecker.exe -i test\\struct_1.c -o %outputPath%
+DefChecker.exe -i test\\struct_2.c -o %outputPath%
+DefChecker.exe -i test\\struct_3.c -o %outputPath%
+DefChecker.exe -i test\\ampersandOperator.c -o %outputPath%
+DefChecker.exe -i test\\malloc.c -o %outputPath%
+DefChecker.exe -i test\\free.c -o %outputPath%
+DefChecker.exe -i test\\mem_1.c -o %outputPath%
+DefChecker.exe -i test\\mem_2.c -o %outputPath%
+DefChecker.exe -i test\\swap_num.c -o %outputPath%

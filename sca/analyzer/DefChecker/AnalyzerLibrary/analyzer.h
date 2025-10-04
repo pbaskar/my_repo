@@ -18,7 +18,8 @@ public:
     Analyzer();
 	virtual ~Analyzer();
 
-    Status execute(const char* inputFile, const char* outputFile, std::vector<Result>& results);
+    Status setOutputPath(const char* outputFilePath);
+    Status execute(const char* inputFile, const char* outputFilePath, std::vector<Result>& results);
     Status getCFG(const char* fileName, BasicBlock*& cfg);
 };
 

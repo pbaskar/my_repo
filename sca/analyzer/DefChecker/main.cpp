@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <sstream>
 #include "AnalyzerLibrary/analyzer.h"
 #include "AnalyzerLibrary/src/Results.h"
 using namespace std;
@@ -7,9 +8,9 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     const char* inputFile = nullptr;
-    const char* outputFile = nullptr;
-    const char* usageMsg = "Usage: DefChecker.exe -i \\test\\swap_num.c -o output.log";
-    if(argc < 3) {
+    const char* outputFilePath = nullptr;
+    const char* usageMsg = "Usage: DefChecker.exe -i test\\swap_num.c -o <WritableFolder>";
+    if(argc < 5) {
         std::cout << usageMsg << std::endl;
         return 0;
     }
@@ -27,7 +28,7 @@ int main(int argc, char *argv[])
         else if (strcmp(argv[i], "-o") == 0) {
             i++;
             if (i < argc) {
-                outputFile = argv[i];
+                outputFilePath = argv[i];
             }
             else {
                 std::cout << usageMsg << std::endl;
@@ -41,13 +42,16 @@ int main(int argc, char *argv[])
     }
     Analyzer analyzer;
     std::vector<Result> results;
-    if (!inputFile) {
+    if (!inputFile || !outputFilePath) {
         std::cout << usageMsg << std::endl;
         return 0;
     }
-    if (!outputFile) { outputFile = "output.log"; }
-    Status s = analyzer.execute(inputFile, outputFile, results);
 
+    Status s = analyzer.setOutputPath(outputFilePath);
+    if (s == FAILURE) {
+        return 0;
+    }
+    s = analyzer.execute(inputFile, outputFilePath, results);
     std::cout << "File name : " <<inputFile <<", status = " <<s <<std::endl;
     return 0;
 }
