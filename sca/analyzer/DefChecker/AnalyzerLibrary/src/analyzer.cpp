@@ -16,7 +16,7 @@ using namespace std;
 #include "analyzer.h"
 #include "Logger.h"
 
-static const char* usageMsg = "Usage: DefChecker.exe -i test\\swap_num.c -o <WritableFolder> \nMore info is available at https://github.com/pbaskar/my_repo/tree/defchecker_release_version_1_0_0/sca/doc";
+static const char* usageMsg = "Usage: DefChecker.exe -i <inputfile> -o <outputpath> \nMore info is available at https://github.com/pbaskar/my_repo/tree/defchecker_release_version_1_0_0/sca/doc";
 
 Analyzer::Analyzer() {
     // TODO Auto-generated constructor stub
