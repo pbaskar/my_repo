@@ -32,8 +32,9 @@ Status Logger::setErrorFile(const char* errorFile) {
 void Logger::logMessage(ErrorCode errorCode, int num, ...) {
     va_list argsList;
     va_start(argsList, num);
+    const size_t outputSize = 180;
 
-    char output[80] = {'\0'};
+    char output[outputSize] = {'\0'};
     strcat(output, va_arg(argsList, char*));
     strcat(output, " ");
     const char* message = errorMessage[errorCode];
@@ -46,7 +47,7 @@ void Logger::logMessage(ErrorCode errorCode, int num, ...) {
             ++message;
             char* arg = va_arg(argsList, char*);
             //if(arg == nullptr) return FAILURE;
-            strcat(output, arg );
+            strcat_s(output, arg );
             message++;
             len=0;
             strBegin = message;

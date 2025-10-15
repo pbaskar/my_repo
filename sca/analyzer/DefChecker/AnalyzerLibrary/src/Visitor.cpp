@@ -326,7 +326,7 @@ void copyDefinitionsFromVar(const Variable* lhs, const Variable* rhs,
            " rhsDefinitions size " << rhsDefinitions.size()<<endl;
     }
     else {
-        Logger::getDebugStreamInstance() <<"not found rhsDefinitions RHS pointer" << *rhs <<endl;
+        Logger::getDebugStreamInstance() <<"not found rhsDefinitions rhs var " << *rhs <<endl;
     }
 
     auto definitionIt = outDefinitions.find(lhs);
@@ -718,6 +718,12 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
                  copyDefinitionsToVar(var, rhsDefinition, outDefinitions);
             }
             break;
+            case ExprType::FUNCTIONCALL: {
+                const FunctionCall* functionCall = static_cast<const FunctionCall*>(value);
+                copyDefinitionsToVarGroup(var, functionCall->getDefinition(), outDefinitions, outVariableGroups);
+                copyDefinitionsToVar(var, functionCall->getDefinition(), outDefinitions);
+            }
+            break;
             case ExprType::ASSIGNOPERATOR: {
                 const AssignOperator* rhs = static_cast<const AssignOperator*>(value);
                 const Expr* rightOp = rhs->getRightOp();
@@ -739,6 +745,12 @@ void visitBasicBlockHelper(const Variable* var, const Expr* value, AssignmentNod
                         const UnaryOperator* unaryOperator = static_cast<const UnaryOperator*>(rightOp);
                         copyDefinitionsToVarGroup(var, unaryOperator->getDefinition(), outDefinitions, outVariableGroups);
                         copyDefinitionsToVar(var, unaryOperator->getDefinition(), outDefinitions);
+                    }
+                    break;
+                    case ExprType::FUNCTIONCALL: {
+                        const FunctionCall* functionCall = static_cast<const FunctionCall*>(rightOp);
+                        copyDefinitionsToVarGroup(var, functionCall->getDefinition(), outDefinitions, outVariableGroups);
+                        copyDefinitionsToVar(var, functionCall->getDefinition(), outDefinitions);
                     }
                     break;
                     default:
@@ -791,7 +803,7 @@ CopyVariables:
             break;
             case ExprType::MALLOCFNCALL: {
                     const MallocFnCall* mallocFnCall = static_cast<const MallocFnCall*>(value);
-                    const PointerDefinition* rhsDefinition = mallocFnCall->getDefinition();
+                    const PointerDefinition* rhsDefinition = static_cast<const PointerDefinition*>(mallocFnCall->getDefinition());
                     copyDefinitionsToPointerVar(var, rhsDefinition, outDefinitions);
                     copyNodesToPointerVar(var, assignNode, outVariableNodes);
                 }
@@ -996,6 +1008,9 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
                     Logger::getDebugStreamInstance() <<"Definition not found " <<endl;
                     found = false;
                 }
+            }
+            else {
+                Logger::getDebugStreamInstance() << "no def entry - var not seen " << variable <<endl;
             }
             if(!found) {
                 const char* m = "Undefined variable ";

@@ -239,7 +239,7 @@ Expr* ExpressionParser::parsePostFixExpression() {
                     postFixExpr = new DeleteFnCall(primaryExpr, postFixExprPrime); break;
                 }
             }
-            postFixExpr = new FunctionCall(primaryExpr, postFixExprPrime);
+            postFixExpr = new FunctionCall(primaryExpr, postFixExprPrime, new Definition(true));
         break;
         }
         case DEREFERENCEOPERATOR: {

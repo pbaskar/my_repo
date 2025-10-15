@@ -15,7 +15,7 @@ Status ExprSimplifier::simplify(Block* block) {
 
 Status ExprSimplifier::populateMallocFnCall(const Variable* lhs, Expr* value) {
     MallocFnCall* mallocFnCall = static_cast<MallocFnCall*>(value);
-    PointerDefinition* previous = mallocFnCall->toSimplifyDefinition();
+    PointerDefinition* previous = static_cast<PointerDefinition*>(mallocFnCall->toSimplifyDefinition());
     const PointerVariable* lhsVar = nullptr;
     while(true) {
         lhsVar = dynamic_cast<const PointerVariable*>(lhs);

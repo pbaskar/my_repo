@@ -543,12 +543,14 @@ private:
 
 class FunctionCall : public Expr {
 public:
-    FunctionCall(Expr* identifier, vector<Expr*> arguments): p_functionName(identifier), p_arguments(arguments) {}
+    FunctionCall(Expr* identifier, vector<Expr*> arguments, Definition* definition ):
+        p_functionName(identifier), p_arguments(arguments), p_definition(definition) {}
     virtual ~FunctionCall() {
         delete p_functionName;
         for(Expr* expr : p_arguments) {
             delete expr;
         }
+        delete p_definition;
     }
     virtual ExprType getExprType() const { return FUNCTIONCALL; }
     virtual void print(ostream& os) const{
@@ -563,7 +565,7 @@ public:
         }
     }
     virtual void getLHS(vector<const Expr*>& variables) const {}
-    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) { derefIdentifiers.push_back(p_functionName); }
+    virtual void getDerefIdentifiers(vector<Expr*>& derefIdentifiers) { derefIdentifiers.push_back(this); }
     virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
         functionCalls.push_back(this);
     }
@@ -573,21 +575,27 @@ public:
             expr->populateVariable(symbolTable);
         }
     }
+    virtual const Expr* populateDerefVariable(SymbolTable* symbolTable, const Expr* structVar = nullptr) {
+        for (Expr* expr : p_arguments) {
+            expr->populateDerefVariable(symbolTable);
+        }
+        return p_functionName->populateDerefVariable(symbolTable);
+    }
     const Expr* getName() const { return p_functionName; }
     const vector<Expr*> getArguments() const { return p_arguments; }
+    Definition* toSimplifyDefinition() { return p_definition; }
+    const Definition* getDefinition() const { return p_definition; }
 private:
     Expr* p_functionName;
     vector<Expr*> p_arguments;
+    Definition* p_definition;
 };
 
 class MallocFnCall : public FunctionCall {
 public:
-    MallocFnCall(Expr* identifier, vector<Expr*> arguments): FunctionCall(identifier, arguments) {
-        p_definition = new PointerDefinition(true);
+    MallocFnCall(Expr* identifier, vector<Expr*> arguments): FunctionCall(identifier, arguments, new PointerDefinition(true)) {
     }
-    virtual ~MallocFnCall() {
-        delete p_definition;
-    }
+    virtual ~MallocFnCall() {}
     virtual ExprType getExprType() const { return MALLOCFNCALL; }
     virtual void print(ostream& os) const{
         FunctionCall::print(os);
@@ -598,16 +606,13 @@ public:
     virtual void getFunctionCalls(vector<const Expr*>& functionCalls) const {
         //functionCalls.push_back(this);
     }
-    PointerDefinition* toSimplifyDefinition() { return p_definition; }
-    const PointerDefinition* getDefinition() const { return p_definition; }
     //virtual void populateVariable(SymbolTable* symbolTable) {}
 private:
-    PointerDefinition* p_definition;
 };
 
 class DeleteFnCall : public FunctionCall {
 public:
-    DeleteFnCall(Expr* identifier, vector<Expr*> arguments): FunctionCall(identifier, arguments) {}
+    DeleteFnCall(Expr* identifier, vector<Expr*> arguments): FunctionCall(identifier, arguments, new Definition(false)) {}
     virtual ~DeleteFnCall() {
     }
     virtual ExprType getExprType() const { return DELETEFNCALL; }

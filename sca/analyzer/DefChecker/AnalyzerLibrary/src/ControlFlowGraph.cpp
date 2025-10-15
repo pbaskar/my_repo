@@ -266,7 +266,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
                     for(int i=0; i<fnIdentifiers.size(); i++) {
                         const Variable* identifier = static_cast<const Variable*>(fnIdentifiers[i]);
                         fnDecl = p_head->fetchFunctionDeclBlock(identifier->getName());
-                        if(fnDecl == nullptr) { Logger::getDebugStreamInstance() <<"function declaration block not found " <<identifier->getName() << endl; return FAILURE; }
+                        if(fnDecl == nullptr) { Logger::getDebugStreamInstance() << "function declaration block not found " << identifier->getName() << endl; goto endOfFnCall; }
                         makeFunctionCallInstance(functionCallInstance, functionCallStmt, fnDecl, block);
                         functionCallBlock->addInstance(functionCallInstance);
                     }
@@ -278,19 +278,26 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             }
             else {
                 fnDecl = p_head->fetchFunctionDeclBlock(identifier->getName());
-                if(fnDecl == nullptr) { Logger::getDebugStreamInstance() <<"function declaration block not found " <<endl; return FAILURE; }
+                if(fnDecl == nullptr) { Logger::getDebugStreamInstance() <<"function declaration block not found " <<endl; continue; }
                 makeFunctionCallInstance(functionCallInstance, functionCallStmt, fnDecl, block);
                 functionCallBlock = new FunctionCallBlock(0,identifier);
                 functionCallBlock->addInstance(functionCallInstance);
             }
-            currBlock->setNext(functionCallBlock);
-            currBlock = functionCallBlock;
-            beginNewBlock = true;
-            Logger::getDebugStreamInstance() <<"Function Call Block: "  <<identifier->getName() << " " <<block->getSubStatements().size()<<endl;
+        endOfFnCall:
+            if (fnDecl == nullptr) {
+                delete functionCallBlock;
+                Logger::getDebugStreamInstance() << "Function Call Block: not created " << identifier->getName() << " " << block->getSubStatements().size() << endl;
+            }
+            else {
+                currBlock->setNext(functionCallBlock);
+                currBlock = functionCallBlock;
+                beginNewBlock = true;
+                Logger::getDebugStreamInstance() << "Function Call Block: " << identifier->getName() << " " << block->getSubStatements().size() << endl;
+            }
         }
         break;
         default: {
-            Logger::getDebugStreamInstance() <<"error " <<endl;
+            Logger::getDebugStreamInstance() <<"Unknown statement type error " <<endl;
         }
         break;
         }

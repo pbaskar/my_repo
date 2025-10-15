@@ -126,9 +126,9 @@ Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std:
     Logger::getDebugStreamInstance() << "********************************** InstrParser Clear done ****************************************" <<endl;
     Logger::getDebugStreamInstance().flush();
     Logger::getDebugStreamInstance().close();
-//#ifdef NDEBUG
+#ifdef NDEBUG
     std::remove(debugFile);
+#endif
     delete debugFile;
-//#endif
     return s;
 }
