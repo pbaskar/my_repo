@@ -12,6 +12,7 @@ void fun(int i) {
         if( a+g ) {
             sum = a+c;
         }
+        b=6;
     }
     while(2) {
         sum = a+b+c;
@@ -19,5 +20,6 @@ void fun(int i) {
 }
 int main(int argc) {
     int m=0;
-    fun(m) ;
+    fun((m+3)) ;
+    return 0;
 }

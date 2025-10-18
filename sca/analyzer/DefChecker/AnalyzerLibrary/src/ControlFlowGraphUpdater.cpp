@@ -32,9 +32,11 @@ void ControlFlowGraphUpdater::visitBasicBlock(BasicBlock* basicBlock) {
                 }
                 break;
                 case JumpType::RETURN: {
-                    assert(p_returnTargetBlock);
-                    basicBlock->setNext(p_returnTargetBlock);
-                    Logger::getDebugStreamInstance() <<"Return setNext " << p_returnTargetBlock <<endl;
+                    //assert(p_returnTargetBlock);
+                    if (p_returnTargetBlock) {
+                        basicBlock->setNext(p_returnTargetBlock);
+                    }
+                    Logger::getDebugStreamInstance() << "Return setNext " << p_returnTargetBlock << endl;
                 }
                 break;
                 default:;

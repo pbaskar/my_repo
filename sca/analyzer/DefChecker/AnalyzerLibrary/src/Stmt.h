@@ -246,6 +246,7 @@ public:
     }
     list<Stmt*>& toSimplify() { return p_subStatements; }
     const list<Stmt*>& getSubStatements() const { return p_subStatements; }
+    const Stmt* getLastSubStmt() const { return p_subStatements.back(); }
     SymbolTable* getSymbolTable() const { return p_symbolTable; }
 private:
     list<Stmt*> p_subStatements;

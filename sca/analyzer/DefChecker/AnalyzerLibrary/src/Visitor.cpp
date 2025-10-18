@@ -222,7 +222,7 @@ void copyNodesToStructVar(const Variable* lhs, AssignmentNode* assignNode,
 void updateVariableGroup(const Variable* lhs, const Variable* rhs,
                          map<const Variable*, vector<pair<const Definition*, bool>>>& outDefinitions,
                          map<const Definition*, vector<vector<const Variable*>>>& outVariableGroups) {
-    //find definition of rhs in the map and entry that has rhs, add lhs to that entry of variablegroup
+    //merge :: find definition of rhs in the map and entry that has rhs, add lhs to that entry of variablegroup
     //if not present, create one
     auto rhsDefinitionIt = outDefinitions.find(rhs);
     if(rhsDefinitionIt == outDefinitions.end()) return;
@@ -838,6 +838,7 @@ CopyVariables:
                     goto CopyPointerVariables;
                 } //switch end
             }
+            break;
             case ExprType::ADDRESSOFOPERATOR: {
                 if(RHSVariables.empty()) { Logger::getDebugStreamInstance() <<"RHS variables empty"<<endl; break; }
                 const Expr* rhsExpr = RHSVariables[0];

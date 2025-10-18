@@ -237,17 +237,13 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"ComputeReachingVisitor If::Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
         block->acceptVisitor(*this);
         block = next;
         assert(block != nullptr);
-        if(block->getType() == JUMPBLOCK) {
-            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
-            break;
-        }
         meet(block);
     }
     lastBlock->acceptVisitor(*this);
@@ -258,7 +254,7 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
         lastBlock = ifElseBlock->getElseLast();
         while(block != lastBlock) {
             if(block->getType() == JUMPBLOCK) {
-                Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
+                Logger::getDebugStreamInstance() <<"ComputeReachingVisitor Else::Unreachable code following jump " <<endl;
                 break;
             }
             next = block->getNext();
@@ -303,7 +299,7 @@ void ComputeReachingDefsVisitor::visitWhileBlock(WhileBlock* whileBlock) {
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"ComputeReachingVisitor While::Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -343,7 +339,7 @@ void ComputeReachingDefsVisitor::visitForBlock(ForBlock* forBlock) {
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"ComputeReachingVisitor For::Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -385,7 +381,7 @@ void ComputeReachingDefsVisitor::visitFunctionDeclBlock(FunctionDeclBlock* funct
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"ComputeReachingVisitor If::Unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();

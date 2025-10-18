@@ -10,6 +10,7 @@
 #include<cstdarg>
 #include "InstrParser.h"
 #include "Logger.h"
+#include "Utils.h"
 
 InstrParser::InstrParser(): p_mainBlock(0), p_pos(0) {
 
@@ -38,8 +39,20 @@ Status InstrParser::parseFile(const char* fileName) {
         if(status == FAILURE) { p_tokenizer.closeFile(); return status; }
         nextChar = p_tokenizer.nextChar(true);
     }
-    //Todo: release identifier memory
-    FunctionCallStmt* stmt = new FunctionCallStmt(FUNC_CALL, new Identifier("main"), vector<Expr*>());
+    // Make a caller to the last parsed function declaration
+    const FunctionDeclStmt* functionDeclStmt=static_cast<const FunctionDeclStmt*>(p_mainBlock->getLastSubStmt());
+    vector<Expr*> exprs;
+    FunctionIdentifierName* fnId = static_cast<FunctionIdentifierName*>(functionDeclStmt->getName());
+    const vector<IdentifierName*>& args = fnId->getParameterList();
+    for (int i = 0; i < args.size(); i++) {
+        Variable* var = functionDeclStmt->getBlock()->getSymbolTable()->fetchVariable(args[i]->getName());
+        Expr* value = (var->getExprType() == ExprType::POINTERVARIABLE) ? new PointerDefinition(true) : new Definition(true);
+        Utils::populateDefinitions(var, value);
+        exprs.push_back(value);
+    }
+    //Todo: release stmt memory
+    const char* fnName = Utils::makeWord(functionDeclStmt->getName()->getName());
+    FunctionCallStmt* stmt = new FunctionCallStmt(FUNC_CALL, new Identifier(fnName), exprs);
     p_mainBlock->addStatement(stmt);
 
     p_tokenizer.closeFile();
@@ -215,12 +228,15 @@ Status InstrParser::parseJumpStmt(Block* block) {
     if(strcmp(next, "break")==0) {
         p_tokenizer.consumeWord();
         block->addStatement(new JumpStmt(JUMP, JumpType::BREAK));
+        cout << "break jump stmt created " << endl;
     } else if(strcmp(next, "continue")==0) {
         p_tokenizer.consumeWord();
         block->addStatement(new JumpStmt(JUMP, JumpType::CONTINUE));
+        cout << "continue jump stmt created " << endl;
     } else if(strcmp(next, "return")==0) {
         p_tokenizer.consumeWord();
         block->addStatement(new JumpStmt(JUMP, JumpType::RETURN));
+        cout << "return jump stmt created " << endl;
     }
     else {
         delete next;
@@ -352,7 +368,8 @@ Status InstrParser::parseIf(IfStmt* stmt) {
 
     char openBrace = p_tokenizer.nextChar();
     if ( openBrace != '(')	{ Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseIf:", "open brace"); return FAILURE; }
-    char* next = p_tokenizer.nextWord();
+    char endDelim[] = { ')' };
+    char* next = p_tokenizer.nextWordUntil(endDelim, sizeof(endDelim));
     if(next == nullptr) { Logger::logMessage(ErrorCode::NOT_FOUND,  2, "InstrParser::parseIf:", "condition"); return FAILURE; }
     Expr* condition = p_exprParser.parseExpressionStr(next);
     delete next;

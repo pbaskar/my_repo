@@ -74,14 +74,13 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             JumpStmt* jumpStmt = static_cast<JumpStmt*>(stmt);
             JumpNode* jumpNode = new JumpNode(jumpStmt->getJumpType());
             Logger::getDebugStreamInstance() <<" Jump Node: "<< jumpNode <<endl;
-            if(beginNewBlock) {
-                beginNewBlock = false;
-                BasicBlock* newBlock = new BasicBlock(block->getSymbolTable());
-                currBlock->setNext(newBlock);
-                currBlock = newBlock;
-            }
-            currBlock->addNode(jumpNode);
-            currBlock->setType(BlockType::JUMPBLOCK);
+
+            BasicBlock* newBlock = new BasicBlock(block->getSymbolTable());
+            newBlock->addNode(jumpNode);
+            newBlock->setType(BlockType::JUMPBLOCK);
+            currBlock->setNext(newBlock);
+            currBlock = newBlock;
+            beginNewBlock = true;
         }
         break;
         case DECL:
@@ -124,14 +123,12 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
             status = buildBlock(ifLast, ifStmt->getBlock());
 
             const IfStmt* elseStmt = ifStmt->getElse();
+            elseFirst = new BasicBlock(block->getSymbolTable());
+            elseLast = elseFirst;
             if(elseStmt) {
                 ConditionNode* elseNode = new ConditionNode(elseStmt->getCondition());
                 Logger::getDebugStreamInstance() << "Else Node: " << *elseNode << " " <<block->getSubStatements().size() <<endl;
-
-                elseFirst = new BasicBlock(elseStmt->getBlock()->getSymbolTable());
                 elseFirst->addNode(elseNode);
-
-                elseLast = elseFirst;
                 status = buildBlock(elseLast, elseStmt->getBlock());
             }
 

@@ -126,11 +126,15 @@ char* Tokenizer::nextWord(bool peek) {
 char* Tokenizer::nextWordUntil(char delim[], int numDelim) {
     int p = p_pos;
     int wordLen = 0;
+    int openBrace = 0;
     while(p_line[p] == ' ') {
         p++;
         p_pos++;
     }
-    while( p_line[p] != '\0' && !isDelimiter(p_line[p], delim, numDelim)) {
+    while(p_line[p] != '\0') {
+        if (isDelimiter(p_line[p], delim, numDelim) && openBrace == 0) break;
+        if (p_line[p] == '(') openBrace++;
+        if (p_line[p] == ')') openBrace--;
         wordLen++;
         p++;
     }

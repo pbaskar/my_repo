@@ -11,7 +11,6 @@
 #include<iostream>
 #include<vector>
 #include "Logger.h"
-#include "Utils.h"
 
 class SymbolTable;
 class Variable;
@@ -554,10 +553,11 @@ public:
     }
     virtual ExprType getExprType() const { return FUNCTIONCALL; }
     virtual void print(ostream& os) const{
-        os<<*p_functionName << " ";
+        os<<*p_functionName << " ( ";
         for(Expr* expr : p_arguments) {
             os <<*expr << " ";
         }
+        os << " ) ";
     }
     virtual void getRHSVariables(vector<const Expr*>& variables) const {
         for(Expr* expr : p_arguments) {
