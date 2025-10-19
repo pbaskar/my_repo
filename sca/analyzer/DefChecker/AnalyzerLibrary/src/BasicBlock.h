@@ -70,24 +70,14 @@ private:
     const int p_lineNum;
 };
 
-class ConditionNode : public Node {
+class ConditionNode : public AssignmentNode {
 public:
-    ConditionNode() : p_condition(0) { }
-    ConditionNode(const Expr* condition) : p_condition(condition) {
+    ConditionNode(const Expr* condition) : AssignmentNode(0, condition, 0) {
     }
     NodeType type() const { return CONDITION; }
     virtual ~ConditionNode() {
-        //delete p_condition;
     }
-    virtual void print(ostream& os) const {
-        os <<"condition "<<" ";
-        if(p_condition)
-            os <<*p_condition <<" ";
-    }
-    void setCondition(Expr* condition) { p_condition = condition; }
-    virtual const Expr* getValue() const { return p_condition; };
 private:
-    const Expr* p_condition;
 };
 
 class JumpNode : public Node {
@@ -169,20 +159,22 @@ private:
 
 class IfElseBlock : public BasicBlock {
 public:
-    IfElseBlock(BasicBlock* next, BasicBlock* ifFirst, BasicBlock* ifLast, BasicBlock* elseFirst, BasicBlock* elseLast)
-: BasicBlock(next,0), p_ifFirst(ifFirst), p_ifLast(ifLast), p_elseFirst(elseFirst), p_elseLast(elseLast) {
+    IfElseBlock(BasicBlock* next, BasicBlock* condition, BasicBlock* ifFirst, BasicBlock* ifLast, BasicBlock* elseFirst, BasicBlock* elseLast)
+: BasicBlock(next,0), p_condition(condition), p_ifFirst(ifFirst), p_ifLast(ifLast), p_elseFirst(elseFirst), p_elseLast(elseLast) {
         p_last = new BasicBlock(nullptr);
     }
     virtual ~IfElseBlock() {
     }
     virtual void acceptVisitor(Visitor& visitor);
     virtual void acceptTraverser(Traverser& traverser);
+    BasicBlock* getCondition() { return p_condition;  }
     BasicBlock* getIfFirst() { return p_ifFirst; }
     BasicBlock* getIfLast() { return p_ifLast; }
     BasicBlock* getElseFirst() { return p_elseFirst; }
     BasicBlock* getElseLast() { return p_elseLast; }
     BasicBlock* getLast() { return p_last; }
 private:
+    BasicBlock* p_condition;
     BasicBlock* p_ifFirst;
     BasicBlock* p_ifLast;
     BasicBlock* p_elseFirst;

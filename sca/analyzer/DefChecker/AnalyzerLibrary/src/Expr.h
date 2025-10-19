@@ -157,6 +157,7 @@ public:
         p_right->populateVariable(symbolTable);
     }
     virtual const Expr* populateDerefVariable(SymbolTable* symbolTable, const Expr* structVar=nullptr) {
+        p_right->populateDerefVariable(symbolTable);
         return p_left->populateDerefVariable(symbolTable);
     }
     virtual const char* getPointedName() {

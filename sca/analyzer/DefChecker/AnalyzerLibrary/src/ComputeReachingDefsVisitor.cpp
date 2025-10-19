@@ -177,7 +177,7 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
 
     const vector<Node*>& nodeList = basicBlock->getNodeList();
     for(Node* node: nodeList) {
-        if(node->type() != ASSIGNMENT) continue;
+        if(!(node->type() == ASSIGNMENT || node->type() == CONDITION)) continue;
         vector<const Expr*> RHSVariables;
         AssignmentNode* assignNode = static_cast<AssignmentNode*>(node);
         const Expr* value=assignNode->getValue();
@@ -224,6 +224,7 @@ void ComputeReachingDefsVisitor::visitBasicBlock(BasicBlock* basicBlock) {
 }
 
 void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
+    BasicBlock* condition = ifElseBlock->getCondition();
     BasicBlock* block = ifElseBlock->getIfFirst();
     BasicBlock* lastBlock = ifElseBlock->getIfLast();
     BasicBlock* next(0);
@@ -233,11 +234,13 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
     map<const Definition*, vector<vector<const Variable*>>> variableGroups = p_inVariableGroups.at(ifElseBlock);
     Logger::getDebugStreamInstance() <<"Beginning of IfElseBlock: variableNodes size " <<variableNodes.size() << " definitions size "
         <<definitions.size() <<endl <<endl;
-    meet(ifElseBlock->getIfFirst(), variableNodes, definitions, variableGroups);
 
+    meet(condition, variableNodes, definitions, variableGroups);
+    condition->acceptVisitor(*this);
+    meet(block);
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            Logger::getDebugStreamInstance() <<"ComputeReachingVisitor If::Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"ComputeReachingVisitor If:: unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -246,27 +249,23 @@ void ComputeReachingDefsVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
         assert(block != nullptr);
         meet(block);
     }
-    lastBlock->acceptVisitor(*this);
+    block->acceptVisitor(*this);
 
-    if(ifElseBlock->getElseFirst()) {
-        meet(ifElseBlock->getElseFirst(), variableNodes, definitions, variableGroups);
-        block = ifElseBlock->getElseFirst();
-        lastBlock = ifElseBlock->getElseLast();
-        while(block != lastBlock) {
-            if(block->getType() == JUMPBLOCK) {
-                Logger::getDebugStreamInstance() <<"ComputeReachingVisitor Else::Unreachable code following jump " <<endl;
-                break;
-            }
-            next = block->getNext();
-            block->acceptVisitor(*this);
-            block = next;
-            assert(block != nullptr);
-            meet(block);
+    meet(ifElseBlock->getElseFirst());
+    block = ifElseBlock->getElseFirst();
+    lastBlock = ifElseBlock->getElseLast();
+    while(block != lastBlock) {
+        if(block->getType() == JUMPBLOCK) {
+            Logger::getDebugStreamInstance() <<"ComputeReachingVisitor Else:: unreachable code following jump " <<endl;
+            break;
         }
-        if(block) {
-            block->acceptVisitor(*this);
-        }
+        next = block->getNext();
+        block->acceptVisitor(*this);
+        block = next;
+        assert(block != nullptr);
+        meet(block);
     }
+    block->acceptVisitor(*this);
 
     meet(ifElseBlock->getLast());
     ifElseBlock->getLast()->acceptVisitor(*this);
@@ -339,7 +338,7 @@ void ComputeReachingDefsVisitor::visitForBlock(ForBlock* forBlock) {
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            Logger::getDebugStreamInstance() <<"ComputeReachingVisitor For::Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"ComputeReachingVisitor For:: unreachable code following jump " <<endl;
             break;
         }
         next = block->getNext();
@@ -381,7 +380,8 @@ void ComputeReachingDefsVisitor::visitFunctionDeclBlock(FunctionDeclBlock* funct
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            Logger::getDebugStreamInstance() <<"ComputeReachingVisitor If::Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"ComputeReachingVisitor If:: jump " <<endl;
+            block->acceptVisitor(*this);
             break;
         }
         next = block->getNext();

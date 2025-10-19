@@ -42,14 +42,24 @@ void ControlFlowGraphUpdater::visitBasicBlock(BasicBlock* basicBlock) {
                 default:;
             }
         }
+        /*else if (node->type() == NodeType::CONDITION) {
+            assert(p_conditionTargetBlock);
+            //basicBlock->setNext(p_conditionTargetBlock);
+            Logger::getDebugStreamInstance() << "condition setNext " << p_conditionTargetBlock << endl;
+        }*/
     }
 }
 
 void ControlFlowGraphUpdater::visitIfElseBlock(IfElseBlock* ifElseBlock) {
     Logger::getDebugStreamInstance() <<"Beginning of IfElseBlock: " <<endl <<endl;
+    BasicBlock* conditionTargetBlock = p_conditionTargetBlock;
+    p_conditionTargetBlock = ifElseBlock->getNext();
+    BasicBlock* condition = ifElseBlock->getCondition();
     BasicBlock* block = ifElseBlock->getIfFirst();
     BasicBlock* lastBlock = ifElseBlock->getIfLast();
     BasicBlock* next(0);
+
+    condition->acceptVisitor(*this);
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
             Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
@@ -59,33 +69,34 @@ void ControlFlowGraphUpdater::visitIfElseBlock(IfElseBlock* ifElseBlock) {
         block->acceptVisitor(*this);
         block = next;
     }
-    lastBlock->acceptVisitor(*this);
+    block->acceptVisitor(*this);
 
-    if(ifElseBlock->getElseFirst()) {
-        block = ifElseBlock->getElseFirst();
-        lastBlock = ifElseBlock->getElseLast();
-        while(block != lastBlock) {
-            if(block->getType() == JUMPBLOCK) {
-                Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
-                break;
-            }
-            next = block->getNext();
-            block->acceptVisitor(*this);
-            block = next;
+    block = ifElseBlock->getElseFirst();
+    lastBlock = ifElseBlock->getElseLast();
+    while(block != lastBlock) {
+        if(block->getType() == JUMPBLOCK) {
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
+            break;
         }
-        if(block) {
-            block->acceptVisitor(*this);
-        }
+        next = block->getNext();
+        block->acceptVisitor(*this);
+        block = next;
     }
+    block->acceptVisitor(*this);
+
     ifElseBlock->getLast()->acceptVisitor(*this);
     Logger::getDebugStreamInstance() <<"End of IfElseBlock: " <<endl <<endl;
+
+    p_conditionTargetBlock = conditionTargetBlock;
 }
 
 void ControlFlowGraphUpdater::visitWhileBlock(WhileBlock* whileBlock) {
     BasicBlock* loopBreakTargetBlock = p_loopBreakTargetBlock;
     BasicBlock* loopContinueTargetBlock = p_loopContinueTargetBlock;
+    BasicBlock* conditionTargetBlock = p_conditionTargetBlock;
     p_loopBreakTargetBlock = whileBlock->getNext();
     p_loopContinueTargetBlock = whileBlock->getFirst();
+    p_conditionTargetBlock = whileBlock->getNext();
 
     Logger::getDebugStreamInstance() <<"Beginning of WhileBlock: " <<endl <<endl;
     BasicBlock* block = whileBlock->getFirst();
@@ -110,13 +121,16 @@ void ControlFlowGraphUpdater::visitWhileBlock(WhileBlock* whileBlock) {
 
     p_loopBreakTargetBlock = loopBreakTargetBlock;
     p_loopContinueTargetBlock = loopContinueTargetBlock;
+    p_conditionTargetBlock = conditionTargetBlock;
 }
 
 void ControlFlowGraphUpdater::visitForBlock(ForBlock* forBlock) {
     BasicBlock* loopBreakTargetBlock = p_loopBreakTargetBlock;
     BasicBlock* loopContinueTargetBlock = p_loopContinueTargetBlock;
+    BasicBlock* conditionTargetBlock = p_conditionTargetBlock;
     p_loopBreakTargetBlock = forBlock->getNext();
     p_loopContinueTargetBlock = forBlock->getLast();
+    p_conditionTargetBlock = forBlock->getNext();
 
     Logger::getDebugStreamInstance() <<"Beginning of ForBlock: " <<endl <<endl;
     BasicBlock* block = forBlock->getFirst();
@@ -141,6 +155,7 @@ void ControlFlowGraphUpdater::visitForBlock(ForBlock* forBlock) {
 
     p_loopBreakTargetBlock = loopBreakTargetBlock;
     p_loopContinueTargetBlock = loopContinueTargetBlock;
+    p_conditionTargetBlock = conditionTargetBlock;
 }
 
 void ControlFlowGraphUpdater::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
@@ -151,7 +166,7 @@ void ControlFlowGraphUpdater::visitFunctionDeclBlock(FunctionDeclBlock* function
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"jump " <<endl;
             break;
         }
         next = block->getNext();

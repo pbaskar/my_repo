@@ -20,6 +20,7 @@ private:
     BasicBlock* p_loopBreakTargetBlock;
     BasicBlock* p_loopContinueTargetBlock;
     BasicBlock* p_returnTargetBlock;
+    BasicBlock* p_conditionTargetBlock;
 };
 
 #endif // CONTROLFLOWGRAPHUPDATER_H

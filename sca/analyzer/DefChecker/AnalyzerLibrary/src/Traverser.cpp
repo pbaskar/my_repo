@@ -32,9 +32,12 @@ void TraverserOne::traverseBasicBlock(BasicBlock* basicBlock) {
 }
 
 void TraverserOne::traverseIfElseBlock(IfElseBlock* ifElseBlock) {
+    BasicBlock* condition = ifElseBlock->getCondition();
     BasicBlock* block = ifElseBlock->getIfFirst();
     BasicBlock* lastBlock = ifElseBlock->getIfLast();
     BasicBlock* next(0);
+
+    condition->acceptTraverser(*this);
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
             Logger::getDebugStreamInstance() <<"Traverser If ::Unreachable code following jump " <<endl;
@@ -44,7 +47,8 @@ void TraverserOne::traverseIfElseBlock(IfElseBlock* ifElseBlock) {
         block->acceptTraverser(*this);
         block = next;
     }
-    lastBlock->acceptTraverser(*this);
+    block->acceptTraverser(*this);
+
     block = ifElseBlock->getElseFirst();
     lastBlock = ifElseBlock->getElseLast();
     while(block != lastBlock) {
@@ -56,9 +60,7 @@ void TraverserOne::traverseIfElseBlock(IfElseBlock* ifElseBlock) {
         block->acceptTraverser(*this);
         block = next;
     }
-    if(block) {
-        block->acceptTraverser(*this);
-    }
+    block->acceptTraverser(*this);
     ifElseBlock->acceptVisitor(*p_visitor);
 }
 
@@ -105,7 +107,7 @@ void TraverserOne::traverseFunctionDeclBlock(FunctionDeclBlock* functionDeclBloc
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            Logger::getDebugStreamInstance() <<"Traverser FnBlock ::Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"Traverser FnBlock :: jump " <<endl;
             break;
         }
         next = block->getNext();

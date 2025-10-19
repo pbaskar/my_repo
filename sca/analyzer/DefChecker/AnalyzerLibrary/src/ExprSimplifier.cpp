@@ -78,21 +78,21 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
                 vector<const Expr*> fnIdentifiers;
                 if(!lhs || lhs->getVarType() != VarType::FUNCTION) continue;
                 value->getRHSVariables(fnIdentifiers);
-                if(fnIdentifiers.empty()) {  Logger::getDebugStreamInstance() <<"Bad function name assigned to function pointer " <<identifierName->getName() <<endl; continue; }
+                if(fnIdentifiers.empty()) {  Logger::getDebugStreamInstance() <<"Bad function name assigned to function pointer " <<lhs->getName() <<endl; continue; }
                 assert(fnIdentifiers[0]);
                 rhs = static_cast<const Variable*>(fnIdentifiers[0]);
 
                 assert(lhs->getExprType() == ExprType::POINTERVARIABLE);
                 const PointerVariable* pointerVariable = static_cast<const PointerVariable*>(lhs);
-                lhs = pointerVariable->getPointsTo();
+                const Variable* pointsToLHS = pointerVariable->getPointsTo();
                 const PointerVariable* rhsPointer=dynamic_cast<const PointerVariable*>(rhs);
                 //&function name on rhs or directly function name
                 if(rhsPointer != nullptr) {
                     rhs = rhsPointer->getPointsTo();
                 }
-                const FunctionVariable* functionVariable = dynamic_cast<const FunctionVariable*>(lhs);
+                const FunctionVariable* functionVariable = dynamic_cast<const FunctionVariable*>(pointsToLHS);
                 if(functionVariable == nullptr) {
-                    Logger::getDebugStreamInstance() <<"Function pointer has no valid function Variable " <<identifierName->getName() <<endl;
+                    Logger::getDebugStreamInstance() <<"Function pointer has no valid function Variable " << lhs->getName() <<endl;
                     continue;
                 }
                 assert(rhs);
@@ -107,6 +107,18 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
             Expr* condition = ifStmt->toSimplifyCondition();
             if(condition) {
                 condition->populateVariable(block->getSymbolTable());
+                condition->populateDerefVariable(block->getSymbolTable());
+                vector<const Expr*> functionCalls;
+                condition->getFunctionCalls(functionCalls);
+                for (int i = 0; i < functionCalls.size(); i++) {
+                    const FunctionCall* functionCallExpr = static_cast<const FunctionCall*>(functionCalls[i]);
+                    FunctionCallStmt* functionCallStmt = new FunctionCallStmt(FUNC_CALL, functionCallExpr->getName(),
+                        functionCallExpr->getArguments());
+                    Logger::getDebugStreamInstance() << "Function call stmt inserted for Name " << functionCallExpr->getName() << " Name ExprType " <<
+                        functionCallExpr->getName()->getExprType() << endl;
+                    it = stmtList.insert(it, functionCallStmt);
+                    it++;
+                }
             }
             status = simplifyBlock(ifStmt->getBlock());
 
@@ -124,6 +136,18 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
             Expr* condition = whileStmt->toSimplifyCondition();
             if(condition) {
                 condition->populateVariable(whileSymbolTable);
+                condition->populateDerefVariable(whileSymbolTable);
+                vector<const Expr*> functionCalls;
+                condition->getFunctionCalls(functionCalls);
+                for (int i = 0; i < functionCalls.size(); i++) {
+                    const FunctionCall* functionCallExpr = static_cast<const FunctionCall*>(functionCalls[i]);
+                    FunctionCallStmt* functionCallStmt = new FunctionCallStmt(FUNC_CALL, functionCallExpr->getName(),
+                        functionCallExpr->getArguments());
+                    Logger::getDebugStreamInstance() << "Function call stmt inserted for Name " << functionCallExpr->getName() << " Name ExprType " <<
+                        functionCallExpr->getName()->getExprType() << endl;
+                    it = stmtList.insert(it, functionCallStmt);
+                    it++;
+                }
             }
             status = simplifyBlock(whileStmt->getBlock());
         }
@@ -135,14 +159,28 @@ Status ExprSimplifier::simplifyBlock(Block* block) {
             Expr* initExpr = forStmt->toSimplifyInitExpr();
             if(initExpr) {
                 initExpr->populateVariable(forSymbolTable);
+                initExpr->populateDerefVariable(forSymbolTable);
             }
             Expr* condition = forStmt->toSimplifyCondition();
             if(condition) {
                 condition->populateVariable(forSymbolTable);
+                condition->populateDerefVariable(forSymbolTable);
+                vector<const Expr*> functionCalls;
+                condition->getFunctionCalls(functionCalls);
+                for (int i = 0; i < functionCalls.size(); i++) {
+                    const FunctionCall* functionCallExpr = static_cast<const FunctionCall*>(functionCalls[i]);
+                    FunctionCallStmt* functionCallStmt = new FunctionCallStmt(FUNC_CALL, functionCallExpr->getName(),
+                        functionCallExpr->getArguments());
+                    Logger::getDebugStreamInstance() << "Function call stmt inserted for Name " << functionCallExpr->getName() << " Name ExprType " <<
+                        functionCallExpr->getName()->getExprType() << endl;
+                    it = stmtList.insert(it, functionCallStmt);
+                    it++;
+                }
             }
             Expr* postExpr = forStmt->toSimplifyPostExpr();
             if(postExpr) {
                 postExpr->populateVariable(forSymbolTable);
+                postExpr->populateDerefVariable(forSymbolTable);
             }
             status = simplifyBlock(forStmt->getBlock());
         }

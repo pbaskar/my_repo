@@ -107,19 +107,21 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
         break;
         case IF:
         case ELSE: {
-            BasicBlock* first(0);
+            BasicBlock* condition(0);
+            BasicBlock* ifFirst(0);
             BasicBlock* ifLast(0);
             BasicBlock* elseFirst(0);
             BasicBlock* elseLast(0);
 
             IfStmt* ifStmt = static_cast<IfStmt*>(stmt);
-            ConditionNode* ifNode = new ConditionNode(ifStmt->getCondition());
-            Logger::getDebugStreamInstance() << "If Node: " << *ifNode << " " <<block->getSubStatements().size() <<endl;
+            ConditionNode* conditionNode = new ConditionNode(ifStmt->getCondition());
+            Logger::getDebugStreamInstance() << "If Node: " << *conditionNode << " " <<block->getSubStatements().size() <<endl;
 
-            first = new BasicBlock(ifStmt->getBlock()->getSymbolTable());
-            first->addNode(ifNode);
+            condition = new BasicBlock(block->getSymbolTable());
+            condition->addNode(conditionNode);
 
-            ifLast = first;
+            ifFirst = new BasicBlock(ifStmt->getBlock()->getSymbolTable());
+            ifLast = ifFirst;
             status = buildBlock(ifLast, ifStmt->getBlock());
 
             const IfStmt* elseStmt = ifStmt->getElse();
@@ -132,7 +134,10 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
                 status = buildBlock(elseLast, elseStmt->getBlock());
             }
 
-            IfElseBlock* ifElseBlock = new IfElseBlock(0, first, ifLast, elseFirst, elseLast);
+            condition->setNext(elseFirst);
+            condition->setNext(ifFirst);
+
+            IfElseBlock* ifElseBlock = new IfElseBlock(0, condition, ifFirst, ifLast, elseFirst, elseLast);
             if(ifLast->getType() != BlockType::JUMPBLOCK)
                 ifLast->setNext(ifElseBlock->getLast());
             if(elseLast && elseLast->getType() != BlockType::JUMPBLOCK) {
@@ -194,6 +199,9 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
                 condition->addNode(conditionNode);
             }
 
+            BasicBlock* forBody = new BasicBlock(forStmt->getBlock()->getSymbolTable());
+            last->setNext(forBody);
+            last = forBody;
             status = buildBlock(last, forStmt->getBlock());
 
             BasicBlock* forPostBlock = new BasicBlock(forStmt->getBlock()->getSymbolTable());
@@ -270,7 +278,7 @@ Status ControlFlowGraph::buildBlock(BasicBlock*& currBlock, const Block* block) 
                 }
                 else {
                     Logger::getDebugStreamInstance() <<"CFG: function pointer dereference does not contain function variable " <<*expr <<endl;
-                    return FAILURE;
+                    continue;
                 }
             }
             else {

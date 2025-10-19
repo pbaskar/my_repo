@@ -903,7 +903,7 @@ void VariableInitCheckVisitor::visitBasicBlock(BasicBlock* basicBlock) {
     bool found = false;
     const vector<Node*>& nodeList = basicBlock->getNodeList();
     for(Node* node: nodeList) {
-        if(node->type() != ASSIGNMENT) continue;
+        if (!(node->type() == ASSIGNMENT || node->type() == CONDITION)) continue;
         AssignmentNode* assignNode = static_cast<AssignmentNode*>(node);
         const Expr* value=assignNode->getValue();
         vector<const Expr*> RHSVariables;
@@ -1063,9 +1063,12 @@ void VariableInitCheckVisitor::intersect(vector<AssignmentNode*>& dest, vector<A
 
 void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
     Logger::getDebugStreamInstance() <<"Beginning of IfElseBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
+    BasicBlock* condition = ifElseBlock->getCondition();
     BasicBlock* block = ifElseBlock->getIfFirst();
     BasicBlock* lastBlock = ifElseBlock->getIfLast();
     BasicBlock* next(0);
+
+    condition->acceptVisitor(*this);
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
             Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
@@ -1075,24 +1078,20 @@ void VariableInitCheckVisitor::visitIfElseBlock(IfElseBlock* ifElseBlock) {
         block->acceptVisitor(*this);
         block = next;
     }
-    lastBlock->acceptVisitor(*this);
+    block->acceptVisitor(*this);
 
-    if(ifElseBlock->getElseFirst()) {
-        block = ifElseBlock->getElseFirst();
-        lastBlock = ifElseBlock->getElseLast();
-        while(block != lastBlock) {
-            if(block->getType() == JUMPBLOCK) {
-                Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
-                break;
-            }
-            next = block->getNext();
-            block->acceptVisitor(*this);
-            block = next;
+    block = ifElseBlock->getElseFirst();
+    lastBlock = ifElseBlock->getElseLast();
+    while(block != lastBlock) {
+        if(block->getType() == JUMPBLOCK) {
+            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
+            break;
         }
-        if(block) {
-            block->acceptVisitor(*this);
-        }
+        next = block->getNext();
+        block->acceptVisitor(*this);
+        block = next;
     }
+    block->acceptVisitor(*this);
     Logger::getDebugStreamInstance() <<"End of IfElseBlock: variableNodes size " <<p_inVariableNodes.size() <<endl <<endl;
 }
 
@@ -1142,7 +1141,7 @@ void VariableInitCheckVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functio
 
     while(block != lastBlock) {
         if(block->getType() == JUMPBLOCK) {
-            Logger::getDebugStreamInstance() <<"Unreachable code following jump " <<endl;
+            Logger::getDebugStreamInstance() <<"jump " <<endl;
             break;
         }
         next = block->getNext();
