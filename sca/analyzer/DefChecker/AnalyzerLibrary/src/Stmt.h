@@ -12,6 +12,8 @@
 #include "SymbolTable.h"
 #include<list>
 
+class Type;
+
 using namespace std;
 enum StmtType { DECL, ASSIGN, IF, ELSE, WHILE, FOR, JUMP, FUNC_DECL, FUNC_CALL, STRUCT_DECL };
 enum IdentifierType {
@@ -52,6 +54,9 @@ static const char* dataTypes[]= {"void", "char", "short", "int", "long", "float"
                                  "union", "enum", "typename"};
 static const size_t dataTypesSize = sizeof(dataTypes)/sizeof(dataTypes[0]);
 
+static const char* keywords[] = { "if", "else", "while", "for", "return" };
+static const size_t keywordsSize = sizeof(keywords) / sizeof(keywords[0]);
+
 class IdentifierName {
 public:
     IdentifierName(const char* n): p_name(n) {}
@@ -83,8 +88,8 @@ private:
 
 class FunctionIdentifierName : public IdentifierName {
 public:
-    FunctionIdentifierName(const char* name, vector<IdentifierName*> parameterList):
-        IdentifierName(name), p_parameterList(parameterList) {}
+    FunctionIdentifierName(const char* name, vector<IdentifierName*> parameterList, vector<Type*> typeList):
+        IdentifierName(name), p_parameterList(parameterList), p_parameterTypeList(typeList) {}
     virtual ~FunctionIdentifierName() {
         for(int i=0; i<p_parameterList.size(); i++) {
             delete p_parameterList[i];
@@ -104,8 +109,10 @@ public:
         }
     }
     const vector<IdentifierName*>& getParameterList() { return p_parameterList; }
+    const vector<Type*>& getParameterTypeList() { return p_parameterTypeList; }
 private:
     vector<IdentifierName*> p_parameterList;
+    vector<Type*> p_parameterTypeList;
 };
 
 class PointerIdentifierName : public IdentifierName {

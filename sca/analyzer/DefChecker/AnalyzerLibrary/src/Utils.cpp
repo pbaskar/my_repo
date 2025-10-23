@@ -37,6 +37,12 @@ const char* Utils::makeWord(const char* word1, const char* word2) {
     return newName;
 }
 
+bool Utils::isAlpha(char c) {
+    if (c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z')
+        return true;
+    return false;
+}
+
 Status Utils::populateMallocFnCall(const Variable* lhs, Expr* value) {
     MallocFnCall* mallocFnCall = static_cast<MallocFnCall*>(value);
     PointerDefinition* previous = static_cast<PointerDefinition*>(mallocFnCall->toSimplifyDefinition());

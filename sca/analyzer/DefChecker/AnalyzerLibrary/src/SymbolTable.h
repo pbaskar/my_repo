@@ -28,6 +28,7 @@ enum DataType {
     UNIONSPECIFIER,
     ENUM,
     TYPENAME,
+    UNKNOWN,
     INVALIDDATATYPE
 };
 

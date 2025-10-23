@@ -37,10 +37,11 @@ public:
     Status parseStructDeclarationList(Block* block, vector<AssignStmt*>& structDeclarationList);
     StructOrUnion parseStructOrUnion(Block* block);
     vector<Type*> parseDeclarationSpecifiers(Block* block);
-    IdentifierName* parseParameterDecl(Block* block);
-    Status parseParameterList(Block* block, vector<IdentifierName*>& identifierList);
+    IdentifierName* parseParameterDecl(Block* block, Type*& type);
+    Status parseParameterList(Block* block, vector<IdentifierName*>& identifierList, vector<Type*>& typeList);
     Status parsePointer(Block* block, vector<PointerIdentifierName*>& identifierList);
-    Status parseDirectDeclaratorPrime(Block* block, vector<IdentifierName*>& directDeclaratorPrime, DeclType& declType);
+    Status parseDirectDeclaratorPrime(Block* block, vector<IdentifierName*>& directDeclaratorPrime, vector<Type*>& directDeclaratorPrimeType, 
+        DeclType& declType);
     IdentifierName* parseDirectDeclarator(Block* block, DeclType& declType);
     IdentifierName* parseDeclarator(Block* block, DeclType& declType);
     Expr* parseInitializer(Block* block);
@@ -50,7 +51,6 @@ public:
     Status parseDeclaration(Block* block, vector<AssignStmt*>& declaration);
     Status parseDeclarationList(Block* block, vector<AssignStmt*>& declarationList);
 
-    Status parseStructOrUnionDef(Block* block);
     Status parseStructOrUnionSpecifier(Block* block);
     Status parseLabeledStmt(Block* block);
     Status parseSelectionStmt(Block* block);
