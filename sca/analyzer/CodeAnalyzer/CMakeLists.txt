@@ -16,8 +16,6 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Network)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Network)
 
-add_subdirectory(AnalyzerLibrary)
-
 add_executable(CodeAnalyzer
   main.cpp
   socketserver.h socketserver.cpp

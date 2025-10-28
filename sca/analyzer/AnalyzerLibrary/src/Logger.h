@@ -9,6 +9,8 @@
 #define LOGGER_H_
 #include<cstdarg>
 #include<fstream>
+#include<sstream>
+#include<vector>
 #include "Results.h"
 using namespace std;
 
@@ -41,15 +43,19 @@ public:
         return &logger;
     }
 
-    static ofstream& getDebugStreamInstance() {
-        static ofstream p_debug;
+    static ostream& getDebugStreamInstance() {
+        static stringstream p_debug;
         return p_debug;
     }
     Status setErrorFile(const char* errorFile);
+    void addError(Result r) { p_errors.push_back(r); }
+    const std::vector<Result>& getErrors() const {
+        return p_errors;
+    }
     static void logMessage(ErrorCode errorCode, int args, ...);
-
 private:
     ofstream p_of;
+    std::vector<Result> p_errors;
 };
 
 #endif /* LOGGER_H_ */

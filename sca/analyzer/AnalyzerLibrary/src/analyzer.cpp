@@ -36,6 +36,15 @@ Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead) {
         return s;
     }
     Logger::getDebugStreamInstance() << "********************************** Instructions file parsing done ****************************************" <<endl;
+
+    ExprSimplifier exprSimplifier;
+    s = exprSimplifier.simplify(instrParser.getBlock());
+    if (s == FAILURE) {
+        Logger::getDebugStreamInstance() << "Simplify expressions failed " << endl;
+        return s;
+    }
+    Logger::getDebugStreamInstance() << "********************************** Expression Simplification done ****************************************" << endl;
+
     ControlFlowGraph cfg;
     s = cfg.buildCFG(instrParser.getBlock());
 
@@ -51,24 +60,24 @@ Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead) {
 }
 
 Status Analyzer::setOutputPath(const char* outputFilePath) {
-    const char* errorFile = Utils::makeWord(outputFilePath, "\\error.log");
+    /*const char* errorFile = Utils::makeWord(outputFilePath, "\\error.log");
     Status s = Logger::getInstance()->setErrorFile(errorFile);
     if (s == FAILURE) {
         cout << usageMsg << endl;
     }
-    delete errorFile;
-    return s;
+    delete errorFile;*/
+    return SUCCESS;
 }
 
 Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std::vector<Result>& results) {
-    const char* debugFile = Utils::makeWord(outputFilePath, "\\debug.log");
+    /*const char* debugFile = Utils::makeWord(outputFilePath, "\\debug.log");
     Logger::getDebugStreamInstance().open(debugFile);
     if (!Logger::getDebugStreamInstance().is_open()) {
         cout << "Could not open debug log " << debugFile << endl;
         cout << usageMsg << endl;
         return FAILURE;
     }
-    Logger::getDebugStreamInstance() << endl << "Logging... " <<inputFile <<endl;
+    Logger::getDebugStreamInstance() << endl << "Logging... " <<inputFile <<endl;*/
     InstrParser instrParser;
     Status s = instrParser.parseFile(inputFile);
 
@@ -101,7 +110,7 @@ Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std:
     Logger::getDebugStreamInstance() << "********************************** output cfg done ****************************************" <<endl;
     cfg.variableInitCheck(results);
     Logger::getDebugStreamInstance() << "********************************** Variable Init Check done ****************************************" <<endl;
-    const char* outputFile = Utils::makeWord(outputFilePath, "\\output.log");
+    /*const char* outputFile = Utils::makeWord(outputFilePath, "\\output.log");
     ofstream of(outputFile, ios::app);
     if(of.is_open()) {
         std::time_t currTime = std::time(nullptr);
@@ -117,17 +126,18 @@ Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std:
         cout << usageMsg << endl;
         cout << "could not open output log " << outputFile << endl;
     }
-    delete outputFile;
+    delete outputFile;*/
     Logger::getDebugStreamInstance() << "********************************** Output result done ****************************************" <<endl;
     cfg.clear();
     Logger::getDebugStreamInstance() << "********************************** CFG Clear done ****************************************" <<endl;
     instrParser.clear();
     Logger::getDebugStreamInstance() << "********************************** InstrParser Clear done ****************************************" <<endl;
     Logger::getDebugStreamInstance().flush();
-    Logger::getDebugStreamInstance().close();
-#ifdef NDEBUG
-    std::remove(debugFile);
-#endif
-    delete debugFile;
+
+    //Logger::getDebugStreamInstance().close();
+//#ifdef NDEBUG
+    //std::remove(debugFile);
+    //delete debugFile;
+//#endif
     return s;
 }
