@@ -23,7 +23,7 @@ Logger::~Logger() {
 Status Logger::setErrorFile(const char* errorFile) {
     p_of.open(errorFile);
     if (!p_of.is_open()) {
-        cout << "could not open error log " << endl;
+        std::cout << "could not open error log " << endl;
         return FAILURE;
     }
     return SUCCESS;
@@ -60,10 +60,14 @@ void Logger::logMessage(ErrorCode errorCode, int num, ...) {
 
     va_end(argsList);
 
-    ofstream& of = getInstance()->getOfstream();
+    /*ofstream& of = getInstance()->getOfstream();
     for(char c: output) {
         if (c== '\0') break;
         of << c;
     }
-    of <<endl;
+    of <<endl;*/
+
+    Result r;
+    strcpy(r.errorMessage,output);
+    getInstance()->addError(r);
 }
