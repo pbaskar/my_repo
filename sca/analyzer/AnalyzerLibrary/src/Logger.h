@@ -48,14 +48,20 @@ public:
         return p_debug;
     }
     Status setErrorFile(const char* errorFile);
-    void addError(Result r) { p_errors.push_back(r); }
-    const std::vector<Result>& getErrors() const {
+    void addError(char* r) { p_errors.push_back(r); }
+    void clearErrors() {
+        for (int i = 0; i < p_errors.size(); i++) {
+            delete p_errors[i];
+        }
+        p_errors.clear();
+    }
+    const std::vector<char*>& getErrors() const {
         return p_errors;
     }
     static void logMessage(ErrorCode errorCode, int args, ...);
 private:
     ofstream p_of;
-    std::vector<Result> p_errors;
+    std::vector<char*> p_errors;
 };
 
 #endif /* LOGGER_H_ */

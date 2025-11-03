@@ -12,7 +12,7 @@ public:
     SocketServer();
     ~SocketServer();
 private slots:
-    void timerTriggered();
+    //void timerTriggered();
     void onNewConnection();
     void clientDisconnected();
     void readData();

@@ -27,12 +27,25 @@ Analyzer::~Analyzer() {
     // TODO Auto-generated destructor stub
 }
 
-Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead) {
+Status Analyzer::fetchErrors(std::vector<Result>& results) {
+    const vector<char*>& errors = Logger::getInstance()->getErrors();
+    for (int i = 0; i < errors.size(); i++) {
+        Result r;
+        r.errorMessage = errors[i];
+        results.push_back(r);
+    }
+    Logger::getInstance()->clearErrors();
+    Logger::getDebugStreamInstance() << results.size() << endl;
+    return SUCCESS;
+}
+
+Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead, vector<Result>& results) {
     InstrParser instrParser;
     Status s = instrParser.parseFile(fileName);
 
     if (s == FAILURE ) {
         Logger::getDebugStreamInstance() <<"Instructions file parsing failed " <<endl;
+        fetchErrors(results);
         return s;
     }
     Logger::getDebugStreamInstance() << "********************************** Instructions file parsing done ****************************************" <<endl;
@@ -41,6 +54,7 @@ Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead) {
     s = exprSimplifier.simplify(instrParser.getBlock());
     if (s == FAILURE) {
         Logger::getDebugStreamInstance() << "Simplify expressions failed " << endl;
+        fetchErrors(results);
         return s;
     }
     Logger::getDebugStreamInstance() << "********************************** Expression Simplification done ****************************************" << endl;
@@ -50,12 +64,16 @@ Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead) {
 
     if (s == FAILURE ) {
         Logger::getDebugStreamInstance() <<"Building Control flow graph failed " <<endl;
+        fetchErrors(results);
         return s;
     }
     Logger::getDebugStreamInstance() <<"********************************** Build cfg done **********************************" <<endl;
     Logger::getDebugStreamInstance() <<cfg <<endl;
     Logger::getDebugStreamInstance() << "********************************** output cfg done ****************************************" <<endl;
     cfgHead = cfg.getHead();
+    Logger::getDebugStreamInstance().flush();
+    Logger::getDebugStreamInstance().clear();
+    //Logger::getDebugStreamInstance().close();
     return s;
 }
 
@@ -83,6 +101,7 @@ Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std:
 
     if (s == FAILURE ) {
         Logger::getDebugStreamInstance() <<"Instructions file parsing failed " <<endl;
+        fetchErrors(results);
         return s;
     }
     Logger::getDebugStreamInstance() << "********************************** Instructions file parsing done ****************************************" <<endl;
@@ -92,6 +111,7 @@ Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std:
 
     if (s == FAILURE ) {
         Logger::getDebugStreamInstance() <<"Simplify expressions failed " <<endl;
+        fetchErrors(results);
         return s;
     }
 
@@ -102,6 +122,7 @@ Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std:
 
     if (s == FAILURE ) {
         Logger::getDebugStreamInstance() <<"Building Control flow graph failed " <<endl;
+        fetchErrors(results);
         return s;
     }
 
@@ -133,7 +154,7 @@ Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std:
     instrParser.clear();
     Logger::getDebugStreamInstance() << "********************************** InstrParser Clear done ****************************************" <<endl;
     Logger::getDebugStreamInstance().flush();
-
+    Logger::getDebugStreamInstance().clear();
     //Logger::getDebugStreamInstance().close();
 //#ifdef NDEBUG
     //std::remove(debugFile);

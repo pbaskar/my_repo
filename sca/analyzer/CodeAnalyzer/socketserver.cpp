@@ -1,25 +1,22 @@
 #include "socketserver.h"
 #include<QDebug>
-#include "AnalyzerLibrary/analyzer.h"
+#include "analyzer.h"
 #include "jsonutils.h"
 
 extern char* gFileName;
-SocketServer::SocketServer()
+SocketServer::SocketServer() : p_clientSocket(0)
 {
-    connect(&p_timer, &QTimer::timeout, this, &SocketServer::timerTriggered);
+    //connect(&p_timer, &QTimer::timeout, this, &SocketServer::timerTriggered);
     connect(this, &SocketServer::newConnection, this, &SocketServer::onNewConnection);
     listen(QHostAddress::LocalHost, 1234);
-    p_timer.start(3000);
 }
 
 SocketServer::~SocketServer()
 {
-
 }
 
 void SocketServer::onNewConnection()
 {
-    p_timer.start(30000);
     qDebug() << Q_FUNC_INFO <<"Incoming Connection";
     if(hasPendingConnections())
     {
@@ -31,14 +28,26 @@ void SocketServer::onNewConnection()
 
 void SocketServer::readData()
 {
-    p_timer.start(30000);
+    QByteArray clientCommand = p_clientSocket->readAll();
+    qDebug() <<Q_FUNC_INFO<< clientCommand;
+    /*QFile file("C:\\workspace\\my_repo\\sca\\test\\server.log");
+    file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
+    QTextStream text(&file);
+    text << "SocketServer::readData" << clientCommand <<Qt::endl;
+    file.close();*/
 
-    QByteArray command = p_clientSocket->readAll();
-    qDebug() <<Q_FUNC_INFO<<command;
+    QList<QByteArray> clientCommandList = clientCommand.split(' ');
+    if(clientCommandList.empty()) qDebug() << Q_FUNC_INFO << "Invalid command" << clientCommand;
+    QByteArray command = clientCommandList[0];
+
     if(command == "run") {
+        if (clientCommandList.size() < 2) { qDebug() << Q_FUNC_INFO << "Invalid command" << clientCommand; }
+
+        std::string file = clientCommandList[1].toStdString();
+        const char* fileName = file.c_str();
         Analyzer analyzer;
         std::vector<Result> results;
-        Status s = analyzer.execute(gFileName, results);
+        Status s = analyzer.execute(fileName, "C:\\workspace\\my_repo\\sca\\test", results);
 
         QJsonObject jsonObject;
         if(s == SUCCESS) {
@@ -52,14 +61,31 @@ void SocketServer::readData()
         }
         else {
             qDebug() <<Q_FUNC_INFO<<"Analysis failed";
+            qDebug() << Q_FUNC_INFO << "num of messages " << results.size();
+            for (Result r : results) {
+                qDebug() << "message " << r.errorMessage;
+            }
+            QJsonArray resultsJson = JsonUtils::toJson(results);
+            jsonObject[command] = resultsJson;
         }
         QJsonDocument resultsDoc(jsonObject);
         p_clientSocket->write(resultsDoc.toJson());
+
+        for (Result r : results) {
+            delete r.errorMessage;
+        }
+        results.clear();
     }
-    else if(command.startsWith("getCFG")) {
+    else if(command=="getCFG") {
+        if (clientCommandList.size() < 2) { qDebug() << Q_FUNC_INFO << "Invalid command" << clientCommand; }
+
+        std::string file = clientCommandList[1].toStdString();
+        const char* fileName = file.c_str();
+
         Analyzer analyzer;
         BasicBlock* cfgHead;
-        Status s = analyzer.getCFG(gFileName, cfgHead);
+        std::vector<Result> results;
+        Status s = analyzer.getCFG(fileName, cfgHead, results);
         QJsonObject jsonObject;
 
         if(s == SUCCESS) {
@@ -72,8 +98,17 @@ void SocketServer::readData()
         else {
             qDebug() <<Q_FUNC_INFO<<"Analysis failed";
         }
+        for (Result r : results) {
+            delete r.errorMessage;
+        }
+        results.clear();
         QJsonDocument cfgDoc(jsonObject);
         p_clientSocket->write(cfgDoc.toJson());
+
+        for (Result r : results) {
+            delete r.errorMessage;
+        }
+        results.clear();
     }
     else {
         qDebug() <<Q_FUNC_INFO <<"Invalid command" <<command;
@@ -84,21 +119,10 @@ void SocketServer::readData()
 void SocketServer::clientDisconnected()
 {
     qDebug() << Q_FUNC_INFO <<"Client Disconnected ";
-}
-
-void SocketServer::timerTriggered()
-{
-    qDebug() <<Q_FUNC_INFO <<"Timer fired ";
-    Analyzer analyzer;
-    std::vector<Result> results;
-    Status s = analyzer.execute(gFileName, results);
-
-    QJsonObject jsonObject;
-    if(s == SUCCESS) {
-        qDebug() <<Q_FUNC_INFO<<"num of messages " <<results.size();
-    }
-    else {
-        qDebug() <<Q_FUNC_INFO<<"Analysis failed";
-    }
+    /*QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
+    file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
+    QTextStream text(&file);
+    text << "app quit" << Qt::endl;
+    file.close();*/
     qApp->quit();
 }

@@ -67,8 +67,10 @@ void Logger::logMessage(ErrorCode errorCode, int num, ...) {
         of << c;
     }
     of <<endl;*/
-
-    Result r;
-    strcpy(r.errorMessage,output);
-    getInstance()->addError(r);
+    char* errorMsg = new char[strlen(output) + 1];
+    errorMsg[0] = '\0';
+    strncat(errorMsg, output, strlen(output));
+    errorMsg[strlen(output)] = '\0';
+    getInstance()->addError(errorMsg);
+    getDebugStreamInstance() << "error message " << errorMsg << endl;
 }
