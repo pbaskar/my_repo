@@ -39,8 +39,7 @@ Status Analyzer::fetchErrors(std::vector<Result>& results) {
 }
 
 Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead, vector<Result>& results) {
-    InstrParser instrParser;
-    Status s = instrParser.parseFile(fileName);
+    Status s = p_instrParser.parseFile(fileName);
 
     if (s == FAILURE ) {
         Logger::getDebugStreamInstance() <<"Instructions file parsing failed " <<endl;
@@ -50,7 +49,7 @@ Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead, vector<Resul
     Logger::getDebugStreamInstance() << "********************************** Instructions file parsing done ****************************************" <<endl;
 
     ExprSimplifier exprSimplifier;
-    s = exprSimplifier.simplify(instrParser.getBlock());
+    s = exprSimplifier.simplify(p_instrParser.getBlock());
     if (s == FAILURE) {
         Logger::getDebugStreamInstance() << "Simplify expressions failed " << endl;
         fetchErrors(results);
@@ -58,8 +57,7 @@ Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead, vector<Resul
     }
     Logger::getDebugStreamInstance() << "********************************** Expression Simplification done ****************************************" << endl;
 
-    ControlFlowGraph cfg;
-    s = cfg.buildCFG(instrParser.getBlock());
+    s = p_cfg.buildCFG(p_instrParser.getBlock());
 
     if (s == FAILURE ) {
         Logger::getDebugStreamInstance() <<"Building Control flow graph failed " <<endl;
@@ -67,9 +65,9 @@ Status Analyzer::getCFG(const char* fileName, BasicBlock*& cfgHead, vector<Resul
         return s;
     }
     Logger::getDebugStreamInstance() <<"********************************** Build cfg done **********************************" <<endl;
-    Logger::getDebugStreamInstance() <<cfg <<endl;
+    Logger::getDebugStreamInstance() << p_cfg <<endl;
     Logger::getDebugStreamInstance() << "********************************** output cfg done ****************************************" <<endl;
-    cfgHead = cfg.getHead();
+    cfgHead = p_cfg.getHead();
     Logger::getDebugStreamInstance().flush();
     Logger::getDebugStreamInstance().clear();
     //Logger::getDebugStreamInstance().close();
@@ -95,8 +93,7 @@ Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std:
         return FAILURE;
     }
     Logger::getDebugStreamInstance() << endl << "Logging... " <<inputFile <<endl;*/
-    InstrParser instrParser;
-    Status s = instrParser.parseFile(inputFile);
+    Status s = p_instrParser.parseFile(inputFile);
 
     if (s == FAILURE ) {
         Logger::getDebugStreamInstance() <<"Instructions file parsing failed " <<endl;
@@ -106,7 +103,7 @@ Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std:
     Logger::getDebugStreamInstance() << "********************************** Instructions file parsing done ****************************************" <<endl;
 
     ExprSimplifier exprSimplifier;
-    s = exprSimplifier.simplify(instrParser.getBlock());
+    s = exprSimplifier.simplify(p_instrParser.getBlock());
 
     if (s == FAILURE ) {
         Logger::getDebugStreamInstance() <<"Simplify expressions failed " <<endl;
@@ -116,8 +113,7 @@ Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std:
 
     Logger::getDebugStreamInstance() << "********************************** Expression Simplification done ****************************************" <<endl;
 
-    ControlFlowGraph cfg;
-    s = cfg.buildCFG(instrParser.getBlock());
+    s = p_cfg.buildCFG(p_instrParser.getBlock());
 
     if (s == FAILURE ) {
         Logger::getDebugStreamInstance() <<"Building Control flow graph failed " <<endl;
@@ -126,9 +122,9 @@ Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std:
     }
 
     Logger::getDebugStreamInstance() <<"********************************** Build cfg done **********************************" <<endl;
-    Logger::getDebugStreamInstance() <<cfg <<endl;
+    Logger::getDebugStreamInstance() << p_cfg <<endl;
     Logger::getDebugStreamInstance() << "********************************** output cfg done ****************************************" <<endl;
-    cfg.variableInitCheck(results);
+    p_cfg.variableInitCheck(results);
     Logger::getDebugStreamInstance() << "********************************** Variable Init Check done ****************************************" <<endl;
     /*const char* outputFile = Utils::makeWord(outputFilePath, "\\output.log");
     ofstream of(outputFile, ios::app);
@@ -148,9 +144,9 @@ Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std:
     }
     delete outputFile;*/
     Logger::getDebugStreamInstance() << "********************************** Output result done ****************************************" <<endl;
-    cfg.clear();
+    p_cfg.clear();
     Logger::getDebugStreamInstance() << "********************************** CFG Clear done ****************************************" <<endl;
-    instrParser.clear();
+    p_instrParser.clear();
     Logger::getDebugStreamInstance() << "********************************** InstrParser Clear done ****************************************" <<endl;
     Logger::getDebugStreamInstance().flush();
     Logger::getDebugStreamInstance().clear();
@@ -160,4 +156,10 @@ Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std:
     //delete debugFile;
 //#endif
     return s;
+}
+
+Status Analyzer::clear() {
+    p_cfg.clear();
+    p_instrParser.clear();
+    return SUCCESS;
 }
