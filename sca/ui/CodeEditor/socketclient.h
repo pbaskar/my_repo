@@ -10,7 +10,9 @@ public:
     SocketClient();
     ~SocketClient();
 
+    void connectToServer();
     void writeToSocket(QByteArray data);
+    void close();
 signals:
     void resultsAvailable(const QJsonDocument results);
 

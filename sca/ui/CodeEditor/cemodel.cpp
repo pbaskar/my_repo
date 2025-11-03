@@ -9,12 +9,32 @@
 
 CEModel::CEModel()
 {
+    //Start server process
+    p_server.start("CodeAnalyzer.exe");
+    QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
+    file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
+    QTextStream text(&file);
+    if (p_server.waitForStarted(90000)) {
+        text << "process started " << Qt::endl;
+    }
+    else {
+        text << "process did not start " << Qt::endl;
+    }
+    file.close();
+
+    //connect client to server
+    p_socketClient.connectToServer();
     connect(&p_socketClient, &SocketClient::resultsAvailable, this, &CEModel::onResultsAvailable);
 }
 
 CEModel::~CEModel()
 {
     qDebug() <<Q_FUNC_INFO;
+}
+
+void CEModel::disconnect() {
+    p_socketClient.close();
+    p_server.close();
 }
 
 CEModel* CEModel::getInstance()

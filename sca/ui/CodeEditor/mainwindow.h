@@ -4,7 +4,6 @@
 #include <QMainWindow>
 #include <QTextEdit>
 #include <QListView>
-#include <QProcess>
 #include <QLabel>
 #include "socketclient.h"
 #include "codetextedit.h"
@@ -46,7 +45,6 @@ private:
     QTabWidget* p_codeVisual;
     QLabel* p_codeTextEditLabel;
     QLabel* p_codeBlockLabel;
-    QProcess p_server;
     QString p_fileName;
 };
 #endif // MAINWINDOW_H
