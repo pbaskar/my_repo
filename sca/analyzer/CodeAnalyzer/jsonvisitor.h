@@ -1,7 +1,7 @@
 #ifndef JSONVISITOR_H
 #define JSONVISITOR_H
 #include <QJsonArray>
-#include "AnalyzerLibrary/analyzer.h"
+#include "analyzer.h"
 
 class JsonVisitor : public Visitor
 {

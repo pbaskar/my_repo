@@ -1,7 +1,7 @@
 #ifndef JSONUTILS_H
 #define JSONUTILS_H
 #include <QByteArray>
-#include "AnalyzerLibrary/analyzer.h"
+#include "analyzer.h"
 #include "qjsonarray.h"
 
 class JsonUtils
