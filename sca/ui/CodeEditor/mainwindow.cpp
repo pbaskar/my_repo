@@ -26,17 +26,6 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    p_server.start("CodeAnalyzer.exe");
-    QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
-    file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
-    QTextStream text(&file);
-    if (p_server.waitForStarted(90000)) {
-        text << "process started " <<Qt::endl;
-    }
-    else {
-        text << "process did not start " << Qt::endl;
-    }
-    file.close();
     createWidgets();
     createMenus();
 
@@ -229,7 +218,7 @@ void MainWindow::onResultsAvailable(QVariantList results)
 
 void MainWindow::closeWindow()
 {
-    p_server.close();
+    CEModel::getInstance()->disconnect();
     close();
 }
 

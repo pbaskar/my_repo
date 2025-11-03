@@ -4,6 +4,9 @@
 
 SocketClient::SocketClient()
 {
+}
+
+void SocketClient::connectToServer() {
     connect(&p_socket, &QTcpSocket::connected, this, &SocketClient::onConnected);
     connect(&p_socket, &QTcpSocket::errorOccurred, this, &SocketClient::onConnectionError);
     connect(&p_socket, &QTcpSocket::readyRead, this, &SocketClient::readData);
@@ -18,6 +21,10 @@ void SocketClient::writeToSocket(QByteArray data)
     text << "SocketClient::writetosocket" << data<<Qt::endl;
     file.close();
     p_socket.write(data);
+}
+
+void SocketClient::close() {
+    p_socket.close();
 }
 
 void SocketClient::onConnected()
