@@ -1,4 +1,6 @@
 #include "socketclient.h"
+#include <QDebug>
+#include <QFile>
 
 SocketClient::SocketClient()
 {
@@ -10,6 +12,11 @@ SocketClient::SocketClient()
 
 void SocketClient::writeToSocket(QByteArray data)
 {
+    QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
+    file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
+    QTextStream text(&file);
+    text << "SocketClient::writetosocket" << data<<Qt::endl;
+    file.close();
     p_socket.write(data);
 }
 
@@ -21,9 +28,9 @@ void SocketClient::onConnected()
 void SocketClient::onConnectionError()
 {
     qDebug() << Q_FUNC_INFO <<p_socket.errorString();
-    QByteArray resultsJson = "[{\"errorMessage\" : \"Not initialized b\"}]";
+    QByteArray resultsJson = "{\"run\":[{\"errorMessage\" : \"Connection Error\"}]}";
     QJsonDocument results = QJsonDocument::fromJson(resultsJson);
-    //emit resultsAvailable(results);
+    emit resultsAvailable(results);
 }
 
 void SocketClient::readData()

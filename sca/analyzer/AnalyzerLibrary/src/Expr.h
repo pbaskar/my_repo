@@ -89,7 +89,7 @@ public:
     }
     const vector<const Definition*>& getMemDefinitions() const { return p_memDefinitions; }
     virtual void print(ostream& os) const {
-        os << " def " <<p_valid <<endl;
+        os << " def " <<p_valid << " ";
     }
 private:
     bool p_valid;

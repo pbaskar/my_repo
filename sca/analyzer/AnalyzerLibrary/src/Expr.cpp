@@ -6,7 +6,7 @@
 void FunctionVariable::print(ostream& os) const {
     Variable::print(os);
     for(const Expr* identifier : p_functionIdentifiers) {
-        os <<", holds function ";
+        os <<", holds ";
         identifier->print(os);
     }
 }

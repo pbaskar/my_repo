@@ -85,7 +85,7 @@ void JsonVisitor::visitWhileBlock(WhileBlock* whileBlock) {
 }
 
 void JsonVisitor::visitForBlock(ForBlock* forBlock) {
-    //cout <<"Beginning of WhileBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    //cout <<"Beginning of ForBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
     BasicBlock* block = forBlock->getFirst();
     BasicBlock* lastBlock = forBlock->getLast();
     BasicBlock* next(0);
@@ -101,10 +101,10 @@ void JsonVisitor::visitForBlock(ForBlock* forBlock) {
     }
 
     block->acceptVisitor(*this);
-    blocks_end["while"] = p_blocks;
+    blocks_end["for"] = p_blocks;
     p_blocks = blocks_begin;
     p_blocks.append(blocks_end);
-    //cout <<"End of WhileBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
+    //cout <<"End of ForBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
 }
 
 void JsonVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
@@ -123,7 +123,15 @@ void JsonVisitor::visitFunctionDeclBlock(FunctionDeclBlock* functionDeclBlock) {
         block = next;
     }
     block->acceptVisitor(*this);
-    blocks_end["fnDecl"] = p_blocks;
+
+    QJsonObject fname;
+    fname["name"] = functionDeclBlock->getName();
+
+    QJsonArray fnDeclArray;
+    fnDeclArray.append(fname);
+    fnDeclArray.append(p_blocks);
+
+    blocks_end["fnDecl"] = fnDeclArray;
     p_blocks = blocks_begin;
     p_blocks.append(blocks_end);
     //cout <<"End of FunctionDeclBlock: variableNodes size " <<p_variableNodes.size() <<endl <<endl;
@@ -140,10 +148,17 @@ void JsonVisitor::visitFunctionCallBlock(FunctionCallBlock* functionCallBlock) {
         QJsonObject blocks_end;
         p_blocks = QJsonArray();
 
+        QJsonObject fname;
+        stringstream ss;
+        ss << *(functionCallBlock->getName());
+        fname["name"] = ss.str().c_str();
+        p_blocks.append(fname);
+
         block->acceptVisitor(*this);
 
         block = fnCallInstance->getFnDecl();
         block->acceptVisitor(*this);
+
         blocks_end["fnCall"] = p_blocks;
         p_blocks = blocks_begin;
         p_blocks.append(blocks_end);

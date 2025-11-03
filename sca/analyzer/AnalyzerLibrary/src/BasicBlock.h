@@ -87,6 +87,7 @@ public:
     virtual ~JumpNode() {
     }
     virtual void print(ostream& os) const {
+        os << "Jump ";
         if(p_target)
             os <<p_target <<" ";
     }

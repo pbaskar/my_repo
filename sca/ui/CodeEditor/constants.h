@@ -5,7 +5,7 @@
 
 namespace Constants {
 static const double FONT_POINT_SIZE = 12;
-static const QColor FONT_COLOR = QColorConstants::Magenta;
+static const QColor FONT_COLOR = QColorConstants::DarkGreen;
 static const QString FONT_FAMILY = "Times";
 static const int SPACING = 20;
 static const int MARGIN =10;
