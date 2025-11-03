@@ -20,7 +20,8 @@ public:
 
     Status setOutputPath(const char* outputFilePath);
     Status execute(const char* inputFile, const char* outputFilePath, std::vector<Result>& results);
-    Status getCFG(const char* fileName, BasicBlock*& cfg);
+    Status getCFG(const char* fileName, BasicBlock*& cfg, vector<Result>& results);
+    Status fetchErrors(std::vector<Result>& results);
 };
 
 #endif /* SRC_ANALYZER_H_ */
