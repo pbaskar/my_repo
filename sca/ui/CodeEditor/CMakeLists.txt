@@ -65,6 +65,9 @@ else()
     endif()
 endif()
 
+qt_policy (SET QTP0001 NEW) # set qml resource prefix
+cmake_policy (SET CMP0071 NEW) # allow automoc and autouic to process generated files
+
 qt_add_qml_module(CodeEditor
     URI com.model.cfgModel
     VERSION 1.0
