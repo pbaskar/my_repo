@@ -11,9 +11,12 @@ import com.model.cfgModel 1.0
 // }
 
 Flickable {
+    ScrollBar.vertical: ScrollBar { }
+    property var flickableContentHeight : 200
     anchors.fill: parent
-    contentHeight: nodesRepeat.height
-    contentWidth: nodesRepeat.width
+    contentHeight: flickableContentHeight + 25
+    //CFGModel.totalHeight + 25
+    contentWidth: CFGModel.totalWidth + 25
     clip: true
 
     Component.onCompleted: {
@@ -42,15 +45,11 @@ Flickable {
 //        anchors.fill: parent
 //    }
 
-    CFGModel {
-        id: cfgModel
-    }
-
     Repeater {
         id: nodesRepeat
         //implicitWidth: cfgModel.totalWidth + 25
         //implicitHeight: cfgModel.totalHeight + 25
-        model: cfgModel
+        model: CFGModel
         delegate: Rectangle {
             border.color: "green"
             color: "transparent"
@@ -59,8 +58,9 @@ Flickable {
             implicitHeight: model.display.height
             x: model.display.xPos
             y: model.display.yPos
-            Drag.active: mouseArea.drag.active
+            //Drag.active: mouseArea.drag.active
             property var stmts : model.display.stmtList
+            property var fullHeight : model.display.fullHeight
             ListModel {
                 id: stmtListModel
             }
@@ -69,12 +69,14 @@ Flickable {
                     stmtListModel.append({"name":stmts[i]});
                     console.log("stmtListModel ", stmtListModel.count)
                 }
+                flickableContentHeight = fullHeight;
             }
             ListView {
                 id: listView
                 anchors { left: parent.left; leftMargin: 15; rightMargin: 15; right: parent.right
                           top: parent.top; topMargin: 15; bottomMargin: 15; bottom: parent.bottom }
                 model: stmtListModel
+                interactive: false
                 delegate: Text {
                        text: name
                     }
@@ -82,7 +84,7 @@ Flickable {
             MouseArea {
                 id: mouseArea
                 anchors.fill: parent
-                drag.target: parent
+                //drag.target: parent
                 onClicked: {
                     console.log("x, y " , model.display.xPos, model.display.yPos, model.display.stmtList)
                     console.log("nodesrepeat width height ", nodesRepeat.height, nodesRepeat.width, nodesRepeat.childrenRect.width,
@@ -96,7 +98,7 @@ Flickable {
         id: edgesModel
     }
 
-    /*Repeater {
+    Repeater {
         model: edgesModel
         delegate: CFGEdge {
             anchors.fill: parent
@@ -114,5 +116,5 @@ Flickable {
 //                }
 //            }
         }
-    }*/
+    }
 }

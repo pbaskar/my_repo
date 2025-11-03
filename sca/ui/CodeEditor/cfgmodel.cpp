@@ -1,14 +1,15 @@
 #include "cfgmodel.h"
 #include <QModelIndex>
+#include <QStringList>
 #include "cemodel.h"
 #include "basicblock.h"
 #include "positionblock.h"
 
-CFGModel::CFGModel()
+CFGModel::CFGModel(QObject* parent) : QAbstractListModel(parent)
 {
     CEModel* model = CEModel::getInstance();
     connect(model, &CEModel::CFGAvailable, this, &CFGModel::onCFGAvailable);
-    model->sendCommand("getCFG");
+    //model->sendCommand("getCFG");
 }
 
 int CFGModel::rowCount(const QModelIndex &parent) const {
@@ -26,7 +27,18 @@ QVariant CFGModel::data(const QModelIndex &index, int role) const
     dataMap["yPos"] = positionBlock.getY();
     dataMap["width"] = positionBlock.getWidth();
     dataMap["height"] = positionBlock.getHeight();
-    dataMap["stmtList"] = positionBlock.getBlock()->getStmts();
+    QStringList stmts = positionBlock.getBlock()->getStmts();
+    if (stmts.empty()) {
+        QString title = positionBlock.getBlock()->getTitle();
+        if (title.isEmpty()) {
+            stmts << "dummy block";
+        }
+        else {
+            stmts << title;
+        }
+    }
+    dataMap["stmtList"] = stmts;
+    dataMap["fullHeight"] = totalHeight();
     return dataMap;
 }
 

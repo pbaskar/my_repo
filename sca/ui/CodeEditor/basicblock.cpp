@@ -27,16 +27,24 @@ void WhileBlock::acceptVisitor(Visitor& visitor) const {
     visitor.visitWhileBlock(this);
 }
 
-FunctionDeclBlock::FunctionDeclBlock(QList<BasicBlock*> blocks)
+ForBlock::ForBlock(QList<BasicBlock*> blocks)
     : p_blocks(blocks) {
+}
+
+void ForBlock::acceptVisitor(Visitor& visitor) const {
+    visitor.visitForBlock(this);
+}
+
+FunctionDeclBlock::FunctionDeclBlock(QString name, QList<BasicBlock*> blocks)
+    : p_name(name), p_blocks(blocks) {
 }
 
 void FunctionDeclBlock::acceptVisitor(Visitor& visitor) const {
     visitor.visitFunctionDeclBlock(this);
 }
 
-FunctionCallBlock::FunctionCallBlock(BasicBlock* args, FunctionDeclBlock* fnDecl)
-    : p_args(args), p_fnDecl(fnDecl) {
+FunctionCallBlock::FunctionCallBlock(QString name, BasicBlock* args, FunctionDeclBlock* fnDecl)
+    : p_name(name), p_args(args), p_fnDecl(fnDecl) {
 }
 
 void FunctionCallBlock::acceptVisitor(Visitor& visitor) const {

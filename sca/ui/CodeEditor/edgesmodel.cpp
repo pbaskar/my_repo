@@ -6,7 +6,7 @@ EdgesModel::EdgesModel()
 {
     CEModel* model = CEModel::getInstance();
     connect(model, &CEModel::edgesAvailable, this, &EdgesModel::onEdgesAvailable);
-    model->sendCommand("getCFG");
+    //model->sendCommand("getCFG");
 }
 
 int EdgesModel::rowCount(const QModelIndex &parent) const {

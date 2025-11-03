@@ -5,6 +5,7 @@
 class BasicBlock;
 class IfElseBlock;
 class WhileBlock;
+class ForBlock;
 class FunctionDeclBlock;
 class FunctionCallBlock;
 class PositionBlock;
@@ -15,6 +16,7 @@ public:
     virtual void visitBasicBlock(const BasicBlock* basicBlock)=0;
     virtual void visitIfElseBlock(const IfElseBlock* ifElseBlock)=0;
     virtual void visitWhileBlock(const WhileBlock* whileBlock)=0;
+    virtual void visitForBlock(const ForBlock* forBlock) = 0;
     virtual void visitFunctionDeclBlock(const FunctionDeclBlock* functionDeclBlock)=0;
     virtual void visitFunctionCallBlock(const FunctionCallBlock* functionCallBlock)=0;
     virtual void visitCFG(const BasicBlock* block);
@@ -28,6 +30,7 @@ public:
     virtual void visitBasicBlock(const BasicBlock* basicBlock);
     virtual void visitIfElseBlock(const IfElseBlock* ifElseBlock);
     virtual void visitWhileBlock(const WhileBlock* whileBlock);
+    virtual void visitForBlock(const ForBlock* forBlock);
     virtual void visitFunctionDeclBlock(const FunctionDeclBlock* functionDeclBlock);
     virtual void visitFunctionCallBlock(const FunctionCallBlock* functionCallBlock);
 };
@@ -41,6 +44,7 @@ public:
     virtual void visitBasicBlock(const BasicBlock* basicBlock);
     virtual void visitIfElseBlock(const IfElseBlock* ifElseBlock);
     virtual void visitWhileBlock(const WhileBlock* whileBlock);
+    virtual void visitForBlock(const ForBlock* forBlock);
     virtual void visitFunctionDeclBlock(const FunctionDeclBlock* functionDeclBlock);
     virtual void visitFunctionCallBlock(const FunctionCallBlock* functionCallBlock);
 private:

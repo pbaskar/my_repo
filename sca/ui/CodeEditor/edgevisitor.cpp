@@ -86,6 +86,30 @@ void EdgeVisitor::visitWhileBlock(const WhileBlock* whileBlock) {
     }
 }
 
+void EdgeVisitor::visitForBlock(const ForBlock* forBlock) {
+    PositionBlock lastPositionBlock, positionBlock;
+    const QList<BasicBlock*> blocks = forBlock->getBlocks();
+    if (auto it = std::find_if(p_positionBlocks.begin(), p_positionBlocks.end(),
+        [forBlock](PositionBlock p) {return p.getBlock() == forBlock; });
+        it != p_positionBlocks.end()) {
+        lastPositionBlock = *it;
+    }
+    Side side = Side::TOP;
+    for (const BasicBlock* basicBlock : blocks) {
+        if (auto it = std::find_if(p_positionBlocks.begin(), p_positionBlocks.end(),
+            [basicBlock](PositionBlock p) {return p.getBlock() == basicBlock; });
+            it != p_positionBlocks.end()) {
+            positionBlock = *it;
+        }
+        Edge e(side, Side::TOP, lastPositionBlock, positionBlock);
+        qDebug() << "Edge from to " << lastPositionBlock.getBottomConnection() << " " << positionBlock.getTopConnection();
+        p_edges.append(e);
+        basicBlock->acceptVisitor(*this);
+        lastPositionBlock = positionBlock;
+        side = Side::BOTTOM;
+    }
+}
+
 void EdgeVisitor::visitFunctionDeclBlock(const FunctionDeclBlock* functionDeclBlock) {
     PositionBlock lastPositionBlock, positionBlock;
     if(auto it = std::find_if(p_positionBlocks.begin(), p_positionBlocks.end(),
