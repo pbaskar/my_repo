@@ -12,6 +12,8 @@
 #include "src/Results.h"
 #include "src/BasicBlock.h"
 #include "src/Visitor.h"
+#include "src/InstrParser.h"
+#include "src/ControlFlowGraph.h"
 
 class Analyzer {
 public:
@@ -22,6 +24,10 @@ public:
     Status execute(const char* inputFile, const char* outputFilePath, std::vector<Result>& results);
     Status getCFG(const char* fileName, BasicBlock*& cfg, vector<Result>& results);
     Status fetchErrors(std::vector<Result>& results);
+    Status clear();
+private:
+    InstrParser p_instrParser;
+    ControlFlowGraph p_cfg;
 };
 
 #endif /* SRC_ANALYZER_H_ */

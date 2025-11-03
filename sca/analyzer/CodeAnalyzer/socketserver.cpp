@@ -109,6 +109,7 @@ void SocketServer::readData()
             delete r.errorMessage;
         }
         results.clear();
+        analyzer.clear();
     }
     else {
         qDebug() <<Q_FUNC_INFO <<"Invalid command" <<command;
