@@ -16,7 +16,7 @@ Flickable {
     anchors.fill: parent
     contentHeight: flickableContentHeight + 25
     //CFGModel.totalHeight + 25
-    contentWidth: CFGModel.totalWidth + 25
+    //contentWidth: CFGModel.totalWidth + 25
     clip: true
 
     Component.onCompleted: {
