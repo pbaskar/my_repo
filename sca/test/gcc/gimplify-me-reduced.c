@@ -1,0 +1,415 @@
+
+#define TREE_CODE(TYPE) *(TYPE)
+#define TREE_TYPE(TREE) (TREE)
+enum tree_index {
+  TI_ERROR_MARK,
+  TI_INTQI_TYPE,
+  TI_INTHI_TYPE,
+  TI_INTSI_TYPE,
+  TI_INTDI_TYPE,
+  TI_INTTI_TYPE,
+
+  TI_UINTQI_TYPE,
+  TI_UINTHI_TYPE,
+  TI_UINTSI_TYPE,
+  TI_UINTDI_TYPE,
+  TI_UINTTI_TYPE,
+
+  TI_ATOMICQI_TYPE,
+  TI_ATOMICHI_TYPE,
+  TI_ATOMICSI_TYPE,
+  TI_ATOMICDI_TYPE,
+  TI_ATOMICTI_TYPE,
+
+  TI_UINT16_TYPE,
+  TI_UINT32_TYPE,
+  TI_UINT64_TYPE,
+
+  TI_INTEGER_ZERO,
+  TI_INTEGER_ONE,
+  TI_INTEGER_THREE,
+  TI_INTEGER_MINUS_ONE,
+  TI_NULL_POINTER,
+
+  TI_SIZE_ZERO,
+  TI_SIZE_ONE,
+
+  TI_BITSIZE_ZERO,
+  TI_BITSIZE_ONE,
+  TI_BITSIZE_UNIT,
+
+  TI_PUBLIC,
+  TI_PROTECTED,
+  TI_PRIVATE,
+
+  TI_BOOLEAN_FALSE,
+  TI_BOOLEAN_TRUE,
+
+  TI_COMPLEX_INTEGER_TYPE,
+  TI_COMPLEX_FLOAT_TYPE,
+  TI_COMPLEX_DOUBLE_TYPE,
+  TI_COMPLEX_LONG_DOUBLE_TYPE,
+
+  TI_FLOAT_TYPE,
+  TI_DOUBLE_TYPE,
+  TI_LONG_DOUBLE_TYPE,
+
+  TI_FLOAT_PTR_TYPE,
+  TI_DOUBLE_PTR_TYPE,
+  TI_LONG_DOUBLE_PTR_TYPE,
+  TI_INTEGER_PTR_TYPE,
+
+  TI_VOID_TYPE,
+  TI_PTR_TYPE,
+  TI_CONST_PTR_TYPE,
+  TI_SIZE_TYPE,
+  TI_PID_TYPE,
+  TI_PTRDIFF_TYPE,
+  TI_VA_LIST_TYPE,
+  TI_VA_LIST_GPR_COUNTER_FIELD,
+  TI_VA_LIST_FPR_COUNTER_FIELD,
+  TI_BOOLEAN_TYPE,
+  TI_FILEPTR_TYPE,
+  TI_POINTER_SIZED_TYPE,
+
+  TI_DFLOAT32_TYPE,
+  TI_DFLOAT64_TYPE,
+  TI_DFLOAT128_TYPE,
+  TI_DFLOAT32_PTR_TYPE,
+  TI_DFLOAT64_PTR_TYPE,
+  TI_DFLOAT128_PTR_TYPE,
+
+  TI_VOID_LIST_NODE,
+
+  TI_MAIN_IDENTIFIER,
+
+  TI_SAT_SFRACT_TYPE,
+  TI_SAT_FRACT_TYPE,
+  TI_SAT_LFRACT_TYPE,
+  TI_SAT_LLFRACT_TYPE,
+  TI_SAT_USFRACT_TYPE,
+  TI_SAT_UFRACT_TYPE,
+  TI_SAT_ULFRACT_TYPE,
+  TI_SAT_ULLFRACT_TYPE,
+  TI_SFRACT_TYPE,
+  TI_FRACT_TYPE,
+  TI_LFRACT_TYPE,
+  TI_LLFRACT_TYPE,
+  TI_USFRACT_TYPE,
+  TI_UFRACT_TYPE,
+  TI_ULFRACT_TYPE,
+  TI_ULLFRACT_TYPE,
+  TI_SAT_SACCUM_TYPE,
+  TI_SAT_ACCUM_TYPE,
+  TI_SAT_LACCUM_TYPE,
+  TI_SAT_LLACCUM_TYPE,
+  TI_SAT_USACCUM_TYPE,
+  TI_SAT_UACCUM_TYPE,
+  TI_SAT_ULACCUM_TYPE,
+  TI_SAT_ULLACCUM_TYPE,
+  TI_SACCUM_TYPE,
+  TI_ACCUM_TYPE,
+  TI_LACCUM_TYPE,
+  TI_LLACCUM_TYPE,
+  TI_USACCUM_TYPE,
+  TI_UACCUM_TYPE,
+  TI_ULACCUM_TYPE,
+  TI_ULLACCUM_TYPE,
+  TI_QQ_TYPE,
+  TI_HQ_TYPE,
+  TI_SQ_TYPE,
+  TI_DQ_TYPE,
+  TI_TQ_TYPE,
+  TI_UQQ_TYPE,
+  TI_UHQ_TYPE,
+  TI_USQ_TYPE,
+  TI_UDQ_TYPE,
+  TI_UTQ_TYPE,
+  TI_SAT_QQ_TYPE,
+  TI_SAT_HQ_TYPE,
+  TI_SAT_SQ_TYPE,
+  TI_SAT_DQ_TYPE,
+  TI_SAT_TQ_TYPE,
+  TI_SAT_UQQ_TYPE,
+  TI_SAT_UHQ_TYPE,
+  TI_SAT_USQ_TYPE,
+  TI_SAT_UDQ_TYPE,
+  TI_SAT_UTQ_TYPE,
+  TI_HA_TYPE,
+  TI_SA_TYPE,
+  TI_DA_TYPE,
+  TI_TA_TYPE,
+  TI_UHA_TYPE,
+  TI_USA_TYPE,
+  TI_UDA_TYPE,
+  TI_UTA_TYPE,
+  TI_SAT_HA_TYPE,
+  TI_SAT_SA_TYPE,
+  TI_SAT_DA_TYPE,
+  TI_SAT_TA_TYPE,
+  TI_SAT_UHA_TYPE,
+  TI_SAT_USA_TYPE,
+  TI_SAT_UDA_TYPE,
+  TI_SAT_UTA_TYPE,
+
+  TI_OPTIMIZATION_DEFAULT,
+  TI_OPTIMIZATION_CURRENT,
+  TI_TARGET_OPTION_DEFAULT,
+  TI_TARGET_OPTION_CURRENT,
+  TI_CURRENT_TARGET_PRAGMA,
+  TI_CURRENT_OPTIMIZE_PRAGMA,
+
+  TI_MAX
+};
+
+tree global_trees[TI_MAX];
+#define void_type_node			global_trees[TI_VOID_TYPE]
+
+enum tree_code {
+ERROR_MARK,
+IDENTIFIER_NODE,
+OP_IDENTIFIER,
+TREE_LIST,
+TREE_VEC,
+BLOCK,
+VOID_TYPE,
+INTEGER_TYPE,
+REAL_TYPE,
+COMPLEX_TYPE,
+VECTOR_TYPE,
+ENUMERAL_TYPE,
+BOOLEAN_TYPE,
+CHAR_TYPE,
+POINTER_TYPE,
+OFFSET_TYPE,
+REFERENCE_TYPE,
+METHOD_TYPE,
+FILE_TYPE,
+ARRAY_TYPE,
+SET_TYPE,
+RECORD_TYPE,
+UNION_TYPE,
+QUAL_UNION_TYPE,
+FUNCTION_TYPE,
+LANG_TYPE,
+INTEGER_CST,
+REAL_CST,
+COMPLEX_CST,
+STRING_CST,
+FUNCTION_DECL,
+LABEL_DECL,
+CONST_DECL,
+TYPE_DECL,
+VAR_DECL,
+PARM_DECL,
+RESULT_DECL,
+FIELD_DECL,
+NAMESPACE_DECL,
+COMPONENT_REF,
+BIT_FIELD_REF,
+INDIRECT_REF,
+BUFFER_REF,
+ARRAY_REF,
+CONSTRUCTOR,
+COMPOUND_EXPR,
+MODIFY_EXPR,
+INIT_EXPR,
+TARGET_EXPR,
+COND_EXPR,
+BIND_EXPR,
+CALL_EXPR,
+METHOD_CALL_EXPR,
+WITH_CLEANUP_EXPR,
+CLEANUP_POINT_EXPR,
+PLACEHOLDER_EXPR,
+WITH_RECORD_EXPR,
+PLUS_EXPR,
+MINUS_EXPR,
+MULT_EXPR,
+TRUNC_DIV_EXPR,
+CEIL_DIV_EXPR,
+FLOOR_DIV_EXPR,
+ROUND_DIV_EXPR,
+TRUNC_MOD_EXPR,
+CEIL_MOD_EXPR,
+FLOOR_MOD_EXPR,
+ROUND_MOD_EXPR,
+RDIV_EXPR,
+EXACT_DIV_EXPR,
+FIX_TRUNC_EXPR,
+FIX_CEIL_EXPR,
+FIX_FLOOR_EXPR,
+FIX_ROUND_EXPR,
+FLOAT_EXPR,
+EXPON_EXPR,
+NEGATE_EXPR,
+MIN_EXPR,
+MAX_EXPR,
+ABS_EXPR,
+FFS_EXPR,
+LSHIFT_EXPR,
+RSHIFT_EXPR,
+LROTATE_EXPR,
+RROTATE_EXPR,
+BIT_IOR_EXPR,
+BIT_XOR_EXPR,
+BIT_AND_EXPR,
+BIT_ANDTC_EXPR,
+BIT_NOT_EXPR,
+TRUTH_ANDIF_EXPR,
+TRUTH_ORIF_EXPR,
+TRUTH_AND_EXPR,
+TRUTH_OR_EXPR,
+TRUTH_XOR_EXPR,
+TRUTH_NOT_EXPR,
+LT_EXPR,
+LE_EXPR,
+GT_EXPR,
+GE_EXPR,
+EQ_EXPR,
+NE_EXPR,
+UNORDERED_EXPR,
+ORDERED_EXPR,
+UNLT_EXPR,
+UNLE_EXPR,
+UNGT_EXPR,
+UNGE_EXPR,
+UNEQ_EXPR,
+IN_EXPR,
+SET_LE_EXPR,
+CARD_EXPR,
+RANGE_EXPR,
+CONVERT_EXPR,
+NOP_EXPR,
+NON_LVALUE_EXPR,
+SAVE_EXPR,
+UNSAVE_EXPR,
+RTL_EXPR,
+ADDR_EXPR,
+REFERENCE_EXPR,
+ENTRY_VALUE_EXPR,
+COMPLEX_EXPR,
+CONJ_EXPR,
+REALPART_EXPR,
+IMAGPART_EXPR,
+PREDECREMENT_EXPR,
+PREINCREMENT_EXPR,
+POSTDECREMENT_EXPR,
+POSTINCREMENT_EXPR,
+VA_ARG_EXPR,
+TRY_CATCH_EXPR,
+TRY_FINALLY_EXPR,
+GOTO_SUBROUTINE_EXPR,
+POPDHC_EXPR,
+POPDCC_EXPR,
+LABEL_EXPR,
+GOTO_EXPR,
+RETURN_EXPR,
+EXIT_EXPR,
+LOOP_EXPR,
+LABELED_BLOCK_EXPR,
+EXIT_BLOCK_EXPR,
+EXPR_WITH_FILE_LOCATION,
+SWITCH_EXPR,
+  LAST_AND_UNUSED_TREE_CODE
+};
+
+
+enum fallback {
+  fb_none = 0,
+  fb_rvalue = 1,
+  fb_lvalue = 2,
+  fb_mayfail = 4,
+  fb_either= fb_rvalue | fb_lvalue
+};
+
+enum gimplify_status {
+  GS_ERROR	= -2,
+  GS_UNHANDLED	= -1,
+  GS_OK		= 0,
+  GS_ALL_DONE	= 1
+};
+
+struct function *cfun = 0;
+
+#define UNKNOWN_LOCATION ((source_location) 0)
+typedef bool (*gimple_predicate)(tree);
+struct gimple_statement_base
+{
+	enum gimple_code code:8;
+};
+typedef struct gimple_statement_base *gimple;
+typedef gimple gimple_seq;
+
+struct function {
+  tree static_chain_decl;
+};
+
+#define NULL_TREE ((tree)0)
+struct tree_common {
+  tree chain;
+};
+struct tree_list {
+  tree value;
+};
+struct tree_decl_common {
+  tree initial;
+};
+struct tree_function_decl {
+  struct function *f;
+};
+struct tree_base {
+  enum tree_code code : 16;
+};
+
+typedef unsigned source_location;
+typedef source_location location_t;
+
+union tree_node {
+  struct tree_base base;
+  struct tree_common common;
+  struct tree_decl_common decl_common;
+  struct tree_function_decl function_decl;
+  struct tree_list list;
+};
+
+typedef union tree_node *tree;
+tree force_gimple_operand_1 (tree expr, gimple_seq *stmts, gimple_predicate gimple_test_f, tree var)
+{
+  enum gimplify_status ret;
+  location_t saved_location;
+
+  *stmts = NULL;
+
+  if (is_gimple_val (expr) && (*gimple_test_f) (expr)) {
+    return expr;
+  }
+
+  push_gimplify_context (gimple_in_ssa_p (cfun), true);
+  saved_location = input_location;
+  input_location = UNKNOWN_LOCATION;
+
+  if (var)
+    {
+		if (gimple_in_ssa_p (cfun) && is_gimple_reg (var)) {
+			var = make_ssa_name (var, NULL);
+		}
+		expr = build2 (MODIFY_EXPR, TREE_TYPE (var), var, expr);
+    }
+
+  if (TREE_CODE (expr) != MODIFY_EXPR && TREE_TYPE (expr) == void_type_node)
+    {
+      gimplify_and_add (expr, stmts);
+      expr = NULL_TREE;
+    }
+  else
+    {
+      ret = gimplify_expr (&expr, stmts, NULL, gimple_test_f, fb_rvalue);
+      gcc_assert (ret != GS_ERROR);
+    }
+
+  input_location = saved_location;
+  pop_gimplify_context (NULL);
+
+  return expr;
+}
