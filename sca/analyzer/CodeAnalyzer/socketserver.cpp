@@ -56,6 +56,9 @@ void SocketServer::readData()
                 qDebug() <<"message " <<r.errorMessage;
             }
             QJsonArray resultsJson = JsonUtils::toJson(results);
+            QJsonObject resultObject;
+            resultObject["errorMessage"] = "Analysis succeeded";
+            resultsJson.append(resultObject);
             jsonObject[command] = resultsJson;
             //JsonUtils::fromJson(resultsJson);
         }
@@ -66,6 +69,9 @@ void SocketServer::readData()
                 qDebug() << "message " << r.errorMessage;
             }
             QJsonArray resultsJson = JsonUtils::toJson(results);
+            QJsonObject resultObject;
+            resultObject["errorMessage"] = "Analysis failed";
+            resultsJson.append(resultObject);
             jsonObject[command] = resultsJson;
         }
         QJsonDocument resultsDoc(jsonObject);
@@ -97,11 +103,16 @@ void SocketServer::readData()
         }
         else {
             qDebug() <<Q_FUNC_INFO<<"Analysis failed";
+            qDebug() << Q_FUNC_INFO << "num of messages " << results.size();
+            for (Result r : results) {
+                qDebug() << "message " << r.errorMessage;
+            }
+            QJsonArray resultsJson = JsonUtils::toJson(results);
+            QJsonObject resultObject;
+            resultObject["errorMessage"] = "Analysis failed";
+            resultsJson.append(resultObject);
+            jsonObject[command] = resultsJson;
         }
-        for (Result r : results) {
-            delete r.errorMessage;
-        }
-        results.clear();
         QJsonDocument cfgDoc(jsonObject);
         p_clientSocket->write(cfgDoc.toJson());
 
