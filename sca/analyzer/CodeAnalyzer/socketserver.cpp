@@ -30,13 +30,12 @@ void SocketServer::readData()
 {
     QByteArray clientCommand = p_clientSocket->readAll();
     qDebug() <<Q_FUNC_INFO<< clientCommand;
-    /*QFile file("C:\\workspace\\my_repo\\sca\\test\\server.log");
-    file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
-    QTextStream text(&file);
-    text << "SocketServer::readData" << clientCommand <<Qt::endl;
-    file.close();*/
+    //QFile logfile("C:\\workspace\\my_repo\\sca\\test\\server.log");
+    //logfile.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
+    //QTextStream text(&logfile);
 
-    QList<QByteArray> clientCommandList = clientCommand.split(' ');
+
+    QList<QByteArray> clientCommandList = clientCommand.split('#');
     if(clientCommandList.empty()) qDebug() << Q_FUNC_INFO << "Invalid command" << clientCommand;
     QByteArray command = clientCommandList[0];
 
@@ -47,7 +46,11 @@ void SocketServer::readData()
         const char* fileName = file.c_str();
         Analyzer analyzer;
         std::vector<Result> results;
-        Status s = analyzer.execute(fileName, "C:\\workspace\\my_repo\\sca\\test", results);
+
+        QString outputPathQStr = QDir::tempPath(); //QCoreApplication::applicationDirPath();
+        std::string outputStr = outputPathQStr.toStdString();
+        const char* outputPath = outputStr.c_str();
+        Status s = analyzer.execute(fileName, outputPath, results);
 
         QJsonObject jsonObject;
         if(s == SUCCESS) {
@@ -61,26 +64,44 @@ void SocketServer::readData()
             resultsJson.append(resultObject);
             jsonObject[command] = resultsJson;
             //JsonUtils::fromJson(resultsJson);
+            //text << "SocketServer::Analysis success " << Qt::endl;
+            qDebug()<< "SocketServer::Analysis success " << Qt::endl;
+
         }
         else {
             qDebug() <<Q_FUNC_INFO<<"Analysis failed";
             qDebug() << Q_FUNC_INFO << "num of messages " << results.size();
             for (Result r : results) {
-                qDebug() << "message " << r.errorMessage;
+                //text << "message " << r.errorMessage;
             }
             QJsonArray resultsJson = JsonUtils::toJson(results);
             QJsonObject resultObject;
             resultObject["errorMessage"] = "Analysis failed";
             resultsJson.append(resultObject);
             jsonObject[command] = resultsJson;
+            //text << "SocketServer::Analysis failed " << Qt::endl;
+            qDebug() << "SocketServer::Analysis failed " << Qt::endl;
         }
+
         QJsonDocument resultsDoc(jsonObject);
         p_clientSocket->write(resultsDoc.toJson());
+        //text << "result written to clientSocket from server " << Qt::endl;
+        qDebug() << "result written to clientSocket from server " << Qt::endl;
 
         for (Result r : results) {
             delete r.errorMessage;
         }
+        //text << "result deleted " << Qt::endl;
+        qDebug() << "result deleted " << Qt::endl;
+
         results.clear();
+        //text << "result cleared " << Qt::endl;
+        qDebug() << "result cleared " << Qt::endl;
+        //text << outputPath << Qt::endl;
+
+        analyzer.clear();
+        //text << "analyzer cleared " << Qt::endl;
+        qDebug() << "analyzer cleared " << Qt::endl;
     }
     else if(command=="getCFG") {
         if (clientCommandList.size() < 2) { qDebug() << Q_FUNC_INFO << "Invalid command" << clientCommand; }
@@ -91,7 +112,12 @@ void SocketServer::readData()
         Analyzer analyzer;
         BasicBlock* cfgHead;
         std::vector<Result> results;
-        Status s = analyzer.getCFG(fileName, cfgHead, results);
+
+        QString outputPathQStr = QDir::tempPath(); //QCoreApplication::applicationDirPath();
+        std::string outputStr = outputPathQStr.toStdString();
+        const char* outputPath = outputStr.c_str();
+
+        Status s = analyzer.getCFG(fileName, cfgHead, outputPath, results);
         QJsonObject jsonObject;
 
         if(s == SUCCESS) {
@@ -100,6 +126,11 @@ void SocketServer::readData()
             jsonObject["getCFG"] = cfgJson;
             qDebug() << "CFG Json " << cfgJson;
             //JsonUtils::fromCFGJson(cfgJson);
+
+            QJsonDocument cfgDoc(jsonObject);
+            p_clientSocket->write(cfgDoc.toJson());
+            //text << "result written to clientSocket from server " << Qt::endl;
+            qDebug() << "result written to clientSocket from server " << Qt::endl;
         }
         else {
             qDebug() <<Q_FUNC_INFO<<"Analysis failed";
@@ -107,31 +138,43 @@ void SocketServer::readData()
             for (Result r : results) {
                 qDebug() << "message " << r.errorMessage;
             }
-            QJsonArray resultsJson = JsonUtils::toJson(results);
+            //QJsonArray resultsJson = JsonUtils::toJson(results);
             QJsonObject resultObject;
-            resultObject["errorMessage"] = "Analysis failed";
-            resultsJson.append(resultObject);
-            jsonObject[command] = resultsJson;
+            //resultObject["errorMessage"] = "Analysis failed";
+            //resultsJson.append(resultObject);
+            jsonObject[command] = resultObject;
+
+            QJsonDocument cfgDoc(jsonObject);
+            p_clientSocket->write(cfgDoc.toJson());
+            //text << "failure result written to clientSocket from server " << Qt::endl;
+            qDebug() << "failure result written to clientSocket from server " << Qt::endl;
         }
-        QJsonDocument cfgDoc(jsonObject);
-        p_clientSocket->write(cfgDoc.toJson());
 
         for (Result r : results) {
             delete r.errorMessage;
         }
+        //text << "result deleted " << Qt::endl;
+        qDebug() << "result deleted " << Qt::endl;
+
         results.clear();
+        //text << "result cleared " << Qt::endl;
+        qDebug() << "result cleared " << Qt::endl;
+        //text << outputPath << Qt::endl;
+
         analyzer.clear();
+        //text << "analyzer cleared " << Qt::endl;
+        qDebug() << "analyzer cleared " << Qt::endl;
     }
     else {
         qDebug() <<Q_FUNC_INFO <<"Invalid command" <<command;
     }
-
+    //logfile.close();
 }
 
 void SocketServer::clientDisconnected()
 {
     qDebug() << Q_FUNC_INFO <<"Client Disconnected ";
-    /*QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
+    /*QFile file("C:\\workspace\\my_repo\\sca\\test\\server.log");
     file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
     QTextStream text(&file);
     text << "app quit" << Qt::endl;

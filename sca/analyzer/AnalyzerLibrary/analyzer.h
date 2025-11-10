@@ -20,9 +20,10 @@ public:
     Analyzer();
 	virtual ~Analyzer();
 
-    Status setOutputPath(const char* outputFilePath);
+    Status openErrorFile(const char* errorFilePath);
+    Status closeErrorFile();
     Status execute(const char* inputFile, const char* outputFilePath, std::vector<Result>& results);
-    Status getCFG(const char* fileName, BasicBlock*& cfg, vector<Result>& results);
+    Status getCFG(const char* fileName, BasicBlock*& cfg, const char* outputFilePath, vector<Result>& results);
     Status fetchErrors(std::vector<Result>& results);
     Status clear();
 private:

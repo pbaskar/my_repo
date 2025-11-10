@@ -18,8 +18,10 @@ int CFGModel::rowCount(const QModelIndex &parent) const {
 
 QVariant CFGModel::data(const QModelIndex &index, int role) const
 {
-    if(p_cfgList.empty())
-        return QVariant();
+    if (p_cfgList.empty()) {
+        QVariantMap dataMap;
+        return dataMap;
+    }
     const auto positionBlock = p_cfgList.at(index.row());
     qDebug() << index.row();
     QVariantMap dataMap;
@@ -38,7 +40,7 @@ QVariant CFGModel::data(const QModelIndex &index, int role) const
         }
     }
     dataMap["stmtList"] = stmts;
-    dataMap["fullHeight"] = totalHeight();
+    //dataMap["fullHeight"] = totalHeight();
     return dataMap;
 }
 
@@ -47,6 +49,12 @@ void CFGModel::onCFGAvailable(const QList<PositionBlock> cfgList)
     p_cfgList = cfgList;
     qDebug()<< Q_FUNC_INFO<<p_cfgList.size();
     emit layoutChanged();
+    emit totalHeightChanged();
+    /*QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
+    file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
+    QTextStream text(&file);
+    text << Q_FUNC_INFO << "layout changed " << Qt::endl;
+    file.close();*/
     /*QStandardItemModel* model = new QStandardItemModel(results.size(),0,this);
     CEOutputViewDelegate* delegate = new CEOutputViewDelegate(p_outputView);
     for(int i=0; i<model->rowCount(); i++)

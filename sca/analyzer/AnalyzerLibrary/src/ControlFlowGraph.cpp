@@ -321,8 +321,10 @@ void ControlFlowGraph::variableInitCheck(vector<Result>& results) {
 }
 
 void ControlFlowGraph::clear() {
-    p_head->clearFnSymbolEntries();
-    DeleteVisitor deleteVisitor;
-    TraverserOne tOne(&deleteVisitor, true);
-    tOne.traverseCFG(p_head);
+    if (p_head) {
+        p_head->clearFnSymbolEntries();
+        DeleteVisitor deleteVisitor;
+        TraverserOne tOne(&deleteVisitor, true);
+        tOne.traverseCFG(p_head);
+    }
 }

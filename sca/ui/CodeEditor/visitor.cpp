@@ -235,7 +235,7 @@ void PositionVisitor::visitFunctionCallBlock(const FunctionCallBlock* functionCa
 
     p_parentX += padding; //left padding
     p_parentY += topPadding; //top padding
-    Q_ASSERT(!p_positionBlocks.empty());
+    //Q_ASSERT(!p_positionBlocks.empty());
     const BasicBlock* args = functionCallBlock->getArgs();
     if(args != nullptr) {
         lastParentY = p_parentY;
@@ -256,13 +256,13 @@ void PositionVisitor::visitFunctionCallBlock(const FunctionCallBlock* functionCa
     blockHeight += topPadding; //top padding
     PositionBlock positionBlock(parentX, parentY, blockWidth, blockHeight, functionCallBlock);
     p_positionBlocks.append(positionBlock);
-    QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
+    /*QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
     file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
     QTextStream text(&file);
     text << "Visitor::fncallblock x,y " << positionBlock.getX() << " " << positionBlock.getY() << " "
         << positionBlock.getWidth() << " " << positionBlock.getHeight() << Qt::endl;
         Qt::endl;
-    file.close();
+    file.close();*/
     qDebug() << Q_FUNC_INFO << positionBlock.getX() <<" " <<positionBlock.getY() <<" "<<positionBlock.getWidth() <<" "<<positionBlock.getHeight();
     p_parentX = parentX;
 }

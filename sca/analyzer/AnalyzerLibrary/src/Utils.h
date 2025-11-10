@@ -14,6 +14,7 @@ public:
     Utils();
     virtual ~Utils();
     static const char* makeWord(const char* word);
+    static char* makeWordNConst(const char* word);
     static const char* makeWord(const char* word1, const char* word2);
 };
 

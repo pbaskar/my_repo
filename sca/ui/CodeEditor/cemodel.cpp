@@ -7,20 +7,22 @@
 #include "positionblock.h"
 #include "edgevisitor.h"
 
-CEModel::CEModel()
+CEModel::CEModel() : p_head(0)
 {
     //Start server process
     p_server.start("CodeAnalyzer.exe");
-    QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
-    file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
-    QTextStream text(&file);
+    //QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
+    //file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
+    //QTextStream text(&file);
     if (p_server.waitForStarted(90000)) {
-        text << "process started " << Qt::endl;
+        qDebug() << "process started " << Qt::endl;
+        //text << "process started " << Qt::endl;
     }
     else {
-        text << "process did not start " << Qt::endl;
+        qDebug() << "process did not start " << Qt::endl;
+        //text << "process did not start " << Qt::endl;
     }
-    file.close();
+    //file.close();
 
     //connect client to server
     p_socketClient.connectToServer();
@@ -81,47 +83,74 @@ void CEModel::sendCommand(QString command)
 
 void CEModel::onResultsAvailable(QJsonDocument resultsDoc)
 {
-    QFile file("C:\\workspace\\sca\\localStorage\\instructions.json");
+    /*QFile file("C:\\workspace\\sca\\localStorage\\instructions.json");
     if(!file.open(QIODevice::Text | QIODevice::WriteOnly))
         return;
     QTextStream ts(&file);
     ts << resultsDoc.toJson();
-    file.close();
+    file.close();*/
 
     QJsonObject jsonObject = resultsDoc.object();
-    if(jsonObject.empty())
+
+    //QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
+    //file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
+    //QTextStream text(&file);
+    if (jsonObject.empty()) {
+        //text << "jsonobject empty " << Qt::endl;
+        delete p_head;
+        p_head = nullptr;
+        emit CFGAvailable(QList<PositionBlock>());
+        emit edgesAvailable(QList<Edge>());
         return;
+    }
     QString command = jsonObject.keys().at(0);
     if(command == "run")
     {
         QJsonValue jsonValue = jsonObject[command];
-        if(jsonValue == QJsonValue::Undefined || !jsonValue.isArray())
+        if (jsonValue == QJsonValue::Undefined || !jsonValue.isArray()) {
+            QVariantList results;
+            QJsonObject invalidObject;
+            invalidObject["errorMessage"] = QString("Invalid result");
+            results.append(invalidObject);
+            emit resultsAvailable(results);
             return;
+        }
         const QJsonArray jsonArray = jsonValue.toArray();
         QVariantList results = JsonUtils::fromResultsJson(jsonArray);
         emit resultsAvailable(results);
     }
     else if(command == "getCFG")
     {
-        //delete head;
+        //text << Q_FUNC_INFO <<"getCFG result " << Qt::endl;
         QJsonValue jsonValue = jsonObject[command];
-        if(jsonValue == QJsonValue::Undefined || !jsonValue.isArray())
+        if (jsonValue == QJsonValue::Undefined || !jsonValue.isArray()) {
+            delete p_head;
+            p_head = nullptr;
+            emit CFGAvailable(QList<PositionBlock>());
+            emit edgesAvailable(QList<Edge>());
+
+            //text << Q_FUNC_INFO << "invalid result " << Qt::endl;
             return;
+        }
         const QJsonArray jsonArray = jsonValue.toArray();
-        BasicBlock* head = JsonUtils::fromCFGJson(jsonArray);
-        Q_ASSERT(head != nullptr);
+        BasicBlock* newHead = JsonUtils::fromCFGJson(jsonArray);
+        Q_ASSERT(newHead != nullptr);
 
         PrintVisitor printVisitor;
-        printVisitor.visitCFG(head);
+        printVisitor.visitCFG(newHead);
 
         PositionVisitor positionVisitor;
-        positionVisitor.visitCFG(head);
+        positionVisitor.visitCFG(newHead);
 
         EdgeVisitor edgeVisitor;
         edgeVisitor.setPositionBlocks(positionVisitor.getPositionBlocks());
-        edgeVisitor.visitCFG(head);
+        edgeVisitor.visitCFG(newHead);
+
+        delete p_head;
+        p_head = newHead;
 
         emit CFGAvailable(positionVisitor.getPositionBlocks());
         emit edgesAvailable(edgeVisitor.getEdges());
     }
+    //file.close();
 }

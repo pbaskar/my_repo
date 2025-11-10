@@ -15,11 +15,12 @@ void SocketClient::connectToServer() {
 
 void SocketClient::writeToSocket(QByteArray data)
 {
-    QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
+    /*QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
     file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
     QTextStream text(&file);
     text << "SocketClient::writetosocket" << data<<Qt::endl;
-    file.close();
+    file.close();*/
+    qDebug() << Q_FUNC_INFO << data << Qt::endl;
     p_socket.write(data);
 }
 
@@ -43,6 +44,11 @@ void SocketClient::onConnectionError()
 void SocketClient::readData()
 {
     QByteArray resultsJson = p_socket.readAll();
+    /*QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
+    file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
+    QTextStream text(&file);
+    text << "SocketClient::readdata" << resultsJson << Qt::endl;
+    file.close();*/
     qDebug() <<Q_FUNC_INFO << "Reply from Server " <<resultsJson;
     QJsonDocument results = QJsonDocument::fromJson(resultsJson);
     emit resultsAvailable(results);
