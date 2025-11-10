@@ -14,19 +14,19 @@ Prerequisites:
 This is required dependency for running the DefChecker application.
 It is packaged along with the application.
 
-Documentation is available at https://github.com/pbaskar/my_repo/tree/master/sca/doc/
+Documentation is available at https://github.com/pbaskar/my_repo/tree/defchecker_release_version_1_0_0/sca/doc/
 
 Execute from commandline:
-1. Download samples.zip from https://github.com/pbaskar/my_repo/tree/master/sca/doc/
+1. Download samples.zip from https://github.com/pbaskar/my_repo/tree/defchecker_release_version_1_0_0/sca/doc/
 2. Unzip samples.zip to C:\workspace folder or any other writable folder
 3. Open command prompt
 4. Run command: DefChecker -i C:\workspace\swap_num.c -o C:\workspace\
 5. Check C:\workspace\output.log for results
-6. More test files are available at https://github.com/pbaskar/my_repo/tree/master/sca/test directory
+6. More sample files are available at https://github.com/pbaskar/my_repo/tree/defchecker_release_version_1_0_0/sca/test directory
 
 Code snippets and expected result:
 
-1) test\f1.c
+1) f1.c
 Input:
     Line 1: void f1() {
     Line 2:     int b;
@@ -40,7 +40,7 @@ Input:
 Output:
     Undefined variable b in Line 4 : sum = b+c
 
-2) test\f2.c
+2) f2.c
 Input:
     Line 1:  void f2() {
     Line 2:      int a=1;
@@ -63,7 +63,7 @@ Output:
 Comments:
     Variable b is not assigned a value in else case
 
-3) test\f3.c
+3) f3.c
 Input:
     Line 1:  void f3() {
     Line 2:      int a =1;
@@ -87,7 +87,7 @@ Output:
 Comments:
     Variable b in else block shadows the uninitialized variable in outer scope
 
-4) test\f4.c
+4) f4.c
 Input:
     Line 1: void f4() {
     Line 2:     int *q;
@@ -101,7 +101,7 @@ Output:
     Undefined variable q in Line 3 : a = *q
     Undefined variable *q in Line 3 : a = *q
 
-5) test\f5.c
+5) f5.c
 Input:
     Line 1: void f5() {
     Line 2:     int *p=malloc(4);
@@ -121,7 +121,7 @@ Output:
 Comments:
     Variables p and q both point to the same memory allocated by malloc
 
-6) test\f6.c
+6) f6.c
 Input:
     Line 1: void f6() {
     Line 2:     int *p=malloc(4);

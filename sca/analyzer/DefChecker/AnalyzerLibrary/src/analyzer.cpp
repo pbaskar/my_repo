@@ -16,7 +16,8 @@ using namespace std;
 #include "analyzer.h"
 #include "Logger.h"
 
-static const char* usageMsg = "Usage: DefChecker.exe -i <inputfile> -o <outputpath> \nMore info is available at https://github.com/pbaskar/my_repo/tree/defchecker_release_version_1_0_0/sca/doc";
+static const char* usageMsg = "Usage: DefChecker.exe -i test\\swap_num.c -o <WritableFolder> \nMore info is available at https://github.com/pbaskar/my_repo/tree/defchecker_release_version_1_0_0/sca/doc";
+
 Analyzer::Analyzer() {
     // TODO Auto-generated constructor stub
 
@@ -53,7 +54,6 @@ Status Analyzer::setOutputPath(const char* outputFilePath) {
     const char* errorFile = Utils::makeWord(outputFilePath, "\\error.log");
     Status s = Logger::getInstance()->setErrorFile(errorFile);
     if (s == FAILURE) {
-        const char* usageMsg = "Usage: DefChecker.exe -i test\\swap_num.c -o <WritableFolder>";
         cout << usageMsg << endl;
     }
     delete errorFile;
@@ -61,7 +61,6 @@ Status Analyzer::setOutputPath(const char* outputFilePath) {
 }
 
 Status Analyzer::execute(const char* inputFile, const char* outputFilePath, std::vector<Result>& results) {
-    const char* usageMsg = "Usage: DefChecker.exe -i test\\swap_num.c -o <WritableFolder>";
     const char* debugFile = Utils::makeWord(outputFilePath, "\\debug.log");
     Logger::getDebugStreamInstance().open(debugFile);
     if (!Logger::getDebugStreamInstance().is_open()) {

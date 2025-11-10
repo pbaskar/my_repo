@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     const char* inputFile = nullptr;
     const char* outputFilePath = nullptr;
 
-    const char* usageMsg = "Usage: DefChecker.exe -i <inputfile> -o <outputpath> \nMore info is available at https://github.com/pbaskar/my_repo/tree/defchecker_release_version_1_0_0/sca/doc";
+    const char* usageMsg = "Usage: DefChecker.exe -i test\\swap_num.c -o <WritableFolder> \nMore info is available at https://github.com/pbaskar/my_repo/tree/defchecker_release_version_1_0_0/sca/doc";
     if(argc < 5) {
         std::cout << usageMsg << std::endl;
         return 0;
