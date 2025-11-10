@@ -79,20 +79,20 @@ void MainWindow::createWidgets()
 void MainWindow::createMenus()
 {
     QMenu* fileMenu = new QMenu(tr("File"));
-    QAction* openFileAction = fileMenu->addAction(tr("Open"), QKeySequence(Qt::ALT | Qt::Key_O));
+    QAction* openFileAction = fileMenu->addAction(tr("Open"), QKeySequence(Qt::CTRL | Qt::Key_O));
     QMenu* openSampleFileAction = fileMenu->addMenu(tr("Open Sample"));
-    QAction* saveFileAction = fileMenu->addAction(tr("Save"), QKeySequence(Qt::ALT | Qt::Key_S));
+    QAction* saveFileAction = fileMenu->addAction(tr("Save"), QKeySequence(Qt::CTRL | Qt::Key_S));
     QAction* saveAsFileAction = fileMenu->addAction(tr("Save as"));
-    QAction* runAction = fileMenu->addAction(tr("Run"), QKeySequence(Qt::ALT | Qt::Key_R));
-    QAction* closeAction = fileMenu->addAction(tr("Close"), QKeySequence(Qt::ALT | Qt::Key_C));
+    QAction* runAction = fileMenu->addAction(tr("Run"), QKeySequence(Qt::CTRL | Qt::Key_R));
+    QAction* closeAction = fileMenu->addAction(tr("Close"), QKeySequence(Qt::CTRL | Qt::Key_C));
     menuBar()->addMenu(fileMenu);
 
-    QAction* openSampleOneFileAction = openSampleFileAction->addAction(tr("Open Sample 1"), QKeySequence(Qt::ALT | Qt::Key_S));
-    QAction* openSampleTwoFileAction = openSampleFileAction->addAction(tr("Open Sample 2"), QKeySequence(Qt::ALT | Qt::Key_O));
-    QAction* openSampleThreeFileAction = openSampleFileAction->addAction(tr("Open Sample 3"), QKeySequence(Qt::ALT | Qt::Key_S));
-    QAction* openSampleFourFileAction = openSampleFileAction->addAction(tr("Open Sample 4"), QKeySequence(Qt::ALT | Qt::Key_O));
-    QAction* openSampleFiveFileAction = openSampleFileAction->addAction(tr("Open Sample 5"), QKeySequence(Qt::ALT | Qt::Key_S));
-    QAction* openSampleSixFileAction = openSampleFileAction->addAction(tr("Open Sample 6"), QKeySequence(Qt::ALT | Qt::Key_O));
+    QAction* openSampleOneFileAction = openSampleFileAction->addAction(tr("Open Sample 1"));
+    QAction* openSampleTwoFileAction = openSampleFileAction->addAction(tr("Open Sample 2"));
+    QAction* openSampleThreeFileAction = openSampleFileAction->addAction(tr("Open Sample 3"));
+    QAction* openSampleFourFileAction = openSampleFileAction->addAction(tr("Open Sample 4"));
+    QAction* openSampleFiveFileAction = openSampleFileAction->addAction(tr("Open Sample 5"));
+    QAction* openSampleSixFileAction = openSampleFileAction->addAction(tr("Open Sample 6"));
 
     connect(openSampleOneFileAction, &QAction::triggered, this, &MainWindow::openSampleOne);
     connect(openSampleTwoFileAction, &QAction::triggered, this, &MainWindow::openSampleTwo);
@@ -117,8 +117,9 @@ void MainWindow::createMenus()
 
 void MainWindow::openFile()
 {
+    QString filePath = QCoreApplication::applicationDirPath() + QString("/");
     p_fileName = QFileDialog::getOpenFileName(this,
-        tr("Open File"), QString("C:\\workspace\\my_repo\\sca\\test"), tr("C Files (*.c)"));
+        tr("Open File"), filePath, tr("C Files (*.c)"));
     QFile file(p_fileName);
     if(!file.open(QIODevice::Text | QIODevice::ReadOnly))
         return;
@@ -152,8 +153,9 @@ void MainWindow::saveFile()
 
 void MainWindow::saveAsFile()
 {
+    QString filePath = QCoreApplication::applicationDirPath() + QString("/");
     p_fileName = QFileDialog::getSaveFileName(this,
-        tr("Open File"), QString("C:\\workspace\\my_repo\\sca\\test"), tr("C Files (*.c)"));
+        tr("Open File"), filePath, tr("C Files (*.c)"));
     QString text = p_codeEdit->toPlainText();
     QFile file(p_fileName);
     if (!file.open(QIODevice::Text | QIODevice::WriteOnly))
@@ -168,9 +170,10 @@ void MainWindow::saveAsFile()
 }
 
 void MainWindow::updateViewTab(int index) {
+    if (p_fileName.isEmpty()) return;
     if (index == 1) {
         QString command("getCFG");
-        command.append(' ');
+        command.append('#');
         command.append(p_fileName);
         CEModel::getInstance()->sendCommand(command);
 
@@ -192,8 +195,9 @@ void MainWindow::tabChanged(int index)
 
 void MainWindow::run()
 {
+    if (p_fileName.isEmpty()) return;
     QString command("run");
-    command.append(' ');
+    command.append('#');
     command.append(p_fileName);
     CEModel::getInstance()->sendCommand(command);
     statusBar()->showMessage(tr("Run command"), 2000);
@@ -202,6 +206,11 @@ void MainWindow::run()
 void MainWindow::onResultsAvailable(QVariantList results)
 {
     qDebug()<< Q_FUNC_INFO<<results.size();
+    /*QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
+    file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
+    QTextStream text(&file);
+    text << Q_FUNC_INFO << results.size() << Qt::endl;
+    file.close();*/
     QStandardItemModel* model = new QStandardItemModel(results.size(),0,this);
     CEOutputViewDelegate* delegate = new CEOutputViewDelegate(p_outputView);
     for(int i=0; i<model->rowCount(); i++)
@@ -229,7 +238,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::openSample(QString fileName)
 {
-    p_fileName = fileName;
+    p_fileName = QCoreApplication::applicationDirPath() + QString("/") +  fileName;
+
     QFile file(p_fileName);
     if (!file.open(QIODevice::Text | QIODevice::ReadOnly))
         return;
@@ -237,16 +247,11 @@ void MainWindow::openSample(QString fileName)
     p_codeEdit->setPlainText(ts.readAll());
     file.close();
     QString label("Code: ");
-    label.append(p_fileName);
+    label.append(fileName);
     p_codeTextEditLabel->setText(label);
-    statusBar()->showMessage(tr("File opened"), 2000);
 
-    if (p_codeVisual->currentIndex() == 1) {
-        QString command("getCFG");
-        command.append(' ');
-        command.append(p_fileName);
-        CEModel::getInstance()->sendCommand(command);
-    }
+    updateViewTab(p_codeVisual->currentIndex());
+    //statusBar()->showMessage(p_fileName, 2000);
 }
 
 void MainWindow::openSampleOne() {

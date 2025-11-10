@@ -10,7 +10,7 @@ class CFGModel : public QAbstractListModel
 {
     Q_OBJECT
     QML_ELEMENT
-    QML_SINGLETON
+    //QML_SINGLETON
     Q_PROPERTY(int totalHeight READ totalHeight NOTIFY totalHeightChanged);
     Q_PROPERTY(int totalWidth READ totalWidth NOTIFY totalWidthChanged);
 public:
@@ -18,11 +18,14 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     int totalHeight() const {
-        int h = p_cfgList.constLast().getY() + p_cfgList.constLast().getHeight();
+        int h = 100;
+        if (!p_cfgList.empty()) {
+            h = p_cfgList.constLast().getY() + p_cfgList.constLast().getHeight();
+        }
         /*QFile file("C:\\workspace\\my_repo\\sca\\test\\ui.log");
         file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Append);
         QTextStream text(&file);
-        text << "cfgmodel ::totalHeight x, y " <<h << Qt::endl;
+        text << "cfgmodel ::totalHeight x, y " << h << Qt::endl;
         file.close();*/
         return h;
     }

@@ -43,16 +43,17 @@ public:
         return &logger;
     }
 
-    static ostream& getDebugStreamInstance() {
-        static stringstream p_debug;
+    static ofstream& getDebugStreamInstance() {
+        static ofstream p_debug;
         return p_debug;
     }
-    Status setErrorFile(const char* errorFile);
+    Status openErrorFile(const char* errorFile);
+    Status closeErrorFile();
     void addError(char* r) { p_errors.push_back(r); }
     void clearErrors() {
-        for (int i = 0; i < p_errors.size(); i++) {
+        /*for (int i = 0; i < p_errors.size(); i++) {
             delete p_errors[i];
-        }
+        }*/
         p_errors.clear();
     }
     const std::vector<char*>& getErrors() const {

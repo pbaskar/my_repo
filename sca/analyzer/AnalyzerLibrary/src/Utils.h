@@ -15,6 +15,7 @@ public:
     Utils();
     virtual ~Utils();
     static const char* makeWord(const char* word);
+    static char* makeWordNConst(const char* word);
     static const char* makeWord(const char* word1, const char* word2);
     static bool isAlpha(char c);
     static Status populateMallocFnCall(const Variable* lhs, Expr* value);

@@ -26,6 +26,14 @@ const char* Utils::makeWord(const char* word) {
     return p;
 }
 
+char* Utils::makeWordNConst(const char* word) {
+    int len = strlen(word);
+    char* p = new char[len + 1];
+    p[len] = '\0';
+    strncpy(p, word, len);
+    return p;
+}
+
 const char* Utils::makeWord(const char* word1, const char* word2) {
     int len1 = strlen(word1);
     int len2 = strlen(word2);

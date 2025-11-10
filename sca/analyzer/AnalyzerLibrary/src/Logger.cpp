@@ -17,10 +17,9 @@ Logger::Logger() {
 
 Logger::~Logger() {
     // TODO Auto-generated destructor stub
-    p_of.close();
 }
 
-Status Logger::setErrorFile(const char* errorFile) {
+Status Logger::openErrorFile(const char* errorFile) {
     p_of.open(errorFile);
     if (!p_of.is_open()) {
         std::cout << "could not open error log " << endl;
@@ -29,12 +28,17 @@ Status Logger::setErrorFile(const char* errorFile) {
     return SUCCESS;
 }
 
+Status Logger::closeErrorFile() {
+    p_of.close();
+    return SUCCESS;
+}
+
 void Logger::logMessage(ErrorCode errorCode, int num, ...) {
     va_list argsList;
     va_start(argsList, num);
     const size_t outputSize = 180;
-
     char output[outputSize] = {'\0'};
+
     strcat(output, va_arg(argsList, char*));
     strcat(output, " ");
     const char* message = errorMessage[errorCode];
@@ -61,12 +65,12 @@ void Logger::logMessage(ErrorCode errorCode, int num, ...) {
 
     va_end(argsList);
 
-    /*ofstream& of = getInstance()->getOfstream();
+    ofstream& of = getInstance()->getOfstream();
     for(char c: output) {
         if (c== '\0') break;
         of << c;
     }
-    of <<endl;*/
+    of <<endl;
     char* errorMsg = new char[strlen(output) + 1];
     errorMsg[0] = '\0';
     strncat(errorMsg, output, strlen(output));

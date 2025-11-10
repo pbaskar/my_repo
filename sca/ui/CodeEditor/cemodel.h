@@ -24,6 +24,8 @@ public slots:
 private:
     QProcess p_server;
     SocketClient p_socketClient;
+
+    BasicBlock* p_head;
 };
 
 #endif // CEMODEL_H

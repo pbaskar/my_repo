@@ -12,12 +12,15 @@ import com.model.cfgModel 1.0
 
 Flickable {
     ScrollBar.vertical: ScrollBar { }
-    property var flickableContentHeight : 200
+    //property var flickableContentHeight : 200
     anchors.fill: parent
-    contentHeight: flickableContentHeight + 25
-    //CFGModel.totalHeight + 25
-    //contentWidth: CFGModel.totalWidth + 25
     clip: true
+
+    //not setting contentWidth, contentHeight crashes on window resize
+    //contentHeight: nodesRepeat.height
+    contentWidth: nodesRepeat.width
+    //contentWidth: CFGModel.totalWidth + 25
+    contentHeight: cfgModel.totalHeight + 25
 
     Component.onCompleted: {
         console.log("Component.onCompleted: CFGView.qml")
@@ -45,11 +48,15 @@ Flickable {
 //        anchors.fill: parent
 //    }
 
+    CFGModel {
+        id: cfgModel
+    }
+
     Repeater {
         id: nodesRepeat
         //implicitWidth: cfgModel.totalWidth + 25
         //implicitHeight: cfgModel.totalHeight + 25
-        model: CFGModel
+        model: cfgModel
         delegate: Rectangle {
             border.color: "green"
             color: "transparent"
@@ -60,7 +67,7 @@ Flickable {
             y: model.display.yPos
             //Drag.active: mouseArea.drag.active
             property var stmts : model.display.stmtList
-            property var fullHeight : model.display.fullHeight
+            //property var fullHeight : model.display.fullHeight
             ListModel {
                 id: stmtListModel
             }
@@ -69,7 +76,7 @@ Flickable {
                     stmtListModel.append({"name":stmts[i]});
                     console.log("stmtListModel ", stmtListModel.count)
                 }
-                flickableContentHeight = fullHeight;
+                //flickableContentHeight = fullHeight;
             }
             ListView {
                 id: listView

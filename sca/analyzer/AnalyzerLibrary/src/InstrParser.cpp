@@ -1071,5 +1071,7 @@ Block* InstrParser::getBlock() const {
 }
 
 void InstrParser::clear() {
-    delete p_mainBlock;
+    if (p_mainBlock) {
+        delete p_mainBlock;
+    }
 }
