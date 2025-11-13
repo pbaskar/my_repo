@@ -1,8 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
-#include "AnalyzerLibrary/analyzer.h"
-#include "AnalyzerLibrary/src/Results.h"
+#include "analyzer.h"
+#include "src/Results.h"
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -49,11 +49,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    Status s = analyzer.setOutputPath(outputFilePath);
-    if (s == FAILURE) {
-        return 0;
-    }
-    s = analyzer.execute(inputFile, outputFilePath, results);
+    Status s = analyzer.execute(inputFile, outputFilePath, results);
     std::cout << "File name : " <<inputFile <<", status = " <<s <<std::endl;
     return 0;
 }
